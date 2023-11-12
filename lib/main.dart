@@ -6,7 +6,7 @@ import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
-import 'package:safe_me/widgets/notification_tile.dart';
+import 'package:safe_me/widgets/custom_notification_tile.dart';
 
 void main() {
   runApp(const MyApp());
