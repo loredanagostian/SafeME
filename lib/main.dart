@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
 void main() {
@@ -46,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(
@@ -76,6 +79,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 controller: _passwordController,
                 hintText: AppStrings.password,
                 isPassword: true,
+              ),
+              SizedBox(height: AppSizes.mediumDistance),
+              CustomButton(
+                buttonColor: AppColors.mainBlue,
+                buttonText: AppStrings.login,
+                onTap: () {},
+                isGoogle: true,
               ),
             ],
           ),

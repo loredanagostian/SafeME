@@ -49,4 +49,10 @@ class AppStyles {
       fontFamily: 'Poppins',
       fontSize: 12,
       fontWeight: FontWeight.w600);
+
+  static const TextStyle buttonTextStyle = TextStyle(
+      color: AppColors.white,
+      fontFamily: 'Poppins',
+      fontSize: 15,
+      fontWeight: FontWeight.w500);
 }
