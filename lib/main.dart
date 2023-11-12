@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/strings.dart';
+import 'package:safe_me/widgets/custom_textfield.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,8 +12,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: AppStrings.appTitle,
+      theme: ThemeData(colorSchemeSeed: Colors.pink, fontFamily: 'Poppins'),
       home: MyHomePage(title: AppStrings.appTitle),
     );
   }
@@ -66,7 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+        ),
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
@@ -94,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            CustomTextField(),
           ],
         ),
       ),
