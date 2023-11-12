@@ -5,6 +5,7 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
+import 'package:safe_me/widgets/notification_tile.dart';
 
 void main() {
   runApp(const MyApp());
@@ -87,6 +88,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: () {},
                 isGoogle: true,
               ),
+              SizedBox(height: AppSizes.mediumDistance),
+              NotificationTile(
+                  notificationTitle: "notificationTitle",
+                  notificationBody: "notificationBody"),
+              SizedBox(height: AppSizes.mediumDistance),
+              NotificationTile(
+                notificationTitle: "notificationTitle",
+                notificationBody: "notificationBody",
+                isRead: true,
+              )
             ],
           ),
         ),
