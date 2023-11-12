@@ -55,4 +55,10 @@ class AppStyles {
       fontFamily: 'Poppins',
       fontSize: 15,
       fontWeight: FontWeight.w500);
+
+  static const TextStyle bottomItemStyle = TextStyle(
+      color: AppColors.mediumGray,
+      fontFamily: 'Poppins',
+      fontSize: 12,
+      fontWeight: FontWeight.w600);
 }

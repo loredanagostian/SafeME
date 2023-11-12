@@ -7,4 +7,7 @@ class AppStrings {
   static const String passwordsShouldMatch = "* passwords should match";
   static const String login = "Login";
   static const String loginWithGoogle = "Login with Google";
+  static const String map = "Map";
+  static const String home = "Home";
+  static const String friends = "Friends";
 }

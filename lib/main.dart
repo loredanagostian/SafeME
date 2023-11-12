@@ -3,6 +3,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 import 'package:safe_me/widgets/notification_tile.dart';
@@ -50,8 +51,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      extendBody: true,
+      bottomNavigationBar: CustomBottomTabNavigator(),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        elevation: 0,
         title: Text(
           widget.title,
           style: AppStyles.titleStyle,
