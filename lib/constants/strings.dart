@@ -9,6 +9,9 @@ class AppStrings {
   static const String login = "Login";
   static const String loginWithGoogle = "Login with Google";
   static const String forgotPassword = "Forgot password?";
+  static const String enterEmailBelow =
+      "Enter your email below to reset your password";
+  static const String resetPassword = "Reset password";
   static const String map = "Map";
   static const String home = "Home";
   static const String friends = "Friends";
