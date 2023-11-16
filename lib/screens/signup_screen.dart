@@ -16,6 +16,8 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +75,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         .copyWith(color: AppColors.mainDarkGray),
                   ),
                   CustomTextField(
-                    controller: passwordController,
+                    controller: confirmPasswordController,
                     hintText: AppStrings.confirmPassword,
                     isPassword: true,
                   ),
