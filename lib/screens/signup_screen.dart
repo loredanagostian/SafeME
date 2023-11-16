@@ -3,24 +3,34 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/screens/signup_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.white,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.mainDarkGray,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       backgroundColor: AppColors.white,
       body: SingleChildScrollView(
         child: SafeArea(
@@ -31,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    AppStrings.login,
+                    AppStrings.signupTitle,
                     style: AppStyles.titleStyle,
                   ),
                   const SizedBox(height: AppSizes.titleFieldDistance),
@@ -56,27 +66,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     hintText: AppStrings.password,
                     isPassword: true,
                   ),
-                  const SizedBox(height: AppSizes.smallDistance),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Text(
-                        AppStrings.forgotPassword,
-                        style: AppStyles.sectionTitleStyle.copyWith(
-                            color: AppColors.mainBlue.withOpacity(0.8)),
-                      ),
-                    ),
+                  const SizedBox(height: AppSizes.bigDistance),
+                  Text(
+                    AppStrings.confirmPassword,
+                    style: AppStyles.buttonTextStyle
+                        .copyWith(color: AppColors.mainDarkGray),
+                  ),
+                  CustomTextField(
+                    controller: passwordController,
+                    hintText: AppStrings.confirmPassword,
+                    isPassword: true,
                   ),
                   const SizedBox(height: AppSizes.titleFieldDistance),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
-                      buttonText: AppStrings.login,
+                      buttonText: AppStrings.signupTitle,
                       onTap: () {}),
                   const SizedBox(height: AppSizes.mediumDistance),
                   CustomButton(
                     buttonColor: AppColors.mainBlue,
-                    buttonText: AppStrings.loginWithGoogle,
+                    buttonText: AppStrings.signupWithGoogle,
                     onTap: () {},
                     isGoogle: true,
                   ),
@@ -85,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "${AppStrings.dontHaveAccount} ",
+                        "${AppStrings.alreadyHaveAccount} ",
                         style: AppStyles.buttonTextStyle
                             .copyWith(color: AppColors.darkGray),
                       ),
@@ -95,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             MaterialPageRoute(
                                 builder: (context) => const SignupScreen())),
                         child: Text(
-                          AppStrings.signup,
+                          AppStrings.signin,
                           style: AppStyles.buttonTextStyle.copyWith(
                               color: AppColors.mainBlue,
                               fontWeight: FontWeight.w600),
