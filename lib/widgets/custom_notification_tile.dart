@@ -3,7 +3,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
 
-class CustomNotificationTile extends StatelessWidget {
+class CustomNotificationTile extends StatefulWidget {
   final bool isRead;
   final String notificationTitle;
   final String notificationBody;
@@ -14,40 +14,56 @@ class CustomNotificationTile extends StatelessWidget {
       required this.notificationBody});
 
   @override
+  State<CustomNotificationTile> createState() => _CustomNotificationTileState();
+}
+
+class _CustomNotificationTileState extends State<CustomNotificationTile> {
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSizes.smallDistance),
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              isRead ? Icons.mail_outlined : Icons.mark_email_unread_outlined,
-              size: 33,
-              color: isRead ? AppColors.mainDarkGray : AppColors.mainBlue,
-            ),
-            const SizedBox(width: AppSizes.smallDistance),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  notificationTitle,
-                  style: isRead
-                      ? AppStyles.notificationTitleStyle
-                          .copyWith(color: AppColors.mainDarkGray)
-                      : AppStyles.notificationTitleStyle,
-                ),
-                Text(
-                  notificationBody,
-                  style: isRead
-                      ? AppStyles.notificationBodyStyle
-                          .copyWith(color: AppColors.mainDarkGray)
-                      : AppStyles.notificationBodyStyle,
-                ),
-              ],
-            )
-          ]),
+    return Dismissible(
+      key: Key(widget.notificationTitle),
+      onDismissed: (direction) {
+        // Remove the item from the data source.
+        setState(() {});
+      },
+      background: Container(color: AppColors.mainRed),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.smallDistance),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                widget.isRead
+                    ? Icons.mail_outlined
+                    : Icons.mark_email_unread_outlined,
+                size: 33,
+                color:
+                    widget.isRead ? AppColors.mainDarkGray : AppColors.mainBlue,
+              ),
+              const SizedBox(width: AppSizes.smallDistance),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.notificationTitle,
+                    style: widget.isRead
+                        ? AppStyles.notificationTitleStyle
+                            .copyWith(color: AppColors.mainDarkGray)
+                        : AppStyles.notificationTitleStyle,
+                  ),
+                  Text(
+                    widget.notificationBody,
+                    style: widget.isRead
+                        ? AppStyles.notificationBodyStyle
+                            .copyWith(color: AppColors.mainDarkGray)
+                        : AppStyles.notificationBodyStyle,
+                  ),
+                ],
+              )
+            ]),
+      ),
     );
   }
 }
