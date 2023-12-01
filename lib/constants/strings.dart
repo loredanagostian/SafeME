@@ -21,4 +21,8 @@ class AppStrings {
   static const String signupWithGoogle = "Sign with Google";
   static const String alreadyHaveAccount = "Already have an account?";
   static const String signin = "signin";
+  static const String sharingLiveLocationNow = "Sharing live location now";
+  static const String emergencyGroupIsContacted =
+      "Your emergency group is contacted...";
+  static const String emergencyGroup = "Emergency Group";
 }

@@ -4,6 +4,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/screens/forgot_password_screen.dart';
+import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/signup_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
@@ -77,7 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.login,
-                      onTap: () {}),
+                      onTap: () => Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => const HomeScreen()),
+                          (Route<dynamic> route) => false)),
                   const SizedBox(height: AppSizes.mediumDistance),
                   CustomButton(
                     buttonColor: AppColors.mainBlue,
