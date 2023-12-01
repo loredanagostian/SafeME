@@ -25,4 +25,9 @@ class AppStrings {
   static const String emergencyGroupIsContacted =
       "Your emergency group is contacted...";
   static const String emergencyGroup = "Emergency Group";
+  static const String yourFriendsTitle = "Your friends";
+  static const String trackNow = "Track now";
+  static const String groups = "Groups";
+  static const String allFriends = "All friends";
+  static const String requests = "Requests";
 }
