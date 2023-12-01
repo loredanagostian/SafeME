@@ -7,6 +7,7 @@ class AppStrings {
   static const String emailAlreadyExists = "* email already exists";
   static const String passwordsShouldMatch = "* passwords should match";
   static const String login = "Login";
+  static const String logout = "Logout";
   static const String loginWithGoogle = "Login with Google";
   static const String forgotPassword = "Forgot password?";
   static const String enterEmailBelow =
@@ -31,4 +32,16 @@ class AppStrings {
   static const String allFriends = "All friends";
   static const String requests = "Requests";
   static const String notificationsTitle = "Notifications";
+  static const String moreTitle = "More";
+  static const String changeEmergencyGroup = "Change default emergency group";
+  static const String changeEmergencySMS = "Change default emergency SMS";
+  static const String changeTrackingSMS = "Change default tracking SMS";
+  static const String call112 = "Call 112";
+  static const String editProfile = "Edit profile";
+  static const String changePicture = "Change picture";
+  static const String changeName = "Change name";
+  static const String changeEmail = "Change email";
+  static const String changePassword = "Change password";
+  static const String changePhoneNumber = "Change phone number";
+  static const String saveChanges = "Save changes";
 }

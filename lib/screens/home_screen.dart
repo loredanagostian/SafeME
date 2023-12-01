@@ -3,6 +3,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
@@ -33,14 +34,15 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => NotificationsScreen())),
+                      builder: (context) => const NotificationsScreen())),
               icon: const Icon(
                 Icons.notifications_outlined,
                 color: AppColors.mainDarkGray,
                 size: 30,
               )),
           GestureDetector(
-            onTap: () {},
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const MoreScreen())),
             child: SizedBox(
               height: 50,
               width: 50,

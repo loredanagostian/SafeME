@@ -33,8 +33,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
       style: AppStyles.textComponentStyle,
       obscureText: widget.isPassword ? _isObscureText : false,
       decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.fromLTRB(
+          AppSizes.mediumDistance,
+          AppSizes.smallDistance,
+          AppSizes.smallDistance,
+          AppSizes.smallDistance,
+        ),
         errorStyle: AppStyles.validatorMessagesStyle,
-        contentPadding: const EdgeInsets.all(AppSizes.mediumDistance),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.borders),
           borderSide: const BorderSide(
