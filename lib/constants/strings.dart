@@ -30,4 +30,5 @@ class AppStrings {
   static const String groups = "Groups";
   static const String allFriends = "All friends";
   static const String requests = "Requests";
+  static const String notificationsTitle = "Notifications";
 }

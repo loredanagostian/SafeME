@@ -3,6 +3,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
 import 'package:safe_me/widgets/person_live_location.dart';
@@ -29,7 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => NotificationsScreen())),
               icon: const Icon(
                 Icons.notifications_outlined,
                 color: AppColors.mainDarkGray,
