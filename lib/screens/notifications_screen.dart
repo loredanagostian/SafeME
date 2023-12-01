@@ -39,11 +39,15 @@ class NotificationsScreen extends StatelessWidget {
                     "2 notifications unread",
                     style: AppStyles.textComponentStyle,
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.done_all,
-                      color: AppColors.mainDarkGray,
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.done_all,
+                        color: AppColors.mainDarkGray,
+                      ),
                     ),
                   )
                 ],

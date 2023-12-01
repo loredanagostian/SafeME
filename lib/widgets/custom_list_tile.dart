@@ -94,7 +94,7 @@ class _CustomListTileState extends State<CustomListTile> {
                   child: Text(
                     widget.buttonText,
                     style: AppStyles.notificationTitleStyle
-                        .copyWith(color: Colors.white),
+                        .copyWith(color: AppColors.white),
                   ),
                 ),
               )),

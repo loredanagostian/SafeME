@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/screens/login_screen.dart';
 
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
         useMaterial3: false,
-        canvasColor: Colors.white,
+        canvasColor: AppColors.white,
       ),
       home: const LoginScreen(),
     );
