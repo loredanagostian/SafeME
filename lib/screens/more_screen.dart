@@ -4,6 +4,8 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/screens/default_emergency_group_screen.dart';
+import 'package:safe_me/screens/default_emergency_sms_screen.dart';
+import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 
@@ -125,6 +127,10 @@ class MoreScreen extends StatelessWidget {
             thickness: 0.6,
           ),
           ListTile(
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DefaultEmergencySmsScreen())),
             title: Text(
               AppStrings.changeEmergencySMS,
               style: AppStyles.textComponentStyle.copyWith(fontSize: 15),
@@ -140,6 +146,10 @@ class MoreScreen extends StatelessWidget {
             thickness: 0.6,
           ),
           ListTile(
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DefaultTrackingSmsScreen())),
             title: Text(
               AppStrings.changeTrackingSMS,
               style: AppStyles.textComponentStyle.copyWith(fontSize: 15),

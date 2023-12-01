@@ -44,4 +44,7 @@ class AppStrings {
   static const String changePassword = "Change password";
   static const String changePhoneNumber = "Change phone number";
   static const String saveChanges = "Save changes";
+  static const String emergencySMS = "Emergency SMS";
+  static const String enterMessageBelow = "Enter your new message below:";
+  static const String trackingSMS = "Tracking SMS";
 }

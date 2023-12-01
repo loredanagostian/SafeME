@@ -9,6 +9,7 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final bool isEmail;
   final bool isEditProfile;
+  final bool isEditMessage;
 
   const CustomTextField({
     super.key,
@@ -17,6 +18,7 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.isEmail = false,
     this.isEditProfile = false,
+    this.isEditMessage = false,
   });
 
   @override
@@ -30,6 +32,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
+      maxLines: widget.isEditMessage ? 10 : 1,
+      minLines: widget.isEditMessage ? 10 : 1,
       style: AppStyles.textComponentStyle,
       obscureText: widget.isPassword ? _isObscureText : false,
       decoration: InputDecoration(
