@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "131888538249",
+    "project_id": "safe-me-d9aa0",
+    "storage_bucket": "safe-me-d9aa0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131888538249:android:84f484d6ad9d1cf7ba1c58",
+        "android_client_info": {
+          "package_name": "com.example.safe_me"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "131888538249-k68k7aneliqeaevioua0rpn62oaeoq6t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.safe_me",
+            "certificate_hash": "5606f3f6a72236026a7134e4ad16130411a23b2c"
+          }
+        },
+        {
+          "client_id": "131888538249-97q3sogajmclurjs7jf1in4jitacoai2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_xRpf3o267R-MQvUmBXasitJaiCtzVoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "131888538249-97q3sogajmclurjs7jf1in4jitacoai2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,6 +9,7 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final bool isEmail;
   final bool isEditProfile;
+  final bool isEditMessage;
 
   const CustomTextField({
     super.key,
@@ -17,6 +18,7 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.isEmail = false,
     this.isEditProfile = false,
+    this.isEditMessage = false,
   });
 
   @override
@@ -24,17 +26,25 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  bool _isObscureText = false;
+  bool _isObscureText = true;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
+      maxLines: widget.isEditMessage ? 10 : 1,
+      minLines: widget.isEditMessage ? 10 : 1,
       style: AppStyles.textComponentStyle,
       obscureText: widget.isPassword ? _isObscureText : false,
       decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.fromLTRB(
+          AppSizes.mediumDistance,
+          AppSizes.smallDistance,
+          AppSizes.smallDistance,
+          AppSizes.smallDistance,
+        ),
         errorStyle: AppStyles.validatorMessagesStyle,
-        contentPadding: const EdgeInsets.all(AppSizes.mediumDistance),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.borders),
           borderSide: const BorderSide(
