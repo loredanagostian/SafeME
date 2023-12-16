@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
@@ -22,6 +25,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String snackBarMessage;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -47,7 +52,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     AppStrings.signupTitle,
                     style: AppStyles.titleStyle,
                   ),
-                  const SizedBox(height: AppSizes.titleFieldDistance),
+                  const SizedBox(height: AppSizes.buttonHeight),
                   Text(
                     AppStrings.email,
                     style: AppStyles.buttonTextStyle
@@ -80,16 +85,87 @@ class _SignupScreenState extends State<SignupScreen> {
                     hintText: AppStrings.confirmPassword,
                     isPassword: true,
                   ),
-                  const SizedBox(height: AppSizes.titleFieldDistance),
+                  const SizedBox(height: AppSizes.buttonHeight),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.signupTitle,
-                      onTap: () {}),
+                      // REGISTER to Firebase function
+                      onTap: () async {
+                        if (passwordController.text ==
+                                confirmPasswordController.text &&
+                            RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                .hasMatch(emailController.text)) {
+                          try {
+                            await FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                                  email: emailController.text,
+                                  password: passwordController.text,
+                                )
+                                .then((value) => Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HomeScreen()),
+                                    (route) => false));
+                          } on FirebaseAuthException catch (e) {
+                            if (e.code == 'weak-password') {
+                              snackBarMessage = AppStrings.passwordTooWeak;
+                            } else if (e.code == 'email-already-in-use') {
+                              snackBarMessage = AppStrings.emailAlreadyExists;
+                            }
+                          } catch (e) {
+                            snackBarMessage = e.toString();
+                          }
+                        } else {
+                          snackBarMessage = AppStrings.invalidCredentials;
+
+                          final SnackBar snackBar = SnackBar(
+                            content: SizedBox(
+                              height: AppSizes.bigDistance,
+                              child: Row(children: [
+                                const Icon(
+                                  Icons.priority_high,
+                                  color: AppColors.white,
+                                ),
+                                const SizedBox(width: AppSizes.smallDistance),
+                                Text(
+                                  snackBarMessage,
+                                  style: AppStyles.bottomItemStyle
+                                      .copyWith(color: AppColors.white),
+                                )
+                              ]),
+                            ),
+                            backgroundColor: AppColors.mainRed,
+                          );
+
+                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                        }
+                      }),
                   const SizedBox(height: AppSizes.mediumDistance),
                   CustomButton(
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.signupWithGoogle,
-                    onTap: () {},
+                    // REGISTER with Google
+                    onTap: () async {
+                      final GoogleSignInAccount? googleUser =
+                          await GoogleSignIn().signIn();
+
+                      final GoogleSignInAuthentication? googleAuth =
+                          await googleUser?.authentication;
+
+                      final credential = GoogleAuthProvider.credential(
+                        accessToken: googleAuth?.accessToken,
+                        idToken: googleAuth?.idToken,
+                      );
+
+                      return await FirebaseAuth.instance
+                          .signInWithCredential(credential)
+                          .then((value) => Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomeScreen()),
+                              (route) => false));
+                    },
                     isGoogle: true,
                   ),
                   const SizedBox(height: AppSizes.bigDistance),

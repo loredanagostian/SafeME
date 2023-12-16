@@ -3,9 +3,12 @@ class AppStrings {
   static const String email = "E-mail";
   static const String password = "Password";
   static const String confirmPassword = "Confirm password";
-  static const String invalidEmail = "* invalid credentials";
-  static const String emailAlreadyExists = "* email already exists";
-  static const String passwordsShouldMatch = "* passwords should match";
+  static const String invalidEmail = "Invalid email";
+  static const String emailAlreadyExists =
+      "The account already exists for that email.";
+  static const String passwordTooWeak = "The password provided is too weak.";
+  static const String noUserFound = "No user found for that email.";
+  static const String invalidCredentials = "Invalid credentials.";
   static const String login = "Login";
   static const String logout = "Logout";
   static const String loginWithGoogle = "Login with Google";
@@ -19,7 +22,7 @@ class AppStrings {
   static const String dontHaveAccount = "Don't have an account?";
   static const String signup = "signup";
   static const String signupTitle = "Sign up";
-  static const String signupWithGoogle = "Sign with Google";
+  static const String signupWithGoogle = "Sign up with Google";
   static const String alreadyHaveAccount = "Already have an account?";
   static const String signin = "signin";
   static const String sharingLiveLocationNow = "Sharing live location now";

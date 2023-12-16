@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -7,6 +8,7 @@ import 'package:safe_me/screens/default_emergency_group_screen.dart';
 import 'package:safe_me/screens/default_emergency_sms_screen.dart';
 import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
+import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -102,7 +104,15 @@ class MoreScreen extends StatelessWidget {
           CustomButton(
               buttonColor: AppColors.mainBlue,
               buttonText: AppStrings.logout,
-              onTap: () {}),
+              // SIGN OUT
+              onTap: () async {
+                await FirebaseAuth.instance.signOut().then((value) =>
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
+                        (route) => false));
+              }),
           const SizedBox(height: AppSizes.mediumDistance),
           const Divider(
             color: AppColors.mediumGray,
