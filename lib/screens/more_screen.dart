@@ -58,7 +58,7 @@ class MoreScreen extends StatelessWidget {
                 alignment: Alignment.topCenter,
                 child: Container(
                   constraints:
-                      const BoxConstraints(maxWidth: 175, maxHeight: 110),
+                      const BoxConstraints(maxWidth: 175, maxHeight: 150),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,6 +70,7 @@ class MoreScreen extends StatelessWidget {
                       ),
                       Text(
                         "ana.blandiana@gmail.com",
+                        overflow: TextOverflow.visible,
                         style: AppStyles.hintComponentStyle
                             .copyWith(color: AppColors.mainDarkGray),
                       ),

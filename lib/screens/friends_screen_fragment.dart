@@ -57,6 +57,12 @@ class FriendsScreenFragment extends StatelessWidget {
               title: "Lore Gostian",
               subtitle: "0733156102",
               buttonText: "TRACK",
+            ),
+            CustomListTile(
+              photoUrl: "assets/images/eu.jpg",
+              title: "Lore Gostian",
+              subtitle: "0733156102",
+              buttonText: "TRACK",
               isRequest: true,
             )
           ],

@@ -3,6 +3,8 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/screens/friends_screen.dart';
+import 'package:safe_me/screens/home_screen.dart';
 
 class CustomBottomTabNavigator extends StatefulWidget {
   const CustomBottomTabNavigator({super.key});
@@ -21,6 +23,19 @@ class _CustomBottomTabNavigatorState extends State<CustomBottomTabNavigator> {
       setState(() {
         _selectedIndex = index;
       });
+
+      switch (index) {
+        case 0:
+          break;
+        case 1:
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()));
+          break;
+        case 2:
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const FriendsScreen()));
+          break;
+      }
     }
 
     return Container(
