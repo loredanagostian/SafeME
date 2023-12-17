@@ -10,6 +10,7 @@ class CustomTextField extends StatefulWidget {
   final bool isEmail;
   final bool isEditProfile;
   final bool isEditMessage;
+  final bool isPhoneNumber;
 
   const CustomTextField({
     super.key,
@@ -19,6 +20,7 @@ class CustomTextField extends StatefulWidget {
     this.isEmail = false,
     this.isEditProfile = false,
     this.isEditMessage = false,
+    this.isPhoneNumber = false,
   });
 
   @override
@@ -32,6 +34,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
+      keyboardType:
+          widget.isPhoneNumber ? TextInputType.phone : TextInputType.text,
       maxLines: widget.isEditMessage ? 10 : 1,
       minLines: widget.isEditMessage ? 10 : 1,
       style: AppStyles.textComponentStyle,
@@ -44,7 +48,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
           AppSizes.smallDistance,
           AppSizes.smallDistance,
         ),
-        errorStyle: AppStyles.validatorMessagesStyle,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.borders),
           borderSide: const BorderSide(

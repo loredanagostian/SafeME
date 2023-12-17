@@ -19,13 +19,21 @@ class _CustomBottomTabNavigatorState extends State<CustomBottomTabNavigator> {
   Widget build(BuildContext context) {
     int _selectedIndex = 1;
 
-    void _onItemTapped(int index) {
+    Future<void> _onItemTapped(int index) async {
       setState(() {
         _selectedIndex = index;
       });
 
       switch (index) {
         case 0:
+          // await FirebaseFirestore.instance
+          //     .collection("users")
+          //     .get()
+          //     .then((event) {
+          //   for (var doc in event.docs) {
+          //     print("${doc.id} => ${doc.data()}");
+          //   }
+          // });
           break;
         case 1:
           Navigator.pushReplacement(context,

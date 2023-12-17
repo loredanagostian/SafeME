@@ -5,6 +5,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/screens/complete_profile_screen.dart';
 import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
@@ -101,12 +102,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                   email: emailController.text,
                                   password: passwordController.text,
                                 )
-                                .then((value) => Navigator.pushAndRemoveUntil(
+                                .then((value) => Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            const HomeScreen()),
-                                    (route) => false));
+                                            CompleteProfileScreen(
+                                              email: emailController.text,
+                                            ))));
                           } on FirebaseAuthException catch (e) {
                             if (e.code == 'weak-password') {
                               snackBarMessage = AppStrings.passwordTooWeak;
