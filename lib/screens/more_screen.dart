@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -11,9 +13,16 @@ import 'package:safe_me/screens/edit_profile_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 
-class MoreScreen extends StatelessWidget {
-  const MoreScreen({super.key});
+class MoreScreen extends StatefulWidget {
+  final Map<String, dynamic> user;
 
+  const MoreScreen({super.key, required this.user});
+
+  @override
+  State<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,18 +52,11 @@ class MoreScreen extends StatelessWidget {
                 height: 100,
                 width: 100,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-                  child: Container(
-                      decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage(
-                        'lib/assets/images/eu.jpg',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  )),
-                ),
+                    padding:
+                        const EdgeInsets.only(right: AppSizes.smallDistance),
+                    child: CircleAvatar(
+                        backgroundImage:
+                            FileImage(File(widget.user["imageURL"])))),
               ),
               Align(
                 alignment: Alignment.topCenter,
@@ -66,18 +68,18 @@ class MoreScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Ana Blandiana",
+                        "${widget.user["firstName"]} ${widget.user["lastName"]}",
                         style: AppStyles.titleStyle
                             .copyWith(color: AppColors.mainDarkGray),
                       ),
                       Text(
-                        "ana.blandiana@gmail.com",
+                        widget.user["email"],
                         overflow: TextOverflow.visible,
                         style: AppStyles.hintComponentStyle
                             .copyWith(color: AppColors.mainDarkGray),
                       ),
                       Text(
-                        "0712 123 123",
+                        widget.user["phoneNumber"],
                         style: AppStyles.hintComponentStyle
                             .copyWith(color: AppColors.mainDarkGray),
                       )
@@ -92,7 +94,8 @@ class MoreScreen extends StatelessWidget {
                     onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const EditProfileScreen())),
+                            builder: (context) =>
+                                EditProfileScreen(user: widget.user))),
                     icon: const Icon(
                       Icons.edit_outlined,
                       color: AppColors.mainDarkGray,

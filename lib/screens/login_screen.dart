@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -103,6 +102,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               snackBarMessage = AppStrings.noUserFound;
                             } else if (e.code == 'wrong-password') {
                               snackBarMessage = AppStrings.invalidCredentials;
+                            } else {
+                              snackBarMessage = AppStrings.invalidCredentials;
                             }
                           }
                         } else {
@@ -129,33 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(snackBar);
                         }
                       }),
-                  const SizedBox(height: AppSizes.mediumDistance),
-                  CustomButton(
-                    buttonColor: AppColors.mainBlue,
-                    buttonText: AppStrings.loginWithGoogle,
-                    // LOGIN with Google
-                    onTap: () async {
-                      final GoogleSignInAccount? googleUser =
-                          await GoogleSignIn().signIn();
-
-                      final GoogleSignInAuthentication? googleAuth =
-                          await googleUser?.authentication;
-
-                      final credential = GoogleAuthProvider.credential(
-                        accessToken: googleAuth?.accessToken,
-                        idToken: googleAuth?.idToken,
-                      );
-
-                      return await FirebaseAuth.instance
-                          .signInWithCredential(credential)
-                          .then((value) => Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen()),
-                              (route) => false));
-                    },
-                    isGoogle: true,
-                  ),
                   const SizedBox(height: AppSizes.bigDistance),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

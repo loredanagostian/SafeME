@@ -5,20 +5,18 @@ import 'package:safe_me/constants/styles.dart';
 
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
-  final String hintText;
+  final String? hintText;
   final bool isPassword;
   final bool isEmail;
-  final bool isEditProfile;
   final bool isEditMessage;
   final bool isPhoneNumber;
 
   const CustomTextField({
     super.key,
     required this.controller,
-    required this.hintText,
+    this.hintText,
     this.isPassword = false,
     this.isEmail = false,
-    this.isEditProfile = false,
     this.isEditMessage = false,
     this.isPhoneNumber = false,
   });

@@ -1,12 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/screens/complete_profile_screen.dart';
-import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
@@ -107,6 +105,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     MaterialPageRoute(
                                         builder: (context) =>
                                             CompleteProfileScreen(
+                                              value: value,
                                               email: emailController.text,
                                             ))));
                           } on FirebaseAuthException catch (e) {
@@ -143,33 +142,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(snackBar);
                         }
                       }),
-                  const SizedBox(height: AppSizes.mediumDistance),
-                  CustomButton(
-                    buttonColor: AppColors.mainBlue,
-                    buttonText: AppStrings.signupWithGoogle,
-                    // REGISTER with Google
-                    onTap: () async {
-                      final GoogleSignInAccount? googleUser =
-                          await GoogleSignIn().signIn();
-
-                      final GoogleSignInAuthentication? googleAuth =
-                          await googleUser?.authentication;
-
-                      final credential = GoogleAuthProvider.credential(
-                        accessToken: googleAuth?.accessToken,
-                        idToken: googleAuth?.idToken,
-                      );
-
-                      return await FirebaseAuth.instance
-                          .signInWithCredential(credential)
-                          .then((value) => Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen()),
-                              (route) => false));
-                    },
-                    isGoogle: true,
-                  ),
                   const SizedBox(height: AppSizes.bigDistance),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

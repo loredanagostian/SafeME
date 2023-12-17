@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -18,6 +22,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool wasLongPressed = false;
+  User? currentUser;
+  late Map<String, dynamic> firestoreUser;
+  String userImageURL = "";
+
+  Future<void> getCurrentUserDatas(User user) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: user.email)
+        .get()
+        .then((snapshot) {
+      firestoreUser = snapshot.docs[0].data();
+      userImageURL = snapshot.docs[0].data()["imageURL"];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    currentUser = FirebaseAuth.instance.currentUser;
+    getCurrentUserDatas(currentUser!);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,23 +66,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 size: 30,
               )),
           GestureDetector(
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const MoreScreen())),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MoreScreen(user: firestoreUser))),
             child: SizedBox(
               height: 50,
               width: 50,
               child: Padding(
                 padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-                child: Container(
-                    decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'lib/assets/images/eu.jpg',
-                    ),
-                    fit: BoxFit.cover,
-                  ),
-                )),
+                child: userImageURL.isNotEmpty
+                    ? CircleAvatar(
+                        backgroundImage: FileImage(File(userImageURL)))
+                    : const CircleAvatar(
+                        backgroundImage:
+                            AssetImage("lib/assets/images/default_account.png"),
+                        backgroundColor: AppColors.white,
+                      ),
               ),
             ),
           )

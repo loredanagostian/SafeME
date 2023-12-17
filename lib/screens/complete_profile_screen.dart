@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -13,7 +14,9 @@ import 'package:safe_me/widgets/custom_textfield.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   final String email;
-  const CompleteProfileScreen({super.key, required this.email});
+  final UserCredential value;
+  const CompleteProfileScreen(
+      {super.key, required this.email, required this.value});
 
   @override
   State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
@@ -49,7 +52,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                               ? CircleAvatar(
                                   backgroundImage: FileImage(imageFile!))
                               : CircleAvatar(
-                                  backgroundImage: AssetImage(defaultURL))),
+                                  backgroundImage: AssetImage(defaultURL),
+                                  backgroundColor: AppColors.white,
+                                )),
                     ),
                   ),
                   Center(
@@ -116,7 +121,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         if (firstNameController.text.isNotEmpty &&
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {
-                          final user = <String, dynamic>{
+                          final userDatas = <String, dynamic>{
                             "email": widget.email,
                             "firstName": firstNameController.text,
                             "lastName": lastNameController.text,
@@ -127,7 +132,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
                           FirebaseFirestore.instance
                               .collection("users")
-                              .add(user)
+                              .doc(widget.value.user!.uid)
+                              .set(userDatas)
                               .then((value) => Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
