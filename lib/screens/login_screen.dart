@@ -1,13 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/screens/forgot_password_screen.dart';
-import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/signup_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
+import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,10 +21,45 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  Future<bool> validateFields(String email, String password) async {
+    AuthenticationManager authManager = AuthenticationManager();
+    String message = '';
+
+    if (email.isNotEmpty && password.isNotEmpty) {
+      if (RegExp(
+              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+          .hasMatch(email)) {
+        message = await authManager.logInUser(email, password);
+        if (message == '') {
+          return true;
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: CustomSnackbarContent(snackBarMessage: message),
+              backgroundColor: AppColors.mainRed,
+            ));
+          }
+        }
+      } else {
+        message = AppStrings.invalidEmail;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: CustomSnackbarContent(snackBarMessage: message),
+          backgroundColor: AppColors.mainRed,
+        ));
+      }
+    } else {
+      message = AppStrings.allFieldsMustBeCompleted;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: CustomSnackbarContent(snackBarMessage: message),
+        backgroundColor: AppColors.mainRed,
+      ));
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    String snackBarMessage;
-
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SingleChildScrollView(
@@ -82,53 +117,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.login,
                       // LOGIN with Firebase
-                      onTap: () async {
-                        if (RegExp(
-                                r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                            .hasMatch(emailController.text)) {
-                          try {
-                            await FirebaseAuth.instance
-                                .signInWithEmailAndPassword(
-                                    email: emailController.text,
-                                    password: passwordController.text)
-                                .then((value) => Navigator.of(context)
-                                    .pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const HomeScreen()),
-                                        (Route<dynamic> route) => false));
-                          } on FirebaseAuthException catch (e) {
-                            if (e.code == 'user-not-found') {
-                              snackBarMessage = AppStrings.noUserFound;
-                            } else if (e.code == 'wrong-password') {
-                              snackBarMessage = AppStrings.invalidCredentials;
-                            } else {
-                              snackBarMessage = AppStrings.invalidCredentials;
-                            }
-                          }
-                        } else {
-                          snackBarMessage = AppStrings.invalidCredentials;
-                          final SnackBar snackBar = SnackBar(
-                            content: SizedBox(
-                              height: AppSizes.bigDistance,
-                              child: Row(children: [
-                                const Icon(
-                                  Icons.priority_high,
-                                  color: AppColors.white,
-                                ),
-                                const SizedBox(width: AppSizes.smallDistance),
-                                Text(
-                                  snackBarMessage,
-                                  style: AppStyles.bottomItemStyle
-                                      .copyWith(color: AppColors.white),
-                                )
-                              ]),
-                            ),
-                            backgroundColor: AppColors.mainRed,
-                          );
-
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        }
+                      onTap: () {
+                        validateFields(
+                            emailController.text, passwordController.text);
                       }),
                   const SizedBox(height: AppSizes.bigDistance),
                   Row(

@@ -1,21 +1,29 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/strings.dart';
+import 'package:safe_me/managers/authentication_manager.dart';
+import 'package:safe_me/managers/hive_manager.dart';
+import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await Hive.initFlutter();
+  await HiveManager.instance.initHiveManager();
+  SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
 
-  runApp(const MyApp());
+  runApp(MyApp(sharedPrefs: sharedPrefs));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  SharedPreferences sharedPrefs;
 
-  // This widget is the root of your application.
+  MyApp({super.key, required this.sharedPrefs});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,7 +34,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: false,
         canvasColor: AppColors.white,
       ),
-      home: const LoginScreen(),
+      home: AuthenticationManager().isLoggedIn(sharedPrefs)
+          ? const HomeScreen()
+          : const LoginScreen(),
     );
   }
 }
