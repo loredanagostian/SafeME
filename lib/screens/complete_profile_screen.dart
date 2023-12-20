@@ -116,7 +116,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.saveChanges,
-                      onTap: () {
+                      onTap: () async {
                         if (firstNameController.text.isNotEmpty &&
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {

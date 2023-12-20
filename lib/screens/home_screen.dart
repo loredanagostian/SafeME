@@ -24,23 +24,31 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool wasLongPressed = false;
   User? currentUser;
-  late Map<String, dynamic> firestoreUser;
-  String userImageURL = "";
+  Map<String, dynamic> firestoreUser = {};
 
   Future<Account> getCurrentUserDatas(User user) async {
     late Account account;
+    Map<String, dynamic>? data;
 
     await FirebaseFirestore.instance
         .collection('users')
         .where('email', isEqualTo: user.email)
         .get()
         .then((snapshot) {
-      account = Account.fromJson(snapshot.docs[0].data());
-      firestoreUser = snapshot.docs[0].data();
-      userImageURL = snapshot.docs[0].data()["imageURL"];
+      data = snapshot.docs[0].data();
     });
 
+    if (data != null) {
+      account = Account.fromJson(data!);
+      firestoreUser = data!;
+    }
+
     return account;
+  }
+
+  Future<String> getUserImageURL() async {
+    Account account = await getCurrentUserDatas(currentUser!);
+    return account.imageURL;
   }
 
   @override
@@ -80,14 +88,16 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 50,
               child: Padding(
                 padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-                child: userImageURL.isNotEmpty
-                    ? CircleAvatar(
-                        backgroundImage: FileImage(File(userImageURL)))
-                    : const CircleAvatar(
-                        backgroundImage:
-                            AssetImage("lib/assets/images/default_account.png"),
-                        backgroundColor: AppColors.white,
-                      ),
+                child: FutureBuilder(
+                    future: getUserImageURL(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return CircleAvatar(
+                            backgroundImage: FileImage(File(snapshot.data!)));
+                      } else {
+                        return Container();
+                      }
+                    }),
               ),
             ),
           )
