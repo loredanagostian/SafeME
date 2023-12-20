@@ -153,7 +153,7 @@ class _MoreScreenState extends State<MoreScreen> {
                     thickness: 0.6,
                   ),
                   ListTile(
-                    onTap: () => Navigator.push(
+                    onTap: () => Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
@@ -174,7 +174,7 @@ class _MoreScreenState extends State<MoreScreen> {
                     thickness: 0.6,
                   ),
                   ListTile(
-                    onTap: () => Navigator.push(
+                    onTap: () => Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) => DefaultEmergencySmsScreen(
@@ -199,8 +199,9 @@ class _MoreScreenState extends State<MoreScreen> {
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                const DefaultTrackingSmsScreen())),
+                            builder: (context) => DefaultTrackingSmsScreen(
+                                  trackingSMS: account.trackingSMS,
+                                ))),
                     title: Text(
                       AppStrings.changeTrackingSMS,
                       style:
