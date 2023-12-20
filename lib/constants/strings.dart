@@ -27,7 +27,7 @@ class AppStrings {
   static const String signin = "signin";
   static const String sharingLiveLocationNow = "Sharing live location now";
   static const String emergencyGroupIsContacted =
-      "Your emergency group is contacted...";
+      "Your emergency group has been contacted.";
   static const String emergencyGroup = "Emergency Group";
   static const String yourFriendsTitle = "Your friends";
   static const String trackNow = "Track now";

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -13,6 +14,7 @@ import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
 import 'package:safe_me/widgets/person_live_location.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -105,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
           future: getCurrentUserDatas(currentUser!),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.connectionState == ConnectionState.done) {
               return SingleChildScrollView(
                   child: Padding(
@@ -132,9 +134,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     Align(
                       alignment: Alignment.center,
                       child: GestureDetector(
-                        onLongPress: () => setState(() {
-                          wasLongPressed = !wasLongPressed;
-                        }),
+                        onLongPress: () async {
+                          if (!wasLongPressed) {
+                            String message =
+                                (snapshot.data as Account).emergencySMS;
+                            String encodedMessage = Uri.encodeFull(message);
+                            final call = Uri.parse(
+                                'sms:0733156102?body=$encodedMessage');
+                            if (await canLaunchUrl(call)) {
+                              launchUrl(call);
+                            } else {
+                              throw 'Could not launch $call';
+                            }
+                          }
+                          setState(() {
+                            wasLongPressed = !wasLongPressed;
+                          });
+                        },
                         child: Container(
                           height: 175,
                           width: 175,
@@ -149,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.sos_outlined,
                             size: 85,
                             color: AppColors.white,
@@ -160,16 +176,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     Visibility(
                         visible: wasLongPressed,
                         child: const SizedBox(height: AppSizes.bigDistance)),
-                    Center(
-                      child: Visibility(
-                          visible: wasLongPressed,
-                          child: Text(
-                            AppStrings.emergencyGroupIsContacted,
-                            style: AppStyles.textComponentStyle
-                                .copyWith(fontSize: 18),
-                          )),
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 175,
+                        child: Visibility(
+                            visible: wasLongPressed,
+                            child: const Text(
+                              AppStrings.emergencyGroupIsContacted,
+                              style: AppStyles.bodyStyle,
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
                     ),
-                    const SizedBox(height: 2 * AppSizes.bigDistance),
+                    const SizedBox(height: AppSizes.bigDistance),
                     const Text(
                       AppStrings.emergencyGroup,
                       style: AppStyles.sectionTitleStyle,
