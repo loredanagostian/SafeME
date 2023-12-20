@@ -177,8 +177,9 @@ class _MoreScreenState extends State<MoreScreen> {
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                const DefaultEmergencySmsScreen())),
+                            builder: (context) => DefaultEmergencySmsScreen(
+                                  emergencySMS: account.emergencySMS,
+                                ))),
                     title: Text(
                       AppStrings.changeEmergencySMS,
                       style:

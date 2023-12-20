@@ -22,13 +22,16 @@ class AccountAdapter extends TypeAdapter<Account> {
       lastName: fields[2] as String,
       phoneNumber: fields[3] as String,
       imageURL: fields[4] as String,
+      emergencyGroup: (fields[6] as List).cast<dynamic>(),
+      emergencySMS: fields[5] as String,
+      trackingSMS: fields[7] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Account obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.email)
       ..writeByte(1)
@@ -38,7 +41,13 @@ class AccountAdapter extends TypeAdapter<Account> {
       ..writeByte(3)
       ..write(obj.phoneNumber)
       ..writeByte(4)
-      ..write(obj.imageURL);
+      ..write(obj.imageURL)
+      ..writeByte(5)
+      ..write(obj.emergencySMS)
+      ..writeByte(6)
+      ..write(obj.emergencyGroup)
+      ..writeByte(7)
+      ..write(obj.trackingSMS);
   }
 
   @override

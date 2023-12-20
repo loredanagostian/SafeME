@@ -125,8 +125,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             "firstName": firstNameController.text,
                             "lastName": lastNameController.text,
                             "phoneNumber": phoneNumberController.text,
-                            "imageURL":
-                                imageFile != null ? imageFile!.path : defaultURL
+                            "imageURL": imageFile != null
+                                ? imageFile!.path
+                                : defaultURL,
+                            "emergencySMS": "Emergency! Track me, please!",
+                            "emergencyGroup": [],
+                            "trackingSMS": "I'm tracking you! You're safe!",
                           };
 
                           FirebaseFirestore.instance
