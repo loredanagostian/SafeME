@@ -14,6 +14,7 @@ import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -218,6 +219,14 @@ class _MoreScreenState extends State<MoreScreen> {
                     thickness: 0.6,
                   ),
                   ListTile(
+                    onTap: () async {
+                      final call = Uri.parse('tel:112');
+                      if (await canLaunchUrl(call)) {
+                        launchUrl(call);
+                      } else {
+                        throw 'Could not launch $call';
+                      }
+                    },
                     title: Text(
                       AppStrings.call112,
                       style: AppStyles.textComponentStyle
