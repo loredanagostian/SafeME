@@ -24,7 +24,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool wasLongPressed = false;
   User? currentUser;
-  Map<String, dynamic> firestoreUser = {};
 
   Future<Account> getCurrentUserDatas(User user) async {
     late Account account;
@@ -40,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (data != null) {
       account = Account.fromJson(data!);
-      firestoreUser = data!;
     }
 
     return account;
@@ -79,10 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 size: 30,
               )),
           GestureDetector(
-            onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => MoreScreen(user: firestoreUser))),
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const MoreScreen())),
             child: SizedBox(
               height: 50,
               width: 50,

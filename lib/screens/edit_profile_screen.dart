@@ -8,12 +8,13 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final Map<String, dynamic> user;
+  final Account user;
 
   const EditProfileScreen({super.key, required this.user});
 
@@ -30,10 +31,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    firstNameController = TextEditingController(text: widget.user["firstName"]);
-    lastNameController = TextEditingController(text: widget.user["lastName"]);
+    firstNameController = TextEditingController(text: widget.user.firstName);
+    lastNameController = TextEditingController(text: widget.user.lastName);
     phoneNumberController =
-        TextEditingController(text: widget.user["phoneNumber"]);
+        TextEditingController(text: widget.user.phoneNumber);
   }
 
   @override
@@ -71,7 +72,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: CircleAvatar(
                             backgroundImage: FileImage(imageFile != null
                                 ? imageFile!
-                                : File(widget.user["imageURL"])))),
+                                : File(widget.user.imageURL)))),
                   ),
                 ),
                 const SizedBox(height: AppSizes.smallDistance),
@@ -139,9 +140,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           .update({
                         "firstName": firstNameController.text,
                         "lastName": lastNameController.text,
-                        "phoneNumber": phoneNumberController.text
+                        "phoneNumber": phoneNumberController.text,
+                        "imageURL": imageFile?.path ?? widget.user.imageURL
                       }).then((value) {
-                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const MoreScreen()));
                       });
                     })
               ]),
