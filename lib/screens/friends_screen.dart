@@ -4,7 +4,6 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/screens/friends_screen_fragment.dart';
-import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -72,7 +71,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: const CustomBottomTabNavigator(),
         body: const TabBarView(
           // physics: AlwaysScrollableScrollPhysics(),
           children: [

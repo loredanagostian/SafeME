@@ -1,12 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/managers/hive_manager.dart';
-import 'package:safe_me/screens/home_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:safe_me/screens/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -16,7 +17,7 @@ Future<void> main() async {
   await HiveManager.instance.initHiveManager();
   SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
 
-  runApp(MyApp(sharedPrefs: sharedPrefs));
+  runApp(ProviderScope(child: MyApp(sharedPrefs: sharedPrefs)));
 }
 
 class MyApp extends StatelessWidget {
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
         canvasColor: AppColors.white,
       ),
       home: AuthenticationManager().isLoggedIn(sharedPrefs)
-          ? const HomeScreen()
+          ? const MainScreen()
           : const LoginScreen(),
     );
   }

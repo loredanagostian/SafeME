@@ -1,50 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/screens/friends_screen.dart';
-import 'package:safe_me/screens/home_screen.dart';
 
-class CustomBottomTabNavigator extends StatefulWidget {
+final bottomNavigatorIndex = StateProvider<int>((ref) => 1);
+
+class CustomBottomTabNavigator extends ConsumerStatefulWidget {
   const CustomBottomTabNavigator({super.key});
 
   @override
-  State<CustomBottomTabNavigator> createState() =>
+  ConsumerState<CustomBottomTabNavigator> createState() =>
       _CustomBottomTabNavigatorState();
 }
 
-class _CustomBottomTabNavigatorState extends State<CustomBottomTabNavigator> {
+class _CustomBottomTabNavigatorState
+    extends ConsumerState<CustomBottomTabNavigator> {
+  void _onItemTapped(int index) {
+    ref.read(bottomNavigatorIndex.notifier).update((state) => index);
+  }
+
   @override
   Widget build(BuildContext context) {
-    int _selectedIndex = 1;
-
-    Future<void> _onItemTapped(int index) async {
-      setState(() {
-        _selectedIndex = index;
-      });
-
-      switch (index) {
-        case 0:
-          // await FirebaseFirestore.instance
-          //     .collection("users")
-          //     .get()
-          //     .then((event) {
-          //   for (var doc in event.docs) {
-          //     print("${doc.id} => ${doc.data()}");
-          //   }
-          // });
-          break;
-        case 1:
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()));
-          break;
-        case 2:
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const FriendsScreen()));
-          break;
-      }
-    }
+    int selectedIndex = ref.watch(bottomNavigatorIndex);
 
     return Container(
         decoration: const BoxDecoration(
@@ -82,7 +61,7 @@ class _CustomBottomTabNavigatorState extends State<CustomBottomTabNavigator> {
                 label: AppStrings.friends,
               ),
             ],
-            currentIndex: _selectedIndex,
+            currentIndex: selectedIndex,
             selectedItemColor: AppColors.mainDarkGray,
             selectedLabelStyle: AppStyles.bottomItemStyle
                 .copyWith(color: AppColors.mainDarkGray),

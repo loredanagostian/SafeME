@@ -46,6 +46,7 @@ dependencies:
   hive_flutter: ^1.1.0
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.2
+  flutter_riverpod: ^2.4.9
 
 dev_dependencies:
   flutter_test:

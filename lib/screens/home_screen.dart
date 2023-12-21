@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -11,7 +10,6 @@ import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
-import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
 import 'package:safe_me/widgets/person_live_location.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -102,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       backgroundColor: AppColors.white,
-      bottomNavigationBar: const CustomBottomTabNavigator(),
       body: FutureBuilder(
           future: getCurrentUserDatas(currentUser!),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
