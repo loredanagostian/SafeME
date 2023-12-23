@@ -55,4 +55,6 @@ class AppStrings {
   static const String phoneNumber = "Phone number";
   static const String allFieldsMustBeCompleted =
       "All fields must be completed.";
+  static const String trackButton = "TRACK";
+  static const String sosButton = "SOS";
 }

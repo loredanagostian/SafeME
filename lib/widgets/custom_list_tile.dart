@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -34,18 +36,9 @@ class _CustomListTileState extends State<CustomListTile> {
         height: 60,
         width: 60,
         child: Padding(
-          padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-          child: Container(
-              decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: AssetImage(
-                'lib/assets/images/eu.jpg',
-              ),
-              fit: BoxFit.cover,
-            ),
-          )),
-        ),
+            padding: const EdgeInsets.only(right: AppSizes.smallDistance),
+            child: CircleAvatar(
+                backgroundImage: FileImage(File(widget.photoUrl)))),
       ),
       trailing: widget.isRequest
           ? Row(mainAxisSize: MainAxisSize.min, children: [
