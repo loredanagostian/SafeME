@@ -26,10 +26,7 @@ class CustomSearchBar extends StatelessWidget {
         hintStyle: AppStyles.bodyStyle,
         fillColor: AppColors.componentGray,
         filled: true,
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () {},
-        ),
+        suffixIcon: const Icon(Icons.search),
         suffixIconColor: AppColors.mainDarkGray,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.borders),
