@@ -33,17 +33,22 @@ class Account extends HiveObject {
   @HiveField(9)
   final bool trackMeNow;
 
-  Account(
-      {required this.email,
-      required this.firstName,
-      required this.lastName,
-      required this.phoneNumber,
-      required this.imageURL,
-      required this.emergencyGroup,
-      required this.emergencySMS,
-      required this.trackingSMS,
-      required this.friends,
-      required this.trackMeNow});
+  @HiveField(10)
+  final List<String> friendsRequest;
+
+  Account({
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.phoneNumber,
+    required this.imageURL,
+    required this.emergencyGroup,
+    required this.emergencySMS,
+    required this.trackingSMS,
+    required this.friends,
+    required this.trackMeNow,
+    required this.friendsRequest,
+  });
 
   factory Account.fromJson(Map<String, dynamic> json) {
     List<dynamic> emergencyGroup = json['emergencyGroup'];
@@ -58,6 +63,12 @@ class Account extends HiveObject {
       friendsListIds.add(friends[i].toString());
     }
 
+    List<dynamic> friendsRequest = json['friendRequests'];
+    List<String> friendsRequestIds = [];
+    for (int i = 0; i < friendsRequest.length; i++) {
+      friendsRequestIds.add(friendsRequest[i].toString());
+    }
+
     return Account(
       email: json['email'],
       firstName: json['firstName'],
@@ -69,6 +80,7 @@ class Account extends HiveObject {
       trackingSMS: json['trackingSMS'],
       friends: friendsListIds,
       trackMeNow: json['trackMeNow'],
+      friendsRequest: friendsRequestIds,
     );
   }
 }

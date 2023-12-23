@@ -27,13 +27,14 @@ class AccountAdapter extends TypeAdapter<Account> {
       trackingSMS: fields[7] as String,
       friends: (fields[8] as List).cast<String>(),
       trackMeNow: fields[9] as bool,
+      friendsRequest: (fields[10] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Account obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.email)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class AccountAdapter extends TypeAdapter<Account> {
       ..writeByte(8)
       ..write(obj.friends)
       ..writeByte(9)
-      ..write(obj.trackMeNow);
+      ..write(obj.trackMeNow)
+      ..writeByte(10)
+      ..write(obj.friendsRequest);
   }
 
   @override

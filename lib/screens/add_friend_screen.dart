@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -7,27 +8,16 @@ import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_search_bar.dart';
+import 'package:safe_me/widgets/custom_snackbar.dart';
 
-class FriendsScreenFragment extends StatefulWidget {
-  final bool isTrackNow;
-  final bool isGroups;
-  final bool isAllFriends;
-  final bool isRequests;
-  final List<String> friendsList;
-  const FriendsScreenFragment({
-    super.key,
-    this.isTrackNow = false,
-    this.isGroups = false,
-    this.isAllFriends = false,
-    this.isRequests = false,
-    required this.friendsList,
-  });
+class AddFriendScreen extends StatefulWidget {
+  const AddFriendScreen({super.key});
 
   @override
-  State<FriendsScreenFragment> createState() => _FriendsScreenFragmentState();
+  State<AddFriendScreen> createState() => _AddFriendScreenState();
 }
 
-class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
+class _AddFriendScreenState extends State<AddFriendScreen> {
   List<Account> filteredData = [];
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -39,7 +29,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
   void initState() {
     super.initState();
 
-    _future = fetchFriends(widget.friendsList);
+    _future = fetchAllUsers();
 
     _searchController.addListener(() {
       _onSearchTextChanged(_searchController.text);
@@ -69,61 +59,93 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     });
   }
 
-  String returnCountType() {
-    return widget.isTrackNow
-        ? "trackings"
-        : (widget.isGroups
-            ? "groups"
-            : (widget.isAllFriends
-                ? "friends"
-                : (widget.isRequests ? "requests" : "")));
-  }
+  Future<List<Account>> fetchAllUsers() async {
+    List<String> usersIds = [];
+    List<Account> usersList = [];
 
-  Future<List<Account>> fetchFriends(List<String> friendsIds) async {
-    List<Account> friendsList = [];
+    final docs =
+        (await FirebaseFirestore.instance.collection('users').get()).docs;
 
-    for (int i = 0; i < friendsIds.length; i++) {
+    for (var item in docs) {
+      usersIds.add(item.id);
+    }
+
+    for (int i = 0; i < usersIds.length; i++) {
       Map<String, dynamic>? data;
 
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(friendsIds[i].toString())
+          .doc(usersIds[i])
           .get()
           .then((snapshot) {
         data = snapshot.data();
       });
 
-      if (widget.isAllFriends) {
-        friendsList.add(Account.fromJson(data!));
-      }
-
-      if (widget.isTrackNow) {
-        final friend = Account.fromJson(data!);
-        if (friend.trackMeNow) {
-          friendsList.add(friend);
-        }
-      }
-
-      if (widget.isGroups) {
-        return [];
-      }
-
-      if (widget.isRequests) {
-        return [];
-      }
+      usersList.add(Account.fromJson(data!));
     }
 
-    return friendsList;
+    return usersList;
   }
 
-  String _getButtonText() {
-    return widget.isTrackNow ? AppStrings.trackButton : AppStrings.sosButton;
+  bool userAlreadyFriend(Account account) {
+    final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+    for (String userId in account.friends) {
+      if (userId == currentUserId) return true;
+    }
+
+    return false;
+  }
+
+  bool userAlreadyRequested(Account account) {
+    final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+    for (String userId in account.friendsRequest) {
+      if (userId == currentUserId) return true;
+    }
+
+    return false;
+  }
+
+  Future<String> getAccountId(Account account) async {
+    String data = "";
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: account.email)
+        .get()
+        .then((snapshot) {
+      data = snapshot.docs[0].id;
+    });
+
+    return data;
+  }
+
+  Color getButtonColor(Account account) {
+    if (userAlreadyFriend(account)) return AppColors.mediumGray;
+    if (userAlreadyRequested(account)) return AppColors.mainGreen;
+    return AppColors.mainBlue;
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: FutureBuilder(
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        title: const Text(
+          AppStrings.allUsers,
+          style: AppStyles.titleStyle,
+        ),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.mainDarkGray,
+          ),
+        ),
+      ),
+      body: FutureBuilder(
           future: _future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -146,7 +168,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                         searchController: _searchController),
                     const SizedBox(height: AppSizes.marginSize),
                     Text(
-                      "$totalFoundsAccounts ${returnCountType()}",
+                      "$totalFoundsAccounts total users",
                       style: AppStyles.textComponentStyle
                           .copyWith(color: AppColors.mainBlue),
                     ),
@@ -167,8 +189,31 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                           photoUrl: item.imageURL,
                           title: item.firstName,
                           subtitle: item.phoneNumber,
-                          buttonText: _getButtonText(),
-                          buttonAction: () {},
+                          buttonText: userAlreadyFriend(item)
+                              ? AppStrings.addedButton
+                              : AppStrings.addButton,
+                          isAlreadyFriend: userAlreadyFriend(item),
+                          buttonAction: () async {
+                            String itemId = await getAccountId(item);
+
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(itemId)
+                                .update({
+                              "friendRequests": FieldValue.arrayUnion(
+                                  [FirebaseAuth.instance.currentUser!.uid]),
+                            }).then((value) => ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      content: CustomSnackbarContent(
+                                          snackBarMessage:
+                                              AppStrings.userAddedSuccessfully),
+                                      backgroundColor: AppColors.mainGreen,
+                                    )));
+                          },
+                          buttonColor: item.email ==
+                                  FirebaseAuth.instance.currentUser!.email
+                              ? AppColors.mediumGray
+                              : getButtonColor(item),
                         );
                       },
                       shrinkWrap: true,

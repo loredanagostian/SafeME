@@ -11,14 +11,19 @@ class CustomListTile extends StatefulWidget {
   final String subtitle;
   final String buttonText;
   final bool isRequest;
-  const CustomListTile({
-    super.key,
-    required this.photoUrl,
-    required this.title,
-    required this.subtitle,
-    required this.buttonText,
-    this.isRequest = false,
-  });
+  final bool isAlreadyFriend;
+  final void Function() buttonAction;
+  final Color buttonColor;
+  const CustomListTile(
+      {super.key,
+      required this.photoUrl,
+      required this.title,
+      required this.subtitle,
+      required this.buttonText,
+      required this.buttonAction,
+      this.isRequest = false,
+      this.isAlreadyFriend = false,
+      this.buttonColor = AppColors.mainBlue});
 
   @override
   State<CustomListTile> createState() => _CustomListTileState();
@@ -28,10 +33,15 @@ class _CustomListTileState extends State<CustomListTile> {
   Widget _getListTile() {
     return ListTile(
       title: Text(widget.title),
-      titleTextStyle: AppStyles.notificationTitleStyle
-          .copyWith(color: AppColors.mainDarkGray),
+      titleTextStyle: widget.isAlreadyFriend
+          ? AppStyles.notificationTitleStyle
+              .copyWith(color: AppColors.mediumGray)
+          : AppStyles.notificationTitleStyle
+              .copyWith(color: AppColors.mainDarkGray),
       subtitle: Text(widget.subtitle),
-      subtitleTextStyle: AppStyles.hintComponentStyle,
+      subtitleTextStyle: widget.isAlreadyFriend
+          ? AppStyles.hintComponentStyle.copyWith(color: AppColors.mediumGray)
+          : AppStyles.hintComponentStyle,
       leading: SizedBox(
         height: 60,
         width: 60,
@@ -74,12 +84,12 @@ class _CustomListTileState extends State<CustomListTile> {
               )
             ])
           : GestureDetector(
-              onTap: () {},
+              onTap: widget.buttonAction,
               child: Container(
                 height: 35,
                 width: 70,
                 decoration: BoxDecoration(
-                    color: AppColors.mainBlue,
+                    color: widget.buttonColor,
                     borderRadius: BorderRadius.circular(
                       AppSizes.borders,
                     )),

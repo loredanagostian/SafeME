@@ -133,6 +133,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             "trackingSMS": "I'm tracking you! You're safe!",
                             "friends": [],
                             "trackMeNow": false,
+                            "friendRequests": [],
                           };
 
                           FirebaseFirestore.instance

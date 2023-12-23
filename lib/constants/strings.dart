@@ -57,4 +57,9 @@ class AppStrings {
       "All fields must be completed.";
   static const String trackButton = "TRACK";
   static const String sosButton = "SOS";
+  static const String addButton = "ADD";
+  static const String addedButton = "ADDED";
+  static const String allUsers = "All users";
+  static const String userAddedSuccessfully =
+      "User has been added successfully!";
 }

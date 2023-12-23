@@ -6,6 +6,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/friends_screen_fragment.dart';
 import 'package:safe_me/screens/more_screen.dart';
 
@@ -32,7 +33,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ),
           actions: [
             IconButton(
-                onPressed: () {},
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AddFriendScreen())),
                 icon: const Icon(
                   Icons.person_add_outlined,
                   color: AppColors.mainDarkGray,
