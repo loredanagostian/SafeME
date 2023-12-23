@@ -21,7 +21,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -64,7 +64,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
             labelPadding: EdgeInsets.zero,
             tabs: const [
               Tab(text: AppStrings.trackNow),
-              Tab(text: AppStrings.groups),
               Tab(text: AppStrings.allFriends),
               Tab(text: AppStrings.requests)
             ],
@@ -74,11 +73,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           children: [
             FriendsScreenFragment(
               isTrackNow: true,
-              friendsList: [],
-            ),
-            FriendsScreenFragment(
-              isGroups: true,
-              friendsList: [],
+              friendsList: widget.userAccount.friends,
             ),
             FriendsScreenFragment(
               isAllFriends: true,
@@ -86,7 +81,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
             FriendsScreenFragment(
               isRequests: true,
-              friendsList: [],
+              friendsList: widget.userAccount.friends,
             ),
           ],
         ),
