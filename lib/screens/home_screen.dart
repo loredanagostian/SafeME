@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -129,6 +129,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: GestureDetector(
                           onLongPress: () async {
                             if (!wasLongPressed) {
+                              FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                                  .update({
+                                "trackMeNow": true,
+                              });
+
                               String message = widget.userAccount.emergencySMS;
                               String encodedMessage = Uri.encodeFull(message);
                               final call = Uri.parse(
