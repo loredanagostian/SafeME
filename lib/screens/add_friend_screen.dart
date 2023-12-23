@@ -193,7 +193,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                               ? AppStrings.addedButton
                               : AppStrings.addButton,
                           isAlreadyFriend: userAlreadyFriend(item),
-                          buttonAction: () async {
+                          button1Action: () async {
                             String itemId = await getAccountId(item);
 
                             await FirebaseFirestore.instance

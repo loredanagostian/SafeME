@@ -86,6 +86,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             FriendsScreenFragment(
               isRequests: true,
               friendsList: widget.userAccount.friends,
+              friendRequests: widget.userAccount.friendsRequest,
             ),
           ],
         ),

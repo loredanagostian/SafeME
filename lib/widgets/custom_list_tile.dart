@@ -12,18 +12,21 @@ class CustomListTile extends StatefulWidget {
   final String buttonText;
   final bool isRequest;
   final bool isAlreadyFriend;
-  final void Function() buttonAction;
+  final void Function() button1Action;
+  final void Function()? button2Action;
   final Color buttonColor;
-  const CustomListTile(
-      {super.key,
-      required this.photoUrl,
-      required this.title,
-      required this.subtitle,
-      required this.buttonText,
-      required this.buttonAction,
-      this.isRequest = false,
-      this.isAlreadyFriend = false,
-      this.buttonColor = AppColors.mainBlue});
+  const CustomListTile({
+    super.key,
+    required this.photoUrl,
+    required this.title,
+    required this.subtitle,
+    required this.buttonText,
+    required this.button1Action,
+    this.isRequest = false,
+    this.isAlreadyFriend = false,
+    this.buttonColor = AppColors.mainBlue,
+    this.button2Action,
+  });
 
   @override
   State<CustomListTile> createState() => _CustomListTileState();
@@ -59,7 +62,7 @@ class _CustomListTileState extends State<CustomListTile> {
                   color: AppColors.mainGreen,
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: widget.button1Action,
                   icon: const Icon(
                     Icons.done,
                     color: AppColors.white,
@@ -74,7 +77,7 @@ class _CustomListTileState extends State<CustomListTile> {
                   color: AppColors.mainRed,
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: widget.button2Action,
                   icon: const Icon(
                     Icons.close,
                     color: AppColors.white,
@@ -84,7 +87,7 @@ class _CustomListTileState extends State<CustomListTile> {
               )
             ])
           : GestureDetector(
-              onTap: widget.buttonAction,
+              onTap: widget.button1Action,
               child: Container(
                 height: 35,
                 width: 70,
