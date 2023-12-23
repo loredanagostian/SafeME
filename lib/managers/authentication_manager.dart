@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:safe_me/constants/strings.dart';
-import 'package:safe_me/managers/hive_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationManager {
@@ -9,16 +8,8 @@ class AuthenticationManager {
 
   Future<String> logInUser(String email, String password) async {
     try {
-      final credential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password)
-          .then((value) {
-        isNew = value.additionalUserInfo?.isNewUser ?? false;
-      });
-
-      if (credential.user != null && credential.user!.email != null) {
-        HiveManager.instance.userBox.put(credential.user!.uid, credential);
-        saveUserData(credential.user!.email!);
-      }
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         return AppStrings.noUserFound;

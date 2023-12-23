@@ -5,6 +5,7 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/screens/forgot_password_screen.dart';
+import 'package:safe_me/screens/main_screen.dart';
 import 'package:safe_me/screens/signup_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
@@ -117,9 +118,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.login,
                       // LOGIN with Firebase
-                      onTap: () {
-                        validateFields(
+                      onTap: () async {
+                        bool shouldLogin = await validateFields(
                             emailController.text, passwordController.text);
+
+                        if (shouldLogin && mounted) {
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const MainScreen()),
+                              (route) => false);
+                        }
                       }),
                   const SizedBox(height: AppSizes.bigDistance),
                   Row(
