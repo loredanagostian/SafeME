@@ -153,27 +153,27 @@ class _MoreScreenState extends State<MoreScreen> {
                     color: AppColors.mediumGray,
                     thickness: 0.6,
                   ),
-                  ListTile(
-                    onTap: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const DefaultEmergencyGroupScreen())),
-                    title: Text(
-                      AppStrings.changeEmergencyGroup,
-                      style:
-                          AppStyles.textComponentStyle.copyWith(fontSize: 15),
-                    ),
-                    leading: const Icon(
-                      Icons.group_outlined,
-                      size: 35,
-                      color: AppColors.mainDarkGray,
-                    ),
-                  ),
-                  const Divider(
-                    color: AppColors.mediumGray,
-                    thickness: 0.6,
-                  ),
+                  // ListTile(
+                  //   onTap: () => Navigator.pushReplacement(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //           builder: (context) =>
+                  //               const DefaultEmergencyGroupScreen())),
+                  //   title: Text(
+                  //     AppStrings.changeEmergencyGroup,
+                  //     style:
+                  //         AppStyles.textComponentStyle.copyWith(fontSize: 15),
+                  //   ),
+                  //   leading: const Icon(
+                  //     Icons.group_outlined,
+                  //     size: 35,
+                  //     color: AppColors.mainDarkGray,
+                  //   ),
+                  // ),
+                  // const Divider(
+                  //   color: AppColors.mediumGray,
+                  //   thickness: 0.6,
+                  // ),
                   ListTile(
                     onTap: () => Navigator.pushReplacement(
                         context,

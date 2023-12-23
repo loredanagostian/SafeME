@@ -34,16 +34,16 @@ class _HomeScreenState extends State<HomeScreen> {
             style: AppStyles.titleStyle,
           ),
           actions: [
-            IconButton(
-                onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const NotificationsScreen())),
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: AppColors.mainDarkGray,
-                  size: 30,
-                )),
+            // IconButton(
+            //     onPressed: () => Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //             builder: (context) => const NotificationsScreen())),
+            //     icon: const Icon(
+            //       Icons.notifications_outlined,
+            //       color: AppColors.mainDarkGray,
+            //       size: 30,
+            //     )),
             GestureDetector(
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const MoreScreen())),
@@ -82,7 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   PersonLiveLocation(),
                 ],
               ),
-              const SizedBox(height: AppSizes.buttonHeight),
+              const SizedBox(height: 2 * AppSizes.buttonHeight),
+              // const SizedBox(height: AppSizes.buttonHeight), // TODO change when adding emergency group
               Align(
                 alignment: Alignment.center,
                 child: GestureDetector(
@@ -140,21 +141,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       )),
                 ),
               ),
-              const SizedBox(height: AppSizes.bigDistance),
-              const Text(
-                AppStrings.emergencyGroup,
-                style: AppStyles.sectionTitleStyle,
-              ),
-              const SizedBox(height: AppSizes.smallDistance),
-              const Row(
-                children: [
-                  EmergencyMember(),
-                  SizedBox(width: AppSizes.smallDistance),
-                  EmergencyMember(),
-                  SizedBox(width: AppSizes.smallDistance),
-                  EmergencyMember(),
-                ],
-              ),
+              // const SizedBox(height: AppSizes.bigDistance),
+              // const Text(
+              //   AppStrings.emergencyGroup,
+              //   style: AppStyles.sectionTitleStyle,
+              // ),
+              // const SizedBox(height: AppSizes.smallDistance),
+              // const Row(
+              //   children: [
+              //     EmergencyMember(),
+              //     SizedBox(width: AppSizes.smallDistance),
+              //     EmergencyMember(),
+              //     SizedBox(width: AppSizes.smallDistance),
+              //     EmergencyMember(),
+              //   ],
+              // ),
             ],
           ),
         )));
