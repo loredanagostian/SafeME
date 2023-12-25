@@ -229,6 +229,23 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                                   FieldValue.arrayRemove([accountId])
                             });
                           },
+                          onDismiss: (DismissDirection direction) async {
+                            String accountId = await getAccountId(item);
+                            FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(FirebaseAuth.instance.currentUser!.uid)
+                                .update({
+                              "friends": FieldValue.arrayRemove([accountId])
+                            });
+
+                            FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(accountId)
+                                .update({
+                              "friends": FieldValue.arrayRemove(
+                                  [FirebaseAuth.instance.currentUser!.uid])
+                            });
+                          },
                         );
                       },
                       shrinkWrap: true,

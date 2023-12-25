@@ -15,6 +15,7 @@ class CustomListTile extends StatefulWidget {
   final void Function() button1Action;
   final void Function()? button2Action;
   final Color buttonColor;
+  final void Function(DismissDirection)? onDismiss;
   const CustomListTile({
     super.key,
     required this.photoUrl,
@@ -22,6 +23,7 @@ class CustomListTile extends StatefulWidget {
     required this.subtitle,
     required this.buttonText,
     required this.button1Action,
+    this.onDismiss,
     this.isRequest = false,
     this.isAlreadyFriend = false,
     this.buttonColor = AppColors.mainBlue,
@@ -111,13 +113,12 @@ class _CustomListTileState extends State<CustomListTile> {
   Widget build(BuildContext context) {
     return widget.isRequest
         ? _getListTile()
-        : Dismissible(
-            key: Key(widget.photoUrl),
-            onDismissed: (direction) {
-              // Remove the item from the data source.
-              setState(() {});
-            },
-            background: Container(color: AppColors.mainRed),
-            child: _getListTile());
+        : widget.onDismiss != null
+            ? Dismissible(
+                key: Key(widget.photoUrl),
+                onDismissed: widget.onDismiss,
+                background: Container(color: AppColors.mainRed),
+                child: _getListTile())
+            : _getListTile();
   }
 }
