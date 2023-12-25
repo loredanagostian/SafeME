@@ -3,6 +3,10 @@
         android:label="safe_me"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- TODO: Add your Google Maps API key here -->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -31,6 +35,7 @@
             android:value="2" />
              <!-- Provide required visibility configuration for API level 30 and above -->
     </application>
+
      <queries>
             <!-- If your app checks for SMS support -->
             <intent>
@@ -43,4 +48,8 @@
                 <data android:scheme="tel" />
             </intent>
         </queries>
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 </manifest>

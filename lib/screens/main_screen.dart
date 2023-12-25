@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/friends_screen.dart';
 import 'package:safe_me/screens/home_screen.dart';
+import 'package:safe_me/screens/safe_places_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -20,7 +21,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget _getBody(int index, Account userAccount) {
     switch (index) {
       case 0:
-        break;
+        return SafePlacesScreen(userAccount: userAccount);
       case 1:
         return HomeScreen(userAccount: userAccount);
       case 2:
@@ -59,6 +60,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     int selectedIndex = ref.watch(bottomNavigatorIndex);
 
     return Scaffold(
+        extendBody: true,
         bottomNavigationBar: const CustomBottomTabNavigator(),
         body: FutureBuilder(
             future: getCurrentUserDatas(currentUser!),
