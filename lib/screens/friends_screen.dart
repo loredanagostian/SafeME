@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/models/account.dart';
+import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/friends_screen_fragment.dart';
-import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
+import 'package:safe_me/screens/more_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
-  const FriendsScreen({super.key});
+  final Account userAccount;
+  const FriendsScreen({super.key, required this.userAccount});
 
   @override
   State<FriendsScreen> createState() => _FriendsScreenState();
@@ -17,7 +22,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -28,30 +33,27 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ),
           actions: [
             IconButton(
-                onPressed: () {},
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AddFriendScreen())),
                 icon: const Icon(
                   Icons.person_add_outlined,
                   color: AppColors.mainDarkGray,
                   size: 30,
                 )),
             GestureDetector(
-              onTap: () {},
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const MoreScreen())),
               child: SizedBox(
                 height: 50,
                 width: 50,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-                  child: Container(
-                      decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage(
-                        'lib/assets/images/eu.jpg',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  )),
-                ),
+                    padding:
+                        const EdgeInsets.only(right: AppSizes.smallDistance),
+                    child: CircleAvatar(
+                        backgroundImage:
+                            FileImage(File(widget.userAccount.imageURL)))),
               ),
             )
           ],
@@ -66,31 +68,25 @@ class _FriendsScreenState extends State<FriendsScreen> {
             labelPadding: EdgeInsets.zero,
             tabs: const [
               Tab(text: AppStrings.trackNow),
-              Tab(text: AppStrings.groups),
               Tab(text: AppStrings.allFriends),
               Tab(text: AppStrings.requests)
             ],
           ),
         ),
-        bottomNavigationBar: const CustomBottomTabNavigator(),
-        body: const TabBarView(
-          // physics: AlwaysScrollableScrollPhysics(),
+        body: TabBarView(
           children: [
             FriendsScreenFragment(
               isTrackNow: true,
-              personsList: [],
-            ),
-            FriendsScreenFragment(
-              isGroups: true,
-              personsList: [],
+              friendsList: widget.userAccount.friends,
             ),
             FriendsScreenFragment(
               isAllFriends: true,
-              personsList: [],
+              friendsList: widget.userAccount.friends,
             ),
             FriendsScreenFragment(
               isRequests: true,
-              personsList: [],
+              friendsList: widget.userAccount.friends,
+              friendRequests: widget.userAccount.friendsRequest,
             ),
           ],
         ),

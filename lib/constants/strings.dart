@@ -27,7 +27,7 @@ class AppStrings {
   static const String signin = "signin";
   static const String sharingLiveLocationNow = "Sharing live location now";
   static const String emergencyGroupIsContacted =
-      "Your emergency group is contacted...";
+      "Your emergency group has been contacted.";
   static const String emergencyGroup = "Emergency Group";
   static const String yourFriendsTitle = "Your friends";
   static const String trackNow = "Track now";
@@ -42,12 +42,24 @@ class AppStrings {
   static const String call112 = "Call 112";
   static const String editProfile = "Edit profile";
   static const String changePicture = "Change picture";
-  static const String changeName = "Change name";
-  static const String changeEmail = "Change email";
-  static const String changePassword = "Change password";
+  static const String changeFirstName = "Change firstname";
+  static const String changeLastName = "Change lastname";
   static const String changePhoneNumber = "Change phone number";
+  static const String selectPicture = "Select picture";
   static const String saveChanges = "Save changes";
   static const String emergencySMS = "Emergency SMS";
   static const String enterMessageBelow = "Enter your new message below:";
   static const String trackingSMS = "Tracking SMS";
+  static const String firstName = "First name";
+  static const String lastName = "Last name";
+  static const String phoneNumber = "Phone number";
+  static const String allFieldsMustBeCompleted =
+      "All fields must be completed.";
+  static const String trackButton = "TRACK";
+  static const String sosButton = "SOS";
+  static const String addButton = "ADD";
+  static const String addedButton = "ADDED";
+  static const String allUsers = "All users";
+  static const String userAddedSuccessfully =
+      "User has been added successfully!";
 }

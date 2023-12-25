@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -9,13 +11,23 @@ class CustomListTile extends StatefulWidget {
   final String subtitle;
   final String buttonText;
   final bool isRequest;
+  final bool isAlreadyFriend;
+  final void Function() button1Action;
+  final void Function()? button2Action;
+  final Color buttonColor;
+  final void Function(DismissDirection)? onDismiss;
   const CustomListTile({
     super.key,
     required this.photoUrl,
     required this.title,
     required this.subtitle,
     required this.buttonText,
+    required this.button1Action,
+    this.onDismiss,
     this.isRequest = false,
+    this.isAlreadyFriend = false,
+    this.buttonColor = AppColors.mainBlue,
+    this.button2Action,
   });
 
   @override
@@ -26,26 +38,22 @@ class _CustomListTileState extends State<CustomListTile> {
   Widget _getListTile() {
     return ListTile(
       title: Text(widget.title),
-      titleTextStyle: AppStyles.notificationTitleStyle
-          .copyWith(color: AppColors.mainDarkGray),
+      titleTextStyle: widget.isAlreadyFriend
+          ? AppStyles.notificationTitleStyle
+              .copyWith(color: AppColors.mediumGray)
+          : AppStyles.notificationTitleStyle
+              .copyWith(color: AppColors.mainDarkGray),
       subtitle: Text(widget.subtitle),
-      subtitleTextStyle: AppStyles.hintComponentStyle,
+      subtitleTextStyle: widget.isAlreadyFriend
+          ? AppStyles.hintComponentStyle.copyWith(color: AppColors.mediumGray)
+          : AppStyles.hintComponentStyle,
       leading: SizedBox(
         height: 60,
         width: 60,
         child: Padding(
-          padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-          child: Container(
-              decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: AssetImage(
-                'lib/assets/images/eu.jpg',
-              ),
-              fit: BoxFit.cover,
-            ),
-          )),
-        ),
+            padding: const EdgeInsets.only(right: AppSizes.smallDistance),
+            child: CircleAvatar(
+                backgroundImage: FileImage(File(widget.photoUrl)))),
       ),
       trailing: widget.isRequest
           ? Row(mainAxisSize: MainAxisSize.min, children: [
@@ -56,7 +64,7 @@ class _CustomListTileState extends State<CustomListTile> {
                   color: AppColors.mainGreen,
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: widget.button1Action,
                   icon: const Icon(
                     Icons.done,
                     color: AppColors.white,
@@ -71,7 +79,7 @@ class _CustomListTileState extends State<CustomListTile> {
                   color: AppColors.mainRed,
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: widget.button2Action,
                   icon: const Icon(
                     Icons.close,
                     color: AppColors.white,
@@ -81,12 +89,12 @@ class _CustomListTileState extends State<CustomListTile> {
               )
             ])
           : GestureDetector(
-              onTap: () {},
+              onTap: widget.button1Action,
               child: Container(
                 height: 35,
                 width: 70,
                 decoration: BoxDecoration(
-                    color: AppColors.mainBlue,
+                    color: widget.buttonColor,
                     borderRadius: BorderRadius.circular(
                       AppSizes.borders,
                     )),
@@ -105,13 +113,12 @@ class _CustomListTileState extends State<CustomListTile> {
   Widget build(BuildContext context) {
     return widget.isRequest
         ? _getListTile()
-        : Dismissible(
-            key: Key(widget.photoUrl),
-            onDismissed: (direction) {
-              // Remove the item from the data source.
-              setState(() {});
-            },
-            background: Container(color: AppColors.mainRed),
-            child: _getListTile());
+        : widget.onDismiss != null
+            ? Dismissible(
+                key: Key(widget.photoUrl),
+                onDismissed: widget.onDismiss,
+                background: Container(color: AppColors.mainRed),
+                child: _getListTile())
+            : _getListTile();
   }
 }
