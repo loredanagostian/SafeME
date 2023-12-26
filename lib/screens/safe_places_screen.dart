@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,9 +34,10 @@ class SafePlacesScreen extends StatefulWidget {
 class _SafePlacesScreenState extends State<SafePlacesScreen> {
   late GoogleMapController mapController;
   late LatLng currentPosition;
+  SafePlace? destinationSafePlace;
+  bool isSelectedDestination = false;
   late Future markers;
   int counterId = 0;
-
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
   Location location = Location();
@@ -106,19 +106,43 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
       safePlaces.add(SafePlace.fromJson(item));
       double lat = item['geometry']['location']['lat'];
       double lng = item['geometry']['location']['lng'];
+      String name = item['name'];
       markersList.add(Marker(
           markerId: MarkerId(counterId.toString()),
           position: LatLng(lat, lng),
           infoWindow: InfoWindow(title: item['name']),
           icon: BitmapDescriptor.fromBytes(markerIcon),
           onTap: () {
-            getNavigation(LatLng(lat, lng));
-            destinationMarker = Marker(
-              markerId: MarkerId('destination'),
-              position: LatLng(lat, lng),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueCyan),
-            );
+            if ((destinationSafePlace != null &&
+                    destinationSafePlace!.name != name &&
+                    ((destinationSafePlace!.position.latitude - lat).abs() <
+                        1) &&
+                    ((destinationSafePlace!.position.longitude - lng).abs() <
+                        1)) ||
+                !isSelectedDestination) {
+              print(destinationSafePlace);
+              print(lat);
+              print(lng);
+              setState(() {
+                isSelectedDestination = true;
+              });
+              destinationSafePlace =
+                  SafePlace(name: name, position: LatLng(lat, lng));
+
+              getNavigation(LatLng(lat, lng));
+
+              destinationMarker = Marker(
+                markerId: MarkerId('destination'),
+                position: LatLng(lat, lng),
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueCyan),
+              );
+            } else {
+              setState(() {
+                isSelectedDestination = false;
+                polylines = {};
+              });
+            }
           }));
       counterId++;
     }
@@ -130,16 +154,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
     location.changeSettings(accuracy: loc.LocationAccuracy.high);
 
     locationSubscription =
-        location.onLocationChanged.listen((LocationData currentLocation) {
-      // sourcePosition = Marker(
-      //   markerId: MarkerId(currentLocation.toString()),
-      //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      //   position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-      //   infoWindow: InfoWindow(
-      //       title:
-      //           '${double.parse((getDistance(destinationPoint).toStringAsFixed(2)))} km'),
-      // );
-    });
+        location.onLocationChanged.listen((LocationData currentLocation) {});
     getDirections(destinationPoint);
   }
 
@@ -163,7 +178,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   }
 
   addPolyLine(List<LatLng> polylineCoordinates) {
-    PolylineId id = PolylineId('poly');
+    PolylineId id = const PolylineId('poly');
     Polyline polyline = Polyline(
       polylineId: id,
       color: Colors.blue,
@@ -237,19 +252,45 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.hasData) {
-              return GoogleMap(
-                onMapCreated: _onMapCreated,
-                initialCameraPosition: CameraPosition(
-                  target: currentPosition,
-                  zoom: 17,
+              return Stack(children: [
+                GoogleMap(
+                  onMapCreated: _onMapCreated,
+                  initialCameraPosition: CameraPosition(
+                    target: currentPosition,
+                    zoom: 17,
+                  ),
+                  myLocationEnabled: true,
+                  mapToolbarEnabled: true,
+                  myLocationButtonEnabled: true,
+                  zoomControlsEnabled: false,
+                  markers: Set<Marker>.of(snapshot.data),
+                  polylines: Set<Polyline>.of(polylines.values),
                 ),
-                myLocationEnabled: true,
-                mapToolbarEnabled: true,
-                myLocationButtonEnabled: true,
-                zoomControlsEnabled: false,
-                markers: Set<Marker>.of(snapshot.data),
-                polylines: Set<Polyline>.of(polylines.values),
-              );
+                Visibility(
+                  visible: isSelectedDestination,
+                  child: Positioned(
+                      bottom: 75,
+                      right: 25,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: const BoxDecoration(
+                            shape: BoxShape.circle, color: AppColors.mainBlue),
+                        child: Center(
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.navigation_outlined,
+                              color: Colors.white,
+                            ),
+                            onPressed: () async {
+                              await launchUrl(Uri.parse(
+                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
+                            },
+                          ),
+                        ),
+                      )),
+                )
+              ]);
             } else {
               return Container();
             }
