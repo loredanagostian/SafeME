@@ -49,6 +49,8 @@ dependencies:
   flutter_riverpod: ^2.4.9
   google_maps_flutter: ^2.5.0
   geolocator: ^10.1.0
+  flutter_polyline_points: ^2.0.0
+  location: ^5.0.3
 
 dev_dependencies:
   flutter_test:
