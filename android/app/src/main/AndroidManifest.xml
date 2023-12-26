@@ -3,7 +3,6 @@
         android:label="safe_me"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <!-- TODO: Add your Google Maps API key here -->
         <meta-data android:name="com.google.android.geo.API_KEY"
                android:value="AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4"/>
 

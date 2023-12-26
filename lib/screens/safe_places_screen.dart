@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,7 +10,9 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/safe_place.dart';
 import 'package:safe_me/screens/more_screen.dart';
+import 'package:http/http.dart' as http;
 
 class SafePlacesScreen extends StatefulWidget {
   final Account userAccount;
@@ -22,13 +25,15 @@ class SafePlacesScreen extends StatefulWidget {
 
 class _SafePlacesScreenState extends State<SafePlacesScreen> {
   late GoogleMapController mapController;
-  late Future currentPosition;
+  late LatLng currentPosition;
+  late Future markers;
+  int counterId = 0;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
 
-  Future<LatLng> _getCurrentPosition() async {
+  Future<List<Marker>> _getCurrentPosition() async {
     try {
       var isPermission = await Geolocator.checkPermission();
       if (isPermission == LocationPermission.denied ||
@@ -52,7 +57,12 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
 
         LatLng userLocationLatLng =
             LatLng(position.latitude, position.longitude);
-        return userLocationLatLng;
+
+        currentPosition = userLocationLatLng;
+
+        return _getNearbyLocations(
+            userLocationLatLng, 'AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4');
+        // return userLocationLatLng;
       } else {
         throw Exception(AppStrings.locationPermissionDenied);
       }
@@ -63,10 +73,36 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
     }
   }
 
+  Future<List<Marker>> _getNearbyLocations(LatLng latLng, String apiKey) async {
+    String uri =
+        "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latLng.latitude},${latLng.longitude}&radius=500&key=$apiKey&opennow=true";
+    var url = Uri.parse(uri);
+    var response = await http.post(url);
+    List<SafePlace> safePlaces = [];
+    Map<String, dynamic> json = jsonDecode(response.body);
+    List<Marker> markersList = [];
+
+    for (var item in (json['results'] as List)) {
+      safePlaces.add(SafePlace.fromJson(item));
+      double lat = item['geometry']['location']['lat'];
+      double lng = item['geometry']['location']['lng'];
+      markersList.add(Marker(
+        markerId: MarkerId(counterId.toString()),
+        position: LatLng(lat, lng),
+        infoWindow: InfoWindow(title: item['name']),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      ));
+      counterId++;
+    }
+
+    return markersList;
+  }
+
   @override
   void initState() {
     super.initState();
-    currentPosition = _getCurrentPosition();
+    markers = _getCurrentPosition();
+    // markers = _getNearbyLocations();
   }
 
   @override
@@ -102,7 +138,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
           ],
         ),
         body: FutureBuilder(
-          future: currentPosition,
+          future: markers,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -111,12 +147,13 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
               return GoogleMap(
                 onMapCreated: _onMapCreated,
                 initialCameraPosition: CameraPosition(
-                  target: snapshot.data,
+                  target: currentPosition,
                   zoom: 17,
                 ),
                 myLocationEnabled: true,
                 mapToolbarEnabled: true,
                 myLocationButtonEnabled: true,
+                markers: Set<Marker>.of(snapshot.data),
               );
             } else {
               return Container();
