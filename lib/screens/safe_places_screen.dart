@@ -19,6 +19,7 @@ import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart' as loc;
 import 'package:location/location.dart';
+import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;
 
@@ -40,22 +41,26 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
   Location location = Location();
-  Marker? sourcePosition, destinationPosition;
+  late Marker destinationMarker;
   StreamSubscription<loc.LocationData>? locationSubscription;
-  final Completer<GoogleMapController?> _controller = Completer();
-  LatLng destinationPoint = const LatLng(45.8602414, 22.9087325);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
 
-  Future<List<Marker>> _getCurrentPosition() async {
+  Future<LocationPermission> getLocationPermission() async {
+    var isPermission = await Geolocator.checkPermission();
+    if (isPermission == LocationPermission.denied ||
+        isPermission == LocationPermission.deniedForever) {
+      isPermission = await Geolocator.requestPermission();
+    }
+
+    return isPermission;
+  }
+
+  Future<List<Marker>> _getNearbyPlaces() async {
     try {
-      var isPermission = await Geolocator.checkPermission();
-      if (isPermission == LocationPermission.denied ||
-          isPermission == LocationPermission.deniedForever) {
-        isPermission = await Geolocator.requestPermission();
-      }
+      var isPermission = await getLocationPermission();
 
       if (isPermission == LocationPermission.denied ||
           isPermission == LocationPermission.deniedForever) {
@@ -77,7 +82,6 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
         currentPosition = userLocationLatLng;
 
         return _getNearbyLocations(userLocationLatLng);
-        // return userLocationLatLng;
       } else {
         throw Exception(AppStrings.locationPermissionDenied);
       }
@@ -88,22 +92,6 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
     }
   }
 
-  Future<Uint8List> getBytesFromAsset(String path, int width) async {
-    ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
-        targetWidth: width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
-        .buffer
-        .asUint8List();
-  }
-
-  Future<Uint8List> addCustomIcon() async {
-    final Uint8List markerIcon =
-        await getBytesFromAsset("lib/assets/images/location.png", 120);
-    return markerIcon;
-  }
-
   Future<List<Marker>> _getNearbyLocations(LatLng latLng) async {
     String uri =
         "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latLng.latitude},${latLng.longitude}&radius=500&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4&opennow=true";
@@ -112,40 +100,45 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
     List<SafePlace> safePlaces = [];
     Map<String, dynamic> json = jsonDecode(response.body);
     List<Marker> markersList = [];
-    Uint8List markerIcon = await addCustomIcon();
+    Uint8List markerIcon = await CustomMarkerIcon.addCustomIcon();
 
     for (var item in (json['results'] as List)) {
       safePlaces.add(SafePlace.fromJson(item));
       double lat = item['geometry']['location']['lat'];
       double lng = item['geometry']['location']['lng'];
       markersList.add(Marker(
-        markerId: MarkerId(counterId.toString()),
-        position: LatLng(lat, lng),
-        infoWindow: InfoWindow(title: item['name']),
-        icon: BitmapDescriptor.fromBytes(markerIcon),
-      ));
+          markerId: MarkerId(counterId.toString()),
+          position: LatLng(lat, lng),
+          infoWindow: InfoWindow(title: item['name']),
+          icon: BitmapDescriptor.fromBytes(markerIcon),
+          onTap: () {
+            getNavigation(LatLng(lat, lng));
+            destinationMarker = Marker(
+              markerId: MarkerId('destination'),
+              position: LatLng(lat, lng),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueCyan),
+            );
+          }));
       counterId++;
     }
 
     return markersList;
   }
 
-  getNavigation() async {
+  getNavigation(LatLng destinationPoint) async {
     location.changeSettings(accuracy: loc.LocationAccuracy.high);
 
     locationSubscription =
         location.onLocationChanged.listen((LocationData currentLocation) {
-      sourcePosition = Marker(
-        markerId: MarkerId(currentLocation.toString()),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-        infoWindow: InfoWindow(
-            title:
-                '${double.parse((getDistance(destinationPoint).toStringAsFixed(2)))} km'),
-        onTap: () {
-          print('market tapped');
-        },
-      );
+      // sourcePosition = Marker(
+      //   markerId: MarkerId(currentLocation.toString()),
+      //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+      //   position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+      //   infoWindow: InfoWindow(
+      //       title:
+      //           '${double.parse((getDistance(destinationPoint).toStringAsFixed(2)))} km'),
+      // );
     });
     getDirections(destinationPoint);
   }
@@ -198,25 +191,10 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
         destposition.longitude);
   }
 
-  addMarker() {
-    sourcePosition = Marker(
-      markerId: MarkerId('source'),
-      position: currentPosition,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-    );
-    destinationPosition = Marker(
-      markerId: MarkerId('destination'),
-      position: destinationPoint,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
-    markers = _getCurrentPosition();
-    addCustomIcon();
-    // markers = _getNearbyLocations();
+    markers = _getNearbyPlaces();
   }
 
   @override
@@ -259,8 +237,6 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.hasData) {
-              getNavigation();
-              addMarker();
               return GoogleMap(
                 onMapCreated: _onMapCreated,
                 initialCameraPosition: CameraPosition(
@@ -270,14 +246,9 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
                 myLocationEnabled: true,
                 mapToolbarEnabled: true,
                 myLocationButtonEnabled: true,
-                // markers: Set<Marker>.of(snapshot.data),
-                markers: {sourcePosition!, destinationPosition!},
-
                 zoomControlsEnabled: false,
+                markers: Set<Marker>.of(snapshot.data),
                 polylines: Set<Polyline>.of(polylines.values),
-                onTap: (latLng) {
-                  print(latLng);
-                },
               );
             } else {
               return Container();
