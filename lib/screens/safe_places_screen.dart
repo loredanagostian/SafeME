@@ -18,6 +18,7 @@ import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart' as loc;
 import 'package:location/location.dart';
+import 'package:safe_me/widgets/custom_bottom_sheet.dart';
 import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;
@@ -107,41 +108,24 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
       double lat = item['geometry']['location']['lat'];
       double lng = item['geometry']['location']['lng'];
       String name = item['name'];
+      List<dynamic> categoriesJson = item['types'];
+      List<String> categories = [];
+      for (int i = 0; i < categoriesJson.length; i++) {
+        categories.add(categoriesJson[i].toString());
+      }
       markersList.add(Marker(
           markerId: MarkerId(counterId.toString()),
           position: LatLng(lat, lng),
           infoWindow: InfoWindow(title: item['name']),
           icon: BitmapDescriptor.fromBytes(markerIcon),
           onTap: () {
-            if ((destinationSafePlace != null &&
-                    destinationSafePlace!.name != name &&
-                    ((destinationSafePlace!.position.latitude - lat).abs() <
-                        1) &&
-                    ((destinationSafePlace!.position.longitude - lng).abs() <
-                        1)) ||
-                !isSelectedDestination) {
-              print(destinationSafePlace);
-              print(lat);
-              print(lng);
-              setState(() {
-                isSelectedDestination = true;
-              });
-              destinationSafePlace =
-                  SafePlace(name: name, position: LatLng(lat, lng));
-
-              getNavigation(LatLng(lat, lng));
-
-              destinationMarker = Marker(
-                markerId: MarkerId('destination'),
-                position: LatLng(lat, lng),
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueCyan),
-              );
-            } else {
-              setState(() {
-                isSelectedDestination = false;
-                polylines = {};
-              });
+            if (!isSelectedDestination) {
+              showPlaceInformationModal(
+                  context,
+                  name,
+                  getDistance(LatLng(lat, lng)).toStringAsFixed(2),
+                  categories,
+                  LatLng(lat, lng));
             }
           }));
       counterId++;
@@ -185,8 +169,9 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
       points: polylineCoordinates,
       width: 5,
     );
-    polylines[id] = polyline;
-    setState(() {});
+    setState(() {
+      polylines[id] = polyline;
+    });
   }
 
   double calculateDistance(lat1, lon1, lat2, lon2) {
@@ -204,6 +189,42 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
         currentPosition.longitude,
         destposition.latitude,
         destposition.longitude);
+  }
+
+  void showPlaceInformationModal(BuildContext context, String placeName,
+      String kmAway, List<String> categories, LatLng latLng) {
+    showModalBottomSheet<void>(
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppSizes.borders),
+                topRight: Radius.circular(AppSizes.borders))),
+        context: context,
+        builder: (BuildContext context) {
+          return CustomBottomModal(
+            placeName: placeName,
+            kmAway: kmAway,
+            categories: categories,
+            onTap: () {
+              Navigator.pop(context);
+
+              setState(() {
+                isSelectedDestination = true;
+              });
+
+              destinationSafePlace =
+                  SafePlace(name: placeName, position: latLng);
+
+              getNavigation(latLng);
+
+              destinationMarker = Marker(
+                markerId: MarkerId('destination'),
+                position: latLng,
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueCyan),
+              );
+            },
+          );
+        });
   }
 
   @override
@@ -265,6 +286,32 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
                   zoomControlsEnabled: false,
                   markers: Set<Marker>.of(snapshot.data),
                   polylines: Set<Polyline>.of(polylines.values),
+                ),
+                Visibility(
+                  visible: isSelectedDestination,
+                  child: Positioned(
+                      bottom: 130,
+                      right: 25,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: const BoxDecoration(
+                            shape: BoxShape.circle, color: AppColors.mainRed),
+                        child: Center(
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                            ),
+                            onPressed: () async {
+                              setState(() {
+                                isSelectedDestination = false;
+                                polylines = {};
+                              });
+                            },
+                          ),
+                        ),
+                      )),
                 ),
                 Visibility(
                   visible: isSelectedDestination,
