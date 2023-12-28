@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
 
@@ -25,7 +24,7 @@ class CustomButton extends StatelessWidget {
           decoration: BoxDecoration(
               color: buttonColor,
               borderRadius: BorderRadius.circular(AppSizes.borders),
-              border: Border.all(color: AppColors.mediumGray)),
+              border: Border.all(color: buttonColor)),
           child: Center(
             child: Text(
               buttonText,

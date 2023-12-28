@@ -9,8 +9,7 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/more_screen.dart';
-import 'package:safe_me/screens/notifications_screen.dart';
-import 'package:safe_me/widgets/emergency_member.dart';
+import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/person_live_location.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -113,7 +112,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             scrollDirection: Axis.horizontal,
                             itemBuilder: (BuildContext context, int index) {
                               final item = snapshot.data![index];
-                              return PersonLiveLocation(account: item);
+                              return GestureDetector(
+                                  onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              TrackLocationScreen(
+                                                account: item,
+                                                currentUser: widget.userAccount,
+                                              ))),
+                                  child: PersonLiveLocation(account: item));
                             },
                             separatorBuilder:
                                 (BuildContext context, int index) {

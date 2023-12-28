@@ -71,4 +71,6 @@ class AppStrings {
   static const String xKmAway = " km away";
   static const String startNavigation = "Start navigation";
   static const String categories = "Categories: ";
+  static const String notifyTracking = "Notify you’re tracking";
+  static const String openSMSApp = "Open SMS app";
 }

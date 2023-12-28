@@ -18,7 +18,7 @@ import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart' as loc;
 import 'package:location/location.dart';
-import 'package:safe_me/widgets/custom_bottom_sheet.dart';
+import 'package:safe_me/widgets/custom_bottom_modal.dart';
 import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;

@@ -6,8 +6,10 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_search_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FriendsScreenFragment extends StatefulWidget {
   final bool isTrackNow;
@@ -16,6 +18,7 @@ class FriendsScreenFragment extends StatefulWidget {
   final bool isRequests;
   final List<String> friendsList;
   final List<String> friendRequests;
+  final Account userAccount;
   const FriendsScreenFragment({
     super.key,
     this.isTrackNow = false,
@@ -24,6 +27,7 @@ class FriendsScreenFragment extends StatefulWidget {
     this.isRequests = false,
     this.friendRequests = const [],
     required this.friendsList,
+    required this.userAccount,
   });
 
   @override
@@ -152,6 +156,51 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     return data;
   }
 
+  Future<void> _getButton1Action(Account account) async {
+    if (widget.isTrackNow) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => TrackLocationScreen(
+                    account: account,
+                    currentUser: widget.userAccount,
+                  )));
+    }
+
+    if (widget.isAllFriends) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+        "trackMeNow": true,
+      });
+
+      String message = widget.userAccount.emergencySMS;
+      String encodedMessage = Uri.encodeFull(message);
+      final call = Uri.parse('sms:${account.phoneNumber}?body=$encodedMessage');
+      if (await canLaunchUrl(call)) {
+        launchUrl(call);
+      } else {
+        throw 'Could not launch $call';
+      }
+    }
+
+    if (widget.isRequests) {
+      String accountId = await getAccountId(account);
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+        "friendRequests": FieldValue.arrayRemove([accountId]),
+        "friends": FieldValue.arrayUnion([accountId]),
+      });
+      FirebaseFirestore.instance.collection('users').doc(accountId).update({
+        "friends":
+            FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -202,22 +251,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                           isRequest: widget.isRequests,
                           buttonText: _getButtonText(),
                           button1Action: () async {
-                            String accountId = await getAccountId(item);
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .update({
-                              "friendRequests":
-                                  FieldValue.arrayRemove([accountId]),
-                              "friends": FieldValue.arrayUnion([accountId]),
-                            });
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(accountId)
-                                .update({
-                              "friends": FieldValue.arrayUnion(
-                                  [FirebaseAuth.instance.currentUser!.uid]),
-                            });
+                            await _getButton1Action(item);
                           },
                           button2Action: () async {
                             String accountId = await getAccountId(item);
