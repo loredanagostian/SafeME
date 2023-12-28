@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -12,6 +15,7 @@ import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/person_live_location.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:location/location.dart' as loc;
 
 class HomeScreen extends StatefulWidget {
   final Account userAccount;
@@ -23,6 +27,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool wasLongPressed = false;
+  Location location = Location();
+  StreamSubscription<loc.LocationData>? locationSubscription;
 
   Future<List<Account>> fetchTrackMeFriends(List<String> friendsIds) async {
     List<Account> friendsList = [];
@@ -45,6 +51,58 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return friendsList;
+  }
+
+  Future<LocationPermission> getLocationPermission() async {
+    var isPermission = await Geolocator.checkPermission();
+    if (isPermission == LocationPermission.denied ||
+        isPermission == LocationPermission.deniedForever) {
+      isPermission = await Geolocator.requestPermission();
+    }
+
+    return isPermission;
+  }
+
+  Future<void> storeLocationInDB() async {
+    try {
+      var isPermission = await getLocationPermission();
+
+      if (isPermission == LocationPermission.denied ||
+          isPermission == LocationPermission.deniedForever) {
+        throw Exception(AppStrings.locationPermissionDenied);
+      }
+
+      if (isPermission == LocationPermission.always ||
+          isPermission == LocationPermission.whileInUse) {
+        location.changeSettings(accuracy: loc.LocationAccuracy.high);
+
+        locationSubscription =
+            location.onLocationChanged.listen((LocationData currentLocation) {
+          if (currentLocation.latitude != null &&
+              currentLocation.longitude != null) {
+            FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser!.uid)
+                .update({
+              "userLastLatitude": currentLocation.latitude,
+              "userLastLongitude": currentLocation.longitude,
+            });
+          }
+        });
+      } else {
+        throw Exception(AppStrings.locationPermissionDenied);
+      }
+    } on TimeoutException catch (_) {
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    locationSubscription?.cancel();
   }
 
   @override
@@ -137,6 +195,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: GestureDetector(
                           onLongPress: () async {
                             if (!wasLongPressed) {
+                              await storeLocationInDB();
+
                               FirebaseFirestore.instance
                                   .collection('users')
                                   .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -153,6 +213,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               } else {
                                 throw 'Could not launch $call';
                               }
+                            } else {
+                              locationSubscription?.cancel();
+                              setState(() {
+                                locationSubscription = null;
+                              });
+
+                              FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                                  .update({
+                                "trackMeNow": false,
+                              });
                             }
                             setState(() {
                               wasLongPressed = !wasLongPressed;
@@ -172,11 +244,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.sos_outlined,
-                              size: 85,
-                              color: AppColors.white,
-                            ),
+                            child: wasLongPressed
+                                ? const Icon(
+                                    Icons.cancel,
+                                    size: 85,
+                                    color: AppColors.white,
+                                  )
+                                : const Icon(
+                                    Icons.sos_outlined,
+                                    size: 85,
+                                    color: AppColors.white,
+                                  ),
                           ),
                         ),
                       ),

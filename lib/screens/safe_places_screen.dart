@@ -16,8 +16,6 @@ import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/safe_place.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:location/location.dart' as loc;
-import 'package:location/location.dart';
 import 'package:safe_me/widgets/custom_bottom_modal.dart';
 import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -41,9 +39,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   int counterId = 0;
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
-  Location location = Location();
   late Marker destinationMarker;
-  StreamSubscription<loc.LocationData>? locationSubscription;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -134,14 +130,6 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
     return markersList;
   }
 
-  getNavigation(LatLng destinationPoint) async {
-    location.changeSettings(accuracy: loc.LocationAccuracy.high);
-
-    locationSubscription =
-        location.onLocationChanged.listen((LocationData currentLocation) {});
-    getDirections(destinationPoint);
-  }
-
   getDirections(LatLng dst) async {
     List<LatLng> polylineCoordinates = [];
     List<dynamic> points = [];
@@ -214,7 +202,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
               destinationSafePlace =
                   SafePlace(name: placeName, position: latLng);
 
-              getNavigation(latLng);
+              getDirections(latLng);
 
               destinationMarker = Marker(
                 markerId: MarkerId('destination'),
@@ -231,12 +219,6 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   void initState() {
     super.initState();
     markers = _getNearbyPlaces();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    locationSubscription?.cancel();
   }
 
   @override

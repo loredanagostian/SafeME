@@ -36,6 +36,15 @@ class Account extends HiveObject {
   @HiveField(10)
   final List<String> friendsRequest;
 
+  @HiveField(11)
+  final String userId;
+
+  @HiveField(12)
+  final double lastLatitude;
+
+  @HiveField(13)
+  final double lastLongitude;
+
   Account({
     required this.email,
     required this.firstName,
@@ -48,6 +57,9 @@ class Account extends HiveObject {
     required this.friends,
     required this.trackMeNow,
     required this.friendsRequest,
+    required this.userId,
+    required this.lastLatitude,
+    required this.lastLongitude,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -81,6 +93,9 @@ class Account extends HiveObject {
       friends: friendsListIds,
       trackMeNow: json['trackMeNow'],
       friendsRequest: friendsRequestIds,
+      userId: json['userId'],
+      lastLatitude: json['userLastLatitude'],
+      lastLongitude: json['userLastLongitude'],
     );
   }
 }

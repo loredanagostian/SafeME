@@ -121,6 +121,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {
                           final userDatas = <String, dynamic>{
+                            "userId": widget.value,
                             "email": widget.email,
                             "firstName": firstNameController.text,
                             "lastName": lastNameController.text,
@@ -134,6 +135,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             "friends": [],
                             "trackMeNow": false,
                             "friendRequests": [],
+                            "userLastLatitude": 0.0,
+                            "userLastLongitude": 0.0,
                           };
 
                           FirebaseFirestore.instance
