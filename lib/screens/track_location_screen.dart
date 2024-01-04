@@ -23,31 +23,30 @@ class TrackLocationScreen extends StatefulWidget {
 
 class _TrackLocationScreenState extends State<TrackLocationScreen> {
   late GoogleMapController mapController;
-  late Future<Account> userInfos;
+  late Account userInfos;
+  late LatLng friendCurrentPosition;
+  bool _added = false;
 
-  Future<Account> getUserInfos() async {
+  Account getUserInfos(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     Map<String, dynamic>? data;
-
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.account.userId)
-        .get()
-        .then((snapshot) {
-      data = snapshot.data();
-    });
+    data = snapshot.data();
 
     return Account.fromJson(data!);
   }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    _added = true;
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    userInfos = getUserInfos();
+  Future<void> mymap(Account user) async {
+    await mapController
+        .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+            target: LatLng(
+              user.lastLatitude,
+              user.lastLongitude,
+            ),
+            zoom: 17)));
   }
 
   @override
@@ -93,24 +92,41 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
             ),
           ),
         ),
-        body: FutureBuilder(
-          future: userInfos,
+        body: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.account.userId)
+              .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.connectionState == ConnectionState.done &&
+            } else if (snapshot.connectionState == ConnectionState.active &&
                 snapshot.hasData) {
+              userInfos = getUserInfos(snapshot.requireData);
+
+              if (_added) {
+                mymap(userInfos);
+              }
+
+              friendCurrentPosition =
+                  LatLng(userInfos.lastLatitude, userInfos.lastLongitude);
+
               return Stack(children: [
                 GoogleMap(
                   onMapCreated: _onMapCreated,
                   initialCameraPosition: CameraPosition(
-                    target: LatLng(snapshot.data!.lastLatitude,
-                        snapshot.data!.lastLongitude),
+                    target: friendCurrentPosition,
                     zoom: 17,
                   ),
-                  myLocationEnabled: true,
+                  mapType: MapType.normal,
+                  markers: {
+                    Marker(
+                        position: friendCurrentPosition,
+                        markerId: MarkerId('id'),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueCyan)),
+                  },
                   mapToolbarEnabled: true,
-                  myLocationButtonEnabled: true,
                   zoomControlsEnabled: false,
                 ),
                 Positioned.fill(
