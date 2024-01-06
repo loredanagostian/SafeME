@@ -89,7 +89,7 @@ class _CustomListTileState extends State<CustomListTile> {
               )
             ])
           : GestureDetector(
-              onTap: widget.button1Action,
+              onTap: widget.isAlreadyFriend ? null : widget.button1Action,
               child: Container(
                 height: 35,
                 width: 70,

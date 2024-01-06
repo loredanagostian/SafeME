@@ -194,21 +194,24 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                               : AppStrings.addButton,
                           isAlreadyFriend: userAlreadyFriend(item),
                           button1Action: () async {
-                            String itemId = await getAccountId(item);
+                            if (item.email !=
+                                FirebaseAuth.instance.currentUser!.email) {
+                              String itemId = await getAccountId(item);
 
-                            await FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(itemId)
-                                .update({
-                              "friendRequests": FieldValue.arrayUnion(
-                                  [FirebaseAuth.instance.currentUser!.uid]),
-                            }).then((value) => ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(
-                                      content: CustomSnackbarContent(
-                                          snackBarMessage:
-                                              AppStrings.userAddedSuccessfully),
-                                      backgroundColor: AppColors.mainGreen,
-                                    )));
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(itemId)
+                                  .update({
+                                "friendRequests": FieldValue.arrayUnion(
+                                    [FirebaseAuth.instance.currentUser!.uid]),
+                              }).then((value) => ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                        content: CustomSnackbarContent(
+                                            snackBarMessage: AppStrings
+                                                .userAddedSuccessfully),
+                                        backgroundColor: AppColors.mainGreen,
+                                      )));
+                            }
                           },
                           buttonColor: item.email ==
                                   FirebaseAuth.instance.currentUser!.email

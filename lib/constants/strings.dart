@@ -62,4 +62,17 @@ class AppStrings {
   static const String allUsers = "All users";
   static const String userAddedSuccessfully =
       "User has been added successfully!";
+  static const String safePlacesTitle = "Safe places";
+  static const String locationPermissionDenied =
+      "Location Permission requests has been denied!";
+  static const String locationTimeout =
+      "Location information could not be obtained within the requested time.";
+  static const String openNow = "Open now";
+  static const String xKmAway = " km away";
+  static const String startNavigation = "Start navigation";
+  static const String categories = "Categories: ";
+  static const String notifyTracking = "Notify you’re tracking";
+  static const String openSMSApp = "Open SMS app";
+  static const String emergencyContact = "Emergency contact";
+  static const String switchContact = "SWITCH";
 }
