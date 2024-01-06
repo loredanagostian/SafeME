@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
-part 'account.g.dart';
+import 'package:safe_me/models/notification_model.dart';
+// part 'account.g.dart';
 
 @HiveType(typeId: 0)
 class Account extends HiveObject {
@@ -48,6 +49,12 @@ class Account extends HiveObject {
   @HiveField(14)
   final String emergencyContact;
 
+  @HiveField(15)
+  final String deviceToken;
+
+  @HiveField(16)
+  final List<NotificationModel> notifications;
+
   Account({
     required this.email,
     required this.firstName,
@@ -64,6 +71,8 @@ class Account extends HiveObject {
     required this.lastLatitude,
     required this.lastLongitude,
     required this.emergencyContact,
+    required this.deviceToken,
+    required this.notifications,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -85,6 +94,18 @@ class Account extends HiveObject {
       friendsRequestIds.add(friendsRequest[i].toString());
     }
 
+    List<dynamic> notificationsJson = json['notifications'];
+    List<NotificationModel> notifications = [];
+    for (int i = 0; i < notificationsJson.length; i++) {
+      NotificationModel item = NotificationModel(
+        title: notificationsJson[i]['title'],
+        body: notificationsJson[i]['body'],
+        opened: notificationsJson[i]['opened'],
+        id: notificationsJson[i]['id'],
+      );
+      notifications.add(item);
+    }
+
     return Account(
       email: json['email'],
       firstName: json['firstName'],
@@ -101,6 +122,8 @@ class Account extends HiveObject {
       lastLatitude: json['userLastLatitude'],
       lastLongitude: json['userLastLongitude'],
       emergencyContact: json['emergencyContact'],
+      deviceToken: json['deviceToken'],
+      notifications: notifications,
     );
   }
 }

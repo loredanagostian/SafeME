@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
@@ -183,6 +185,20 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
       } else {
         throw 'Could not launch $call';
       }
+
+      NotificationManager.sendNotification(
+        token: account.deviceToken,
+        body: widget.userAccount.emergencySMS,
+        friendId: account.userId,
+      );
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print('Got a message whilst in the foreground!');
+        if (message.notification != null) {
+          print('Notification Title: ${message.notification!.title}');
+          print('Notification Body: ${message.notification!.body}');
+        }
+      });
     }
 
     if (widget.isRequests) {

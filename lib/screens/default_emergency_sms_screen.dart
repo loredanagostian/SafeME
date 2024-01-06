@@ -38,7 +38,8 @@ class _DefaultEmergencySmsScreenState extends State<DefaultEmergencySmsScreen> {
           style: AppStyles.titleStyle,
         ),
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const MoreScreen())),
           icon: const Icon(
             Icons.arrow_back_ios,
             color: AppColors.mainDarkGray,

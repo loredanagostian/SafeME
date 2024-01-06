@@ -75,4 +75,5 @@ class AppStrings {
   static const String openSMSApp = "Open SMS app";
   static const String emergencyContact = "Emergency contact";
   static const String switchContact = "SWITCH";
+  static const String newFriendRequest = "You have a new friend request!";
 }
