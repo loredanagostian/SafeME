@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -13,17 +14,18 @@ import 'package:safe_me/screens/default_emergency_sms_screen.dart';
 import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
+import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MoreScreen extends StatefulWidget {
+class MoreScreen extends ConsumerStatefulWidget {
   const MoreScreen({super.key});
 
   @override
-  State<MoreScreen> createState() => _MoreScreenState();
+  ConsumerState<MoreScreen> createState() => _MoreScreenState();
 }
 
-class _MoreScreenState extends State<MoreScreen> {
+class _MoreScreenState extends ConsumerState<MoreScreen> {
   User? currentUser;
   late Account account;
 
@@ -141,6 +143,9 @@ class _MoreScreenState extends State<MoreScreen> {
                       buttonText: AppStrings.logout,
                       // SIGN OUT
                       onTap: () async {
+                        ref
+                            .read(bottomNavigatorIndex.notifier)
+                            .update((state) => 1);
                         await FirebaseAuth.instance.signOut().then((value) =>
                             Navigator.pushAndRemoveUntil(
                                 context,

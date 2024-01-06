@@ -16,7 +16,7 @@ import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/safe_place.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:safe_me/widgets/custom_bottom_modal.dart';
+import 'package:safe_me/widgets/custom_place_bottom_modal.dart';
 import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;
@@ -188,7 +188,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
                 topRight: Radius.circular(AppSizes.borders))),
         context: context,
         builder: (BuildContext context) {
-          return CustomBottomModal(
+          return CustomPlaceBottomModal(
             placeName: placeName,
             kmAway: kmAway,
             categories: categories,

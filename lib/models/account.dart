@@ -45,6 +45,9 @@ class Account extends HiveObject {
   @HiveField(13)
   final double lastLongitude;
 
+  @HiveField(14)
+  final String emergencyContact;
+
   Account({
     required this.email,
     required this.firstName,
@@ -60,6 +63,7 @@ class Account extends HiveObject {
     required this.userId,
     required this.lastLatitude,
     required this.lastLongitude,
+    required this.emergencyContact,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -96,6 +100,7 @@ class Account extends HiveObject {
       userId: json['userId'],
       lastLatitude: json['userLastLatitude'],
       lastLongitude: json['userLastLongitude'],
+      emergencyContact: json['emergencyContact'],
     );
   }
 }

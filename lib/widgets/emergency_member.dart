@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/models/account.dart';
 
 class EmergencyMember extends StatelessWidget {
-  const EmergencyMember({super.key});
+  final Account emergencyUser;
+  const EmergencyMember({super.key, required this.emergencyUser});
 
   @override
   Widget build(BuildContext context) {
@@ -20,24 +24,18 @@ class EmergencyMember extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSizes.smallDistance),
-            child: Container(
-                height: 65,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'lib/assets/images/eu.jpg',
-                    ),
-                    fit: BoxFit.cover,
-                  ),
-                )),
+            child: SizedBox(
+              height: 50,
+              width: 50,
+              child: CircleAvatar(
+                  backgroundImage: FileImage(File(emergencyUser.imageURL))),
+            ),
           ),
           Flexible(
             child: Text(
-              "Lore Gostian Gostian",
-              style: AppStyles.textComponentStyle.copyWith(fontSize: 11),
+              "${emergencyUser.firstName} ${emergencyUser.lastName}",
+              style: AppStyles.textComponentStyle,
               textAlign: TextAlign.center,
-              maxLines: 2,
             ),
           ),
         ],

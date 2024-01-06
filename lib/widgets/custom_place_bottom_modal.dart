@@ -5,12 +5,12 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 
-class CustomBottomModal extends StatelessWidget {
+class CustomPlaceBottomModal extends StatelessWidget {
   final String placeName;
   final String kmAway;
   final List<String> categories;
   final void Function() onTap;
-  const CustomBottomModal({
+  const CustomPlaceBottomModal({
     super.key,
     required this.placeName,
     required this.kmAway,

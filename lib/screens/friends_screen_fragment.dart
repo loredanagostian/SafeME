@@ -187,13 +187,30 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
 
     if (widget.isRequests) {
       String accountId = await getAccountId(account);
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .update({
-        "friendRequests": FieldValue.arrayRemove([accountId]),
-        "friends": FieldValue.arrayUnion([accountId]),
-      });
+
+      widget.userAccount.emergencyContact.isEmpty
+          ? FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .update({
+              "friendRequests": FieldValue.arrayRemove([accountId]),
+              "friends": FieldValue.arrayUnion([accountId]),
+              "emergencyContact": account.userId,
+            })
+          : FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .update({
+              "friendRequests": FieldValue.arrayRemove([accountId]),
+              "friends": FieldValue.arrayUnion([accountId]),
+            });
+
+      if (account.emergencyContact.isEmpty) {
+        FirebaseFirestore.instance.collection('users').doc(accountId).update({
+          "emergencyContact": widget.userAccount.userId,
+        });
+      }
+
       FirebaseFirestore.instance.collection('users').doc(accountId).update({
         "friends":
             FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),

@@ -131,6 +131,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                 : defaultURL,
                             "emergencySMS": "Emergency! Track me, please!",
                             "emergencyGroup": [],
+                            "emergencyContact": "",
                             "trackingSMS": "I'm tracking you! You're safe!",
                             "friends": [],
                             "trackMeNow": false,
