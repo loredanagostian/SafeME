@@ -187,10 +187,10 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
       }
 
       NotificationManager.sendNotification(
-          account.deviceToken,
-          AppStrings.sosButton,
-          widget.userAccount.emergencySMS,
-          account.userId);
+        token: account.deviceToken,
+        body: widget.userAccount.emergencySMS,
+        friendId: account.userId,
+      );
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('Got a message whilst in the foreground!');

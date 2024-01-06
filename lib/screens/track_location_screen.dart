@@ -141,10 +141,9 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                           buttonText: AppStrings.notifyTracking,
                           onTap: () async {
                             NotificationManager.sendNotification(
-                                userInfos.deviceToken,
-                                AppStrings.sosButton,
-                                widget.currentUser.trackingSMS,
-                                userInfos.userId);
+                                token: userInfos.deviceToken,
+                                body: widget.currentUser.trackingSMS,
+                                friendId: userInfos.userId);
                           },
                         ),
                       ),

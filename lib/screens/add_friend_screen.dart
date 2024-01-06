@@ -5,6 +5,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_search_bar.dart';
@@ -211,6 +212,12 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                                                 .userAddedSuccessfully),
                                         backgroundColor: AppColors.mainGreen,
                                       )));
+
+                              NotificationManager.sendNotification(
+                                token: item.deviceToken,
+                                body: AppStrings.newFriendRequest,
+                                friendId: item.userId,
+                              );
                             }
                           },
                           buttonColor: item.email ==

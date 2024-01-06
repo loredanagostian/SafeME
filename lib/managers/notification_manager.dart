@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:safe_me/constants/strings.dart';
 
 Future<void> handleBackgroundMessage(RemoteMessage message) async {
   print('Got a message whilst in the background!');
@@ -27,7 +28,10 @@ class NotificationManager {
   }
 
   static Future<void> sendNotification(
-      String token, String title, String body, String friendId) async {
+      {required String token,
+      String title = AppStrings.appTitle,
+      required String body,
+      required String friendId}) async {
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
           headers: {
