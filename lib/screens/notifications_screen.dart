@@ -87,7 +87,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${widget.userAccount.notifications.length} notifications unread",
+                        "${widget.userAccount.notifications.length} notifications",
                         style: AppStyles.textComponentStyle,
                       ),
                       SizedBox(
