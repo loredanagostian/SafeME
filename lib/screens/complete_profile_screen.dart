@@ -7,6 +7,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/screens/main_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
@@ -138,6 +139,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             "friendRequests": [],
                             "userLastLatitude": 0.0,
                             "userLastLongitude": 0.0,
+                            "deviceToken": NotificationManager.token,
+                            "notifications": [],
                           };
 
                           FirebaseFirestore.instance

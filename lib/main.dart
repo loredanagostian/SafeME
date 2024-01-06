@@ -5,6 +5,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/managers/hive_manager.dart';
+import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:safe_me/screens/main_screen.dart';
@@ -16,6 +17,8 @@ Future<void> main() async {
   await Hive.initFlutter();
   await HiveManager.instance.initHiveManager();
   SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
+  await NotificationManager.initNotifications();
+  await NotificationManager.getToken();
 
   runApp(ProviderScope(child: MyApp(sharedPrefs: sharedPrefs)));
 }

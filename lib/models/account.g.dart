@@ -32,13 +32,14 @@ class AccountAdapter extends TypeAdapter<Account> {
       lastLatitude: fields[12] as double,
       lastLongitude: fields[13] as double,
       emergencyContact: fields[14] as String,
+      deviceToken: fields[15] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Account obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.email)
       ..writeByte(1)
@@ -68,7 +69,9 @@ class AccountAdapter extends TypeAdapter<Account> {
       ..writeByte(13)
       ..write(obj.lastLongitude)
       ..writeByte(14)
-      ..write(obj.emergencyContact);
+      ..write(obj.emergencyContact)
+      ..writeByte(15)
+      ..write(obj.deviceToken);
   }
 
   @override
