@@ -15,7 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await Hive.initFlutter();
-  await HiveManager.instance.initHiveManager();
+  // await HiveManager.instance.initHiveManager();
   SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
   await NotificationManager.initNotifications();
   await NotificationManager.getToken();

@@ -12,6 +12,7 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/more_screen.dart';
+import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
@@ -141,16 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
             style: AppStyles.titleStyle,
           ),
           actions: [
-            // IconButton(
-            //     onPressed: () => Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (context) => const NotificationsScreen())),
-            //     icon: const Icon(
-            //       Icons.notifications_outlined,
-            //       color: AppColors.mainDarkGray,
-            //       size: 30,
-            //     )),
+            IconButton(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => NotificationsScreen(
+                            userAccount: widget.userAccount))),
+                icon: const Icon(
+                  Icons.notifications_outlined,
+                  color: AppColors.mainDarkGray,
+                  size: 30,
+                )),
             GestureDetector(
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const MoreScreen())),

@@ -61,13 +61,14 @@ class NotificationManager {
   static void addNotificationToFirebase(
       String title, String body, String friendId) {
     var map = <String, dynamic>{};
+    map["id"] = DateTime.now().microsecondsSinceEpoch.toString();
     map["title"] = title;
     map["body"] = body;
     map["opened"] = false;
 
     FirebaseFirestore.instance.collection('users').doc(friendId).update(
       {
-        "notifications": [map]
+        "notifications": FieldValue.arrayUnion([map])
       },
     );
   }

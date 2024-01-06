@@ -14,7 +14,7 @@ class HiveManager {
   HiveManager._internal();
 
   Future<void> initHiveManager() async {
-    Hive.registerAdapter(AccountAdapter());
+    // Hive.registerAdapter(AccountAdapter());
 
     accountBox = await Hive.openBox('accounts');
     userBox = await Hive.openBox('users');

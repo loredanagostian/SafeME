@@ -3,10 +3,13 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/models/account.dart';
 import 'package:safe_me/widgets/custom_notification_tile.dart';
 
 class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
+  final Account userAccount;
+
+  const NotificationsScreen({super.key, required this.userAccount});
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +38,8 @@ class NotificationsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "2 notifications unread",
+                  Text(
+                    "${userAccount.notifications.length} notifications unread",
                     style: AppStyles.textComponentStyle,
                   ),
                   SizedBox(
