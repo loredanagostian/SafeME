@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:safe_me/models/notification.dart';
+import 'package:safe_me/models/notification_model.dart';
 // part 'account.g.dart';
 
 @HiveType(typeId: 0)
@@ -53,7 +53,7 @@ class Account extends HiveObject {
   final String deviceToken;
 
   @HiveField(16)
-  final List<Notification> notifications;
+  final List<NotificationModel> notifications;
 
   Account({
     required this.email,
@@ -95,10 +95,15 @@ class Account extends HiveObject {
     }
 
     List<dynamic> notificationsJson = json['notifications'];
-    List<Notification> notifications = [];
+    List<NotificationModel> notifications = [];
     for (int i = 0; i < notificationsJson.length; i++) {
-      // Notification item = Notification(title: notificationsJson[i]['title'], body: notificationsJson[i]['body'], opened: notificationsJson[i]['opened'],);
-      // notifications.add();
+      NotificationModel item = NotificationModel(
+        title: notificationsJson[i]['title'],
+        body: notificationsJson[i]['body'],
+        opened: notificationsJson[i]['opened'],
+        id: notificationsJson[i]['id'],
+      );
+      notifications.add(item);
     }
 
     return Account(
