@@ -186,8 +186,11 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
         throw 'Could not launch $call';
       }
 
-      NotificationManager.sendNotification(account.deviceToken,
-          AppStrings.sosButton, AppStrings.openAppToTrack, account.userId);
+      NotificationManager.sendNotification(
+          account.deviceToken,
+          AppStrings.sosButton,
+          widget.userAccount.emergencySMS,
+          account.userId);
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         print('Got a message whilst in the foreground!');

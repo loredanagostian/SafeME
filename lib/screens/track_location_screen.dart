@@ -7,6 +7,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -139,16 +140,11 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                           buttonColor: AppColors.mainRed,
                           buttonText: AppStrings.notifyTracking,
                           onTap: () async {
-                            // TODO change to push notification for tracked user
-                            String message = widget.currentUser.trackingSMS;
-                            String encodedMessage = Uri.encodeFull(message);
-                            final call = Uri.parse(
-                                'sms:${widget.account.phoneNumber}?body=$encodedMessage');
-                            if (await canLaunchUrl(call)) {
-                              launchUrl(call);
-                            } else {
-                              throw 'Could not launch $call';
-                            }
+                            NotificationManager.sendNotification(
+                                userInfos.deviceToken,
+                                AppStrings.sosButton,
+                                widget.currentUser.trackingSMS,
+                                userInfos.userId);
                           },
                         ),
                       ),
