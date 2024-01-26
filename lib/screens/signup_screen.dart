@@ -4,8 +4,8 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
-import 'package:safe_me/screens/complete_profile_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
+import 'package:safe_me/screens/verify_email_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
@@ -41,14 +41,17 @@ class _SignupScreenState extends State<SignupScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content:
-                  CustomSnackbarContent(snackBarMessage: message.keys.first)));
+            content: CustomSnackbarContent(snackBarMessage: message.keys.first),
+            backgroundColor: AppColors.mainRed,
+          ));
         }
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: CustomSnackbarContent(
-              snackBarMessage: AppStrings.invalidCredentials)));
+        content: CustomSnackbarContent(
+            snackBarMessage: AppStrings.invalidCredentials),
+        backgroundColor: AppColors.mainRed,
+      ));
     }
     return '';
   }
@@ -56,17 +59,6 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.white,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.mainDarkGray,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       backgroundColor: AppColors.white,
       body: SingleChildScrollView(
         child: SafeArea(
@@ -128,10 +120,14 @@ class _SignupScreenState extends State<SignupScreen> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => CompleteProfileScreen(
-                                        email: emailController.text,
-                                        value: success,
-                                      )));
+                                  builder: (context) => VerifyEmail()));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => CompleteProfileScreen(
+                          //               email: emailController.text,
+                          //               value: success,
+                          //             )));
                         }
                       }),
                   const SizedBox(height: AppSizes.bigDistance),

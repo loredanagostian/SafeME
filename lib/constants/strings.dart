@@ -76,4 +76,15 @@ class AppStrings {
   static const String emergencyContact = "Emergency contact";
   static const String switchContact = "SWITCH";
   static const String newFriendRequest = "You have a new friend request!";
+  static const String verifyPhoneNumber = "Verify phone number";
+  static const String enterCodeBelow = "Enter the code received below.";
+  static const String code = "Code";
+  static const String validate = "Validate";
+  static const String haventReceivedCode = "Haven't received code?";
+  static const String resend = "Re-send";
+  static const String verifyEmail = "Verify e-mail";
+  static const String sentVerificationEmail =
+      "We've sent you a verification e-mail on ";
+  static const String verifyingEmail = "Verifying e-mail...";
+  static const String completeProfile = "Complete profile";
 }
