@@ -19,6 +19,7 @@ class VerifyEmail extends StatefulWidget {
 class _VerifyEmailState extends State<VerifyEmail> {
   bool isEmailVerified = false;
   Timer? timer;
+
   @override
   void initState() {
     super.initState();
@@ -91,7 +92,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.resend,
-                      // LOGIN with Firebase
+                      // TODO resend
                       onTap: () async {}),
                 ]),
           ),

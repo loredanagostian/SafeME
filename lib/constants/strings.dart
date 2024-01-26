@@ -87,4 +87,7 @@ class AppStrings {
       "We've sent you a verification e-mail on ";
   static const String verifyingEmail = "Verifying e-mail...";
   static const String completeProfile = "Complete profile";
+  static const String defaultEmergencySMS = "Emergency! Track me, please!";
+  static const String defaultTrackingSMS = "I'm tracking you! You're safe!";
+  static const String otpError = "There was an error at OTP";
 }
