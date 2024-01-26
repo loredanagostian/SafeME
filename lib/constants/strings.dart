@@ -42,8 +42,8 @@ class AppStrings {
   static const String call112 = "Call 112";
   static const String editProfile = "Edit profile";
   static const String changePicture = "Change picture";
-  static const String changeFirstName = "Change firstname";
-  static const String changeLastName = "Change lastname";
+  static const String changeFirstName = "Change first name";
+  static const String changeLastName = "Change last name";
   static const String changePhoneNumber = "Change phone number";
   static const String selectPicture = "Select picture";
   static const String saveChanges = "Save changes";

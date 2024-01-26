@@ -25,7 +25,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
-  late TextEditingController phoneNumberController;
   File? imageFile;
 
   @override
@@ -33,8 +32,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     firstNameController = TextEditingController(text: widget.user.firstName);
     lastNameController = TextEditingController(text: widget.user.lastName);
-    phoneNumberController =
-        TextEditingController(text: widget.user.phoneNumber);
   }
 
   @override
@@ -119,17 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 CustomTextField(
                   controller: lastNameController,
                 ),
-                const SizedBox(height: AppSizes.borders),
-                Text(
-                  AppStrings.changePhoneNumber,
-                  style: AppStyles.buttonTextStyle
-                      .copyWith(color: AppColors.mainDarkGray),
-                ),
-                CustomTextField(
-                  controller: phoneNumberController,
-                  isPhoneNumber: true,
-                ),
-                const SizedBox(height: AppSizes.buttonHeight),
+                SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
                 CustomButton(
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.saveChanges,
@@ -140,7 +127,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           .update({
                         "firstName": firstNameController.text,
                         "lastName": lastNameController.text,
-                        "phoneNumber": phoneNumberController.text,
                         "imageURL": imageFile?.path ?? widget.user.imageURL
                       }).then((value) {
                         Navigator.pushReplacement(
