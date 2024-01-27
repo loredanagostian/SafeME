@@ -15,7 +15,7 @@ class CustomMarkerIcon {
 
   static Future<Uint8List> addCustomIcon() async {
     final Uint8List markerIcon =
-        await getBytesFromAsset("lib/assets/images/location.png", 120);
+        await getBytesFromAsset("lib/assets/images/safeME-pin2.png", 140);
     return markerIcon;
   }
 }
