@@ -9,7 +9,6 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
-import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
@@ -129,10 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         "lastName": lastNameController.text,
                         "imageURL": imageFile?.path ?? widget.user.imageURL
                       }).then((value) {
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MoreScreen()));
+                        Navigator.pop(context);
                       });
                     })
               ]),
