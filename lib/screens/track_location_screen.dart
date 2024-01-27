@@ -9,7 +9,7 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
-import 'package:safe_me/widgets/custom_button.dart';
+import 'package:safe_me/screens/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TrackLocationScreen extends StatefulWidget {
@@ -23,10 +23,11 @@ class TrackLocationScreen extends StatefulWidget {
 }
 
 class _TrackLocationScreenState extends State<TrackLocationScreen> {
-  late GoogleMapController mapController;
-  late Account userInfos;
-  late LatLng friendCurrentPosition;
+  late GoogleMapController _mapController;
+  late Account _userInfos;
+  late LatLng _friendCurrentPosition;
   bool _added = false;
+  final TextEditingController _messageController = TextEditingController();
 
   Account getUserInfos(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     Map<String, dynamic>? data;
@@ -36,18 +37,36 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    _mapController = controller;
     _added = true;
   }
 
   Future<void> mymap(Account user) async {
-    await mapController
+    await _mapController
         .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
             target: LatLng(
               user.lastLatitude,
               user.lastLongitude,
             ),
             zoom: 17)));
+  }
+
+  Widget _createIconButton(
+      Color buttonColor, IconData buttonIcon, Function() onPressed) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: buttonColor),
+      child: Center(
+        child: IconButton(
+          icon: Icon(
+            buttonIcon,
+            color: Colors.white,
+          ),
+          onPressed: onPressed,
+        ),
+      ),
+    );
   }
 
   @override
@@ -78,7 +97,7 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                     style: AppStyles.notificationTitleStyle
                         .copyWith(color: AppColors.mainDarkGray),
                   ),
-                  Text("Active now",
+                  Text(AppStrings.activeNow,
                       style: AppStyles.notificationBodyStyle
                           .copyWith(color: AppColors.lightGreen)),
                 ],
@@ -103,26 +122,27 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.connectionState == ConnectionState.active &&
                 snapshot.hasData) {
-              userInfos = getUserInfos(snapshot.requireData);
+              bool isMessageSentByCurrentUser = false;
+              _userInfos = getUserInfos(snapshot.requireData);
 
               if (_added) {
-                mymap(userInfos);
+                mymap(_userInfos);
               }
 
-              friendCurrentPosition =
-                  LatLng(userInfos.lastLatitude, userInfos.lastLongitude);
+              _friendCurrentPosition =
+                  LatLng(_userInfos.lastLatitude, _userInfos.lastLongitude);
 
               return Stack(children: [
                 GoogleMap(
                   onMapCreated: _onMapCreated,
                   initialCameraPosition: CameraPosition(
-                    target: friendCurrentPosition,
+                    target: _friendCurrentPosition,
                     zoom: 17,
                   ),
                   mapType: MapType.normal,
                   markers: {
                     Marker(
-                        position: friendCurrentPosition,
+                        position: _friendCurrentPosition,
                         markerId: MarkerId('id'),
                         icon: BitmapDescriptor.defaultMarkerWithHue(
                             BitmapDescriptor.hueCyan)),
@@ -130,47 +150,138 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                   mapToolbarEnabled: true,
                   zoomControlsEnabled: false,
                 ),
-                Positioned.fill(
-                    bottom: 90,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSizes.mediumDistance),
-                        child: CustomButton(
-                          buttonColor: AppColors.mainRed,
-                          buttonText: AppStrings.notifyTracking,
-                          onTap: () async {
-                            NotificationManager.sendNotification(
-                                token: userInfos.deviceToken,
-                                body: widget.currentUser.trackingSMS,
-                                friendId: userInfos.userId);
-                          },
+                Positioned(
+                    top: 15,
+                    right: 15,
+                    child: _createIconButton(
+                      AppColors.mainRed,
+                      Icons.notifications_outlined,
+                      () async {
+                        NotificationManager.sendNotification(
+                            token: _userInfos.deviceToken,
+                            body: widget.currentUser.trackingSMS,
+                            friendId: _userInfos.userId);
+                      },
+                    )),
+                Positioned(
+                    top: 75,
+                    right: 15,
+                    child: _createIconButton(
+                      AppColors.mainBlue,
+                      Icons.sms_outlined,
+                      () async {
+                        String message = widget.currentUser.trackingSMS;
+                        String encodedMessage = Uri.encodeFull(message);
+                        final call = Uri.parse(
+                            'sms:${widget.account.phoneNumber}?body=$encodedMessage');
+                        if (await canLaunchUrl(call)) {
+                          launchUrl(call);
+                        } else {
+                          throw 'Could not launch $call';
+                        }
+                      },
+                    )),
+                Positioned(
+                    bottom: 25,
+                    left: 15,
+                    child: _createIconButton(
+                      AppColors.mainRed,
+                      Icons.forum_outlined,
+                      () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ChatScreen(
+                                      friendAccount: widget.account,
+                                      currentUserImageUrl:
+                                          widget.currentUser.imageURL,
+                                    )));
+                      },
+                    )),
+                Positioned(
+                    bottom: 25,
+                    left: 70,
+                    right: 15,
+                    child: TextFormField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.fromLTRB(
+                          AppSizes.mediumDistance,
+                          AppSizes.smallDistance,
+                          AppSizes.mediumDistance,
+                          AppSizes.smallDistance,
+                        ),
+                        hintText: "Type a message",
+                        hintStyle: AppStyles.bodyStyle
+                            .copyWith(color: AppColors.mediumGray),
+                        fillColor: AppColors.componentGray,
+                        filled: true,
+                        suffixIcon: const Icon(Icons.send_outlined),
+                        suffixIconColor: AppColors.mainDarkGray,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppSizes.borders),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: AppColors.componentGray),
+                          borderRadius: BorderRadius.circular(AppSizes.borders),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: AppColors.componentGray),
+                          borderRadius: BorderRadius.circular(AppSizes.borders),
                         ),
                       ),
+                      textCapitalization: TextCapitalization.sentences,
+                      keyboardType: TextInputType.text,
                     )),
-                Positioned.fill(
-                    bottom: 20,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSizes.mediumDistance),
-                        child: CustomButton(
-                          buttonColor: AppColors.mainBlue,
-                          buttonText: AppStrings.openSMSApp,
-                          onTap: () async {
-                            String message = widget.currentUser.trackingSMS;
-                            String encodedMessage = Uri.encodeFull(message);
-                            final call = Uri.parse(
-                                'sms:${widget.account.phoneNumber}?body=$encodedMessage');
-                            if (await canLaunchUrl(call)) {
-                              launchUrl(call);
-                            } else {
-                              throw 'Could not launch $call';
-                            }
-                          },
+                Positioned(
+                  bottom: 85,
+                  right: isMessageSentByCurrentUser ? 75 : null,
+                  left: isMessageSentByCurrentUser ? null : 75,
+                  child: Container(
+                    height: 70,
+                    width: 220,
+                    padding: const EdgeInsets.all(AppSizes.mediumDistance),
+                    decoration: BoxDecoration(
+                      color: isMessageSentByCurrentUser
+                          ? AppColors.lightBlue
+                          : AppColors.mediumBlue,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(AppSizes.borders),
+                          topRight: Radius.circular(AppSizes.borders),
+                          bottomLeft: isMessageSentByCurrentUser
+                              ? Radius.circular(AppSizes.borders)
+                              : Radius.zero,
+                          bottomRight: isMessageSentByCurrentUser
+                              ? Radius.zero
+                              : Radius.circular(
+                                  AppSizes.borders,
+                                )),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "blabla",
+                        style: AppStyles.hintComponentStyle.copyWith(
+                          color: AppColors.white,
                         ),
                       ),
-                    )),
+                    ),
+                  ),
+                ),
+                Positioned(
+                    bottom: 85,
+                    right: isMessageSentByCurrentUser ? 15 : null,
+                    left: isMessageSentByCurrentUser ? null : 15,
+                    child: SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: CircleAvatar(
+                            backgroundImage: FileImage(File(
+                                isMessageSentByCurrentUser
+                                    ? widget.currentUser.imageURL
+                                    : widget.account.imageURL)))))
               ]);
             } else {
               return Container();
