@@ -11,6 +11,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
@@ -151,11 +152,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(
                         builder: (context) => NotificationsScreen(
                             userAccount: widget.userAccount))),
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: AppColors.mainDarkGray,
-                  size: 30,
-                )),
+                icon: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: stream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+                      User? currentUser = FirebaseAuth.instance.currentUser;
+                      var user = snapshot.data!.docs.firstWhere(
+                          (value) => value["userId"] == currentUser!.uid);
+                      Account userData = Account.fromJson(user.data());
+                      List<NotificationModel> unreadNotifications = [];
+                      unreadNotifications = userData.notifications
+                          .where((element) => element.opened == false)
+                          .toList();
+
+                      return Icon(
+                        unreadNotifications.isEmpty
+                            ? Icons.notifications_outlined
+                            : Icons.notifications,
+                        color: unreadNotifications.isEmpty
+                            ? AppColors.mainDarkGray
+                            : AppColors.mainBlue,
+                        size: 30,
+                      );
+                    })),
             GestureDetector(
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const MoreScreen())),
