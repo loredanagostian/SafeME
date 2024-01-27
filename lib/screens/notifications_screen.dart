@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -77,52 +78,69 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
         ),
-        body: Padding(
-            padding: const EdgeInsets.all(AppSizes.smallDistance),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "${widget.userAccount.notifications.length} notifications",
-                        style: AppStyles.textComponentStyle,
-                      ),
-                      SizedBox(
-                        height: 30,
-                        width: 30,
-                        child: IconButton(
-                          onPressed: () => markAllNotificationsAsRead(),
-                          icon: const Icon(
-                            Icons.done_all,
-                            color: AppColors.mainDarkGray,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  const Divider(
-                    color: AppColors.mainDarkGray,
-                    thickness: 1,
-                  ),
-                  ListView.builder(
-                    itemCount: widget.userAccount.notifications.length,
-                    itemBuilder: (context, index) {
-                      final item = widget.userAccount.notifications[index];
+        body: StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser?.uid)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-                      return GestureDetector(
-                        onTap: () => markNotificationAsRead(item),
-                        child: CustomNotificationTile(
-                          notificationTitle: item.title,
-                          notificationBody: item.body,
-                          opened: item.opened,
+              return Padding(
+                  padding: const EdgeInsets.all(AppSizes.smallDistance),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${widget.userAccount.notifications.length} notifications",
+                              style: AppStyles.textComponentStyle,
+                            ),
+                            SizedBox(
+                              height: 30,
+                              width: 30,
+                              child: IconButton(
+                                onPressed: () => markAllNotificationsAsRead(),
+                                icon: const Icon(
+                                  Icons.done_all,
+                                  color: AppColors.mainDarkGray,
+                                ),
+                              ),
+                            )
+                          ],
                         ),
-                      );
-                    },
-                    shrinkWrap: true,
-                  )
-                ])));
+                        const Divider(
+                          color: AppColors.mainDarkGray,
+                          thickness: 1,
+                        ),
+                        ListView.builder(
+                          itemCount: widget.userAccount.notifications.length,
+                          itemBuilder: (context, index) {
+                            final item =
+                                widget.userAccount.notifications[index];
+
+                            return GestureDetector(
+                              onTap: () {
+                                if (item.opened == false)
+                                  markNotificationAsRead(item);
+                              },
+                              child: CustomNotificationTile(
+                                notificationTitle: item.title,
+                                notificationBody: item.body,
+                                opened: item.opened,
+                              ),
+                            );
+                          },
+                          shrinkWrap: true,
+                        )
+                      ]));
+            }));
   }
 }
