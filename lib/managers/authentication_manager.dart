@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthenticationManager {
   static late bool isNew;
+  static String verifyId = "";
 
   Future<String> logInUser(String email, String password) async {
     try {
@@ -62,5 +63,61 @@ class AuthenticationManager {
 
   bool isLoggedIn(SharedPreferences sharedPref) {
     return sharedPref.getString('userEmail') != null;
+  }
+
+  static Future sendOtp(
+      {required String phoneNumber,
+      required Function errorStep,
+      required Function nextStep}) async {
+    await FirebaseAuth.instance
+        .verifyPhoneNumber(
+          timeout: const Duration(seconds: 10),
+          phoneNumber: "+4${phoneNumber.trim()}",
+          verificationCompleted: (PhoneAuthCredential credential) async {
+            return;
+          },
+          verificationFailed: (FirebaseAuthException e) async {
+            return;
+          },
+          codeSent: (String verificationId, int? resendToken) async {
+            verifyId = verificationId;
+            nextStep();
+          },
+          codeAutoRetrievalTimeout: (String verificationId) async {
+            return;
+          },
+        )
+        .onError((error, stackTrace) => errorStep());
+  }
+
+  static Future<String> loginWithOtp({required String otp}) async {
+    final credential =
+        PhoneAuthProvider.credential(verificationId: verifyId, smsCode: otp);
+
+    try {
+      final userCredential = await FirebaseAuth.instance.currentUser
+          ?.linkWithCredential(credential);
+
+      if (userCredential != null) {
+        return "";
+      }
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "provider-already-linked":
+          return "The provider has already been linked to the user.";
+        case "invalid-credential":
+          return "The provider's credential is not valid.";
+
+        case "credential-already-in-use":
+          return "The account corresponding to the credential already exists, "
+              "or is already linked to a Firebase User.";
+
+        // See the API reference for the full list of error codes.
+        default:
+          return "Unknown error.";
+      }
+    }
+
+    return "Unknown error.";
   }
 }

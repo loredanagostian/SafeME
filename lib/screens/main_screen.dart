@@ -16,8 +16,6 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  User? currentUser;
-
   Widget _getBody(int index, Account userAccount) {
     switch (index) {
       case 0:
@@ -50,28 +48,35 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    currentUser = FirebaseAuth.instance.currentUser;
-  }
-
-  @override
   Widget build(BuildContext context) {
     int selectedIndex = ref.watch(bottomNavigatorIndex);
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    // Listen to the current user's document
+    Stream<DocumentSnapshot<Map<String, dynamic>>> userStream =
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser!.uid)
+            .snapshots();
 
     return Scaffold(
-        extendBody: true,
-        bottomNavigationBar: const CustomBottomTabNavigator(),
-        body: FutureBuilder(
-            future: getCurrentUserDatas(currentUser!),
-            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return _getBody(selectedIndex, snapshot.data);
-              }
-              return Container();
-            }));
+      extendBody: true,
+      bottomNavigationBar: const CustomBottomTabNavigator(),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: userStream,
+        builder: (BuildContext context,
+            AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+          if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.hasData && snapshot.data!.data() != null) {
+              Account userAccount = Account.fromJson(snapshot.data!.data()!);
+              return _getBody(selectedIndex, userAccount);
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
+    );
   }
 }

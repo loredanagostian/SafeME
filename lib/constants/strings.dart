@@ -42,8 +42,8 @@ class AppStrings {
   static const String call112 = "Call 112";
   static const String editProfile = "Edit profile";
   static const String changePicture = "Change picture";
-  static const String changeFirstName = "Change firstname";
-  static const String changeLastName = "Change lastname";
+  static const String changeFirstName = "Change first name";
+  static const String changeLastName = "Change last name";
   static const String changePhoneNumber = "Change phone number";
   static const String selectPicture = "Select picture";
   static const String saveChanges = "Save changes";
@@ -76,4 +76,18 @@ class AppStrings {
   static const String emergencyContact = "Emergency contact";
   static const String switchContact = "SWITCH";
   static const String newFriendRequest = "You have a new friend request!";
+  static const String verifyPhoneNumber = "Verify phone number";
+  static const String enterCodeBelow = "Enter the code received below.";
+  static const String code = "Code";
+  static const String validate = "Validate";
+  static const String haventReceivedCode = "Haven't received code?";
+  static const String resend = "Re-send";
+  static const String verifyEmail = "Verify e-mail";
+  static const String sentVerificationEmail =
+      "We've sent you a verification e-mail on ";
+  static const String verifyingEmail = "Verifying e-mail...";
+  static const String completeProfile = "Complete profile";
+  static const String defaultEmergencySMS = "Emergency! Track me, please!";
+  static const String defaultTrackingSMS = "I'm tracking you! You're safe!";
+  static const String otpError = "There was an error at OTP";
 }

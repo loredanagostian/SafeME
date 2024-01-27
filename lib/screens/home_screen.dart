@@ -133,6 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .snapshots();
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -171,13 +177,40 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: AppColors.white,
         body: SingleChildScrollView(
-          child: FutureBuilder(
-              future: fetchTrackMeFriends(widget.userAccount.friends),
+          child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: stream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (snapshot.hasData && snapshot.data!.data() != null) {
+                  var userData = snapshot.data!.data()!;
+                  List<dynamic> friendsListDynamic = userData['friends'] ?? [];
+                  List<String> trackMeFriendsIds = [];
+
+                  if (friendsListDynamic.isNotEmpty) {
+                    trackMeFriendsIds = friendsListDynamic.cast<String>();
+                    // If 'trackMeNowFriends' exists, filter the list
+                    if (userData.containsKey('trackMeNowFriends')) {
+                      List<dynamic> trackMeNowFriendsDynamic =
+                          userData['trackMeNowFriends'];
+                      List<String> trackMeNowFriendsIds =
+                          trackMeNowFriendsDynamic.cast<String>();
+                      trackMeFriendsIds = trackMeFriendsIds
+                          .where((id) => trackMeNowFriendsIds.contains(id))
+                          .toList();
+                    }
+                  }
+
+                  // Fetch emergency user info if available
+                  String? emergencyContactId = userData['emergencyContact'];
+                  if (allFriends.isNotEmpty) {
+                    emergencyUser = allFriends.firstWhere(
+                      (friend) => friend.userId == emergencyContactId,
+                    );
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.all(AppSizes.smallDistance),
                     child: Column(
@@ -185,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Visibility(
-                          visible: snapshot.data!.isNotEmpty,
+                          visible: trackMeFriendsIds.isNotEmpty,
                           child: const Text(
                             AppStrings.sharingLiveLocationNow,
                             style: AppStyles.sectionTitleStyle,
@@ -198,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 65,
                             child: ListView.separated(
                               shrinkWrap: true,
-                              itemCount: snapshot.data!.length,
+                              itemCount: trackMeFriendsIds.length,
                               scrollDirection: Axis.horizontal,
                               itemBuilder: (BuildContext context, int index) {
                                 final item = snapshot.data![index];

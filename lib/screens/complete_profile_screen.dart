@@ -1,22 +1,20 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/managers/notification_manager.dart';
-import 'package:safe_me/screens/main_screen.dart';
+import 'package:safe_me/managers/authentication_manager.dart';
+import 'package:safe_me/screens/verify_phone_number_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
+import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
-  final String email;
-  final String value;
-  const CompleteProfileScreen(
-      {super.key, required this.email, required this.value});
+  const CompleteProfileScreen({super.key});
 
   @override
   State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
@@ -28,6 +26,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final TextEditingController phoneNumberController = TextEditingController();
   String defaultURL = "lib/assets/images/default_account.png";
   File? imageFile;
+  String? email;
+  String? value;
+
+  @override
+  void initState() {
+    super.initState();
+    email = FirebaseAuth.instance.currentUser?.email;
+    value = FirebaseAuth.instance.currentUser?.uid;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +47,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AppSizes.mediumDistance),
+                  const Text(
+                    AppStrings.completeProfile,
+                    style: AppStyles.titleStyle,
+                  ),
+                  const SizedBox(height: AppSizes.bigDistance),
                   Center(
                     child: SizedBox(
                       height: 100,
@@ -82,7 +93,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           )),
                     ),
                   ),
-                  const SizedBox(height: AppSizes.titleFieldDistance),
+                  const SizedBox(height: AppSizes.buttonHeight),
                   Text(
                     AppStrings.firstName,
                     style: AppStyles.buttonTextStyle
@@ -121,58 +132,39 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         if (firstNameController.text.isNotEmpty &&
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {
-                          final userDatas = <String, dynamic>{
-                            "userId": widget.value,
-                            "email": widget.email,
-                            "firstName": firstNameController.text,
-                            "lastName": lastNameController.text,
-                            "phoneNumber": phoneNumberController.text,
-                            "imageURL": imageFile != null
-                                ? imageFile!.path
-                                : defaultURL,
-                            "emergencySMS": "Emergency! Track me, please!",
-                            "emergencyGroup": [],
-                            "emergencyContact": "",
-                            "trackingSMS": "I'm tracking you! You're safe!",
-                            "friends": [],
-                            "trackMeNow": false,
-                            "friendRequests": [],
-                            "userLastLatitude": 0.0,
-                            "userLastLongitude": 0.0,
-                            "deviceToken": NotificationManager.token,
-                            "notifications": [],
-                          };
-
-                          FirebaseFirestore.instance
-                              .collection("users")
-                              .doc(widget.value)
-                              .set(userDatas)
-                              .then((value) => Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const MainScreen()),
-                                  (route) => false));
+                          AuthenticationManager.sendOtp(
+                              phoneNumber: phoneNumberController.text,
+                              errorStep: () {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: CustomSnackbarContent(
+                                      snackBarMessage: AppStrings.otpError),
+                                  backgroundColor: AppColors.mainRed,
+                                ));
+                              },
+                              nextStep: () {
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => VerifyPhoneNumber(
+                                              firstName:
+                                                  firstNameController.text,
+                                              lastName: lastNameController.text,
+                                              phoneNumber:
+                                                  phoneNumberController.text,
+                                              imagePath:
+                                                  imageFile?.path ?? defaultURL,
+                                            )),
+                                    (route) => false);
+                              });
                         } else {
-                          final SnackBar snackBar = SnackBar(
-                            content: SizedBox(
-                              height: AppSizes.bigDistance,
-                              child: Row(children: [
-                                const Icon(
-                                  Icons.priority_high,
-                                  color: AppColors.white,
-                                ),
-                                const SizedBox(width: AppSizes.smallDistance),
-                                Text(
-                                  AppStrings.allFieldsMustBeCompleted,
-                                  style: AppStyles.bottomItemStyle
-                                      .copyWith(color: AppColors.white),
-                                )
-                              ]),
-                            ),
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: CustomSnackbarContent(
+                                snackBarMessage:
+                                    AppStrings.allFieldsMustBeCompleted),
                             backgroundColor: AppColors.mainRed,
-                          );
-
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                          ));
                         }
                       })
                 ]),

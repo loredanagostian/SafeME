@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             .copyWith(color: AppColors.darkGray),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.push(
+                        onTap: () => Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const SignupScreen())),

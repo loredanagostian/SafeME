@@ -40,6 +40,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
   late Marker destinationMarker;
+  late Stream<Position> positionStream;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -219,6 +220,17 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   void initState() {
     super.initState();
     markers = _getNearbyPlaces();
+
+    // Define location settings with a 5-meter change filter
+    var locationOptions = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter:
+          5, // Set the minimum distance change (in meters) for updates
+    );
+
+    // Initialize the position stream with the desired accuracy and distance filter
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationOptions);
   }
 
   @override
@@ -248,82 +260,101 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
             )
           ],
         ),
-        body: FutureBuilder(
-          future: markers,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData) {
-              return Stack(children: [
-                GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: currentPosition,
-                    zoom: 17,
-                  ),
-                  myLocationEnabled: true,
-                  mapToolbarEnabled: true,
-                  myLocationButtonEnabled: true,
-                  zoomControlsEnabled: false,
-                  markers: Set<Marker>.of(snapshot.data),
-                  polylines: Set<Polyline>.of(polylines.values),
-                ),
-                Visibility(
-                  visible: isSelectedDestination,
-                  child: Positioned(
-                      bottom: 130,
-                      right: 25,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle, color: AppColors.mainRed),
-                        child: Center(
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              color: Colors.white,
+        body: StreamBuilder<Position>(
+            stream: positionStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.active) {
+                if (snapshot.hasData) {
+                  // Update current position with the new data
+                  currentPosition =
+                      LatLng(snapshot.data!.latitude, snapshot.data!.longitude);
+                  // Update markers based on the new position
+                  markers = _getNearbyPlaces();
+                  // Build the map UI with the current position and markers
+                  return FutureBuilder(
+                    future: markers,
+                    builder: (context, markerSnapshot) {
+                      if (markerSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (markerSnapshot.connectionState ==
+                              ConnectionState.done &&
+                          markerSnapshot.hasData) {
+                        return Stack(children: [
+                          GoogleMap(
+                            onMapCreated: _onMapCreated,
+                            initialCameraPosition: CameraPosition(
+                              target: currentPosition,
+                              zoom: 17,
                             ),
-                            onPressed: () async {
-                              setState(() {
-                                isSelectedDestination = false;
-                                polylines = {};
-                              });
-                            },
+                            myLocationEnabled: true,
+                            mapToolbarEnabled: true,
+                            myLocationButtonEnabled: true,
+                            zoomControlsEnabled: false,
+                            markers: Set<Marker>.of(markerSnapshot.data),
+                            polylines: Set<Polyline>.of(polylines.values),
                           ),
-                        ),
-                      )),
-                ),
-                Visibility(
-                  visible: isSelectedDestination,
-                  child: Positioned(
-                      bottom: 75,
-                      right: 25,
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle, color: AppColors.mainBlue),
-                        child: Center(
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.navigation_outlined,
-                              color: Colors.white,
-                            ),
-                            onPressed: () async {
-                              await launchUrl(Uri.parse(
-                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
-                            },
+                          Visibility(
+                            visible: isSelectedDestination,
+                            child: Positioned(
+                                bottom: 130,
+                                right: 25,
+                                child: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.mainRed),
+                                  child: Center(
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        setState(() {
+                                          isSelectedDestination = false;
+                                          polylines = {};
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                )),
                           ),
-                        ),
-                      )),
-                )
-              ]);
-            } else {
+                          Visibility(
+                            visible: isSelectedDestination,
+                            child: Positioned(
+                                bottom: 75,
+                                right: 25,
+                                child: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.mainBlue),
+                                  child: Center(
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.navigation_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        await launchUrl(Uri.parse(
+                                            'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
+                                      },
+                                    ),
+                                  ),
+                                )),
+                          )
+                        ]);
+                      } else {
+                        return Container();
+                      }
+                    },
+                  );
+                }
+              }
               return Container();
-            }
-          },
-        ));
+            }));
   }
 }
