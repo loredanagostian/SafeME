@@ -133,11 +133,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
-        .instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .snapshots();
+    Stream<QuerySnapshot<Map<String, dynamic>>> stream =
+        FirebaseFirestore.instance.collection('users').snapshots();
 
     return Scaffold(
         appBar: AppBar(
@@ -177,212 +174,220 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: AppColors.white,
         body: SingleChildScrollView(
-          child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: stream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (snapshot.hasData && snapshot.data!.data() != null) {
-                  var userData = snapshot.data!.data()!;
-                  List<dynamic> friendsListDynamic = userData['friends'] ?? [];
-                  List<String> trackMeFriendsIds = [];
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: stream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    User? currentUser = FirebaseAuth.instance.currentUser;
+                    var user = snapshot.data!.docs.firstWhere(
+                        (value) => value["userId"] == currentUser!.uid);
+                    Account userData = Account.fromJson(user.data());
 
-                  if (friendsListDynamic.isNotEmpty) {
-                    trackMeFriendsIds = friendsListDynamic.cast<String>();
-                    // If 'trackMeNowFriends' exists, filter the list
-                    if (userData.containsKey('trackMeNowFriends')) {
-                      List<dynamic> trackMeNowFriendsDynamic =
-                          userData['trackMeNowFriends'];
-                      List<String> trackMeNowFriendsIds =
-                          trackMeNowFriendsDynamic.cast<String>();
-                      trackMeFriendsIds = trackMeFriendsIds
-                          .where((id) => trackMeNowFriendsIds.contains(id))
-                          .toList();
-                    }
-                  }
+                    return FutureBuilder<List<Account>>(
+                        future: fetchTrackMeFriends(userData.friends),
+                        builder: (context,
+                            AsyncSnapshot<List<Account>> asyncSnapshot) {
+                          if (asyncSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (asyncSnapshot.hasData) {
+                            List<Account> trackMeFriends =
+                                asyncSnapshot.data ?? [];
 
-                  // Fetch emergency user info if available
-                  String? emergencyContactId = userData['emergencyContact'];
-                  if (allFriends.isNotEmpty) {
-                    emergencyUser = allFriends.firstWhere(
-                      (friend) => friend.userId == emergencyContactId,
-                    );
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSizes.smallDistance),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Visibility(
-                          visible: trackMeFriendsIds.isNotEmpty,
-                          child: const Text(
-                            AppStrings.sharingLiveLocationNow,
-                            style: AppStyles.sectionTitleStyle,
-                          ),
-                        ),
-
-                        const SizedBox(height: AppSizes.smallDistance),
-
-                        SizedBox(
-                            height: 65,
-                            child: ListView.separated(
-                              shrinkWrap: true,
-                              itemCount: trackMeFriendsIds.length,
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (BuildContext context, int index) {
-                                final item = snapshot.data![index];
-                                return GestureDetector(
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                TrackLocationScreen(
-                                                  account: item,
-                                                  currentUser:
-                                                      widget.userAccount,
-                                                ))),
-                                    child: PersonLiveLocation(account: item));
-                              },
-                              separatorBuilder:
-                                  (BuildContext context, int index) {
-                                return const SizedBox(
-                                  width: AppSizes.smallDistance,
-                                );
-                              },
-                            )),
-                        const SizedBox(height: AppSizes.buttonHeight),
-                        // const SizedBox(height: AppSizes.buttonHeight), // TODO change when adding emergency group
-                        Align(
-                          alignment: Alignment.center,
-                          child: GestureDetector(
-                            onLongPress: () async {
-                              if (!wasLongPressed) {
-                                await storeLocationInDB();
-
-                                FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                                    .update({
-                                  "trackMeNow": true,
-                                });
-
-                                String message =
-                                    widget.userAccount.emergencySMS;
-                                String encodedMessage = Uri.encodeFull(message);
-                                final call = Uri.parse(
-                                    'sms:0733156102?body=$encodedMessage');
-                                if (await canLaunchUrl(call)) {
-                                  launchUrl(call);
-                                } else {
-                                  throw 'Could not launch $call';
-                                }
-                              } else {
-                                locationSubscription?.cancel();
-                                setState(() {
-                                  locationSubscription = null;
-                                });
-
-                                FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                                    .update({
-                                  "trackMeNow": false,
-                                });
-                              }
-                              setState(() {
-                                wasLongPressed = !wasLongPressed;
-                              });
-                            },
-                            child: Container(
-                              height: 175,
-                              width: 175,
-                              decoration: const BoxDecoration(
-                                color: AppColors.mainRed,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Color.fromARGB(255, 255, 60, 0),
-                                    spreadRadius: 0,
-                                    blurRadius: 80,
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.all(AppSizes.smallDistance),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Visibility(
+                                    visible: trackMeFriends.isNotEmpty,
+                                    child: const Text(
+                                      AppStrings.sharingLiveLocationNow,
+                                      style: AppStyles.sectionTitleStyle,
+                                    ),
                                   ),
+
+                                  const SizedBox(
+                                      height: AppSizes.smallDistance),
+
+                                  SizedBox(
+                                      height: 65,
+                                      child: ListView.separated(
+                                        shrinkWrap: true,
+                                        itemCount: trackMeFriends.length,
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          final item =
+                                              asyncSnapshot.data![index];
+                                          return GestureDetector(
+                                              onTap: () => Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          TrackLocationScreen(
+                                                            account: item,
+                                                            currentUser: widget
+                                                                .userAccount,
+                                                          ))),
+                                              child: PersonLiveLocation(
+                                                  account: item));
+                                        },
+                                        separatorBuilder:
+                                            (BuildContext context, int index) {
+                                          return const SizedBox(
+                                            width: AppSizes.smallDistance,
+                                          );
+                                        },
+                                      )),
+                                  const SizedBox(height: AppSizes.buttonHeight),
+                                  // const SizedBox(height: AppSizes.buttonHeight), // TODO change when adding emergency group
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onLongPress: () async {
+                                        if (!wasLongPressed) {
+                                          await storeLocationInDB();
+
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(FirebaseAuth
+                                                  .instance.currentUser!.uid)
+                                              .update({
+                                            "trackMeNow": true,
+                                          });
+
+                                          String message =
+                                              widget.userAccount.emergencySMS;
+                                          String encodedMessage =
+                                              Uri.encodeFull(message);
+                                          final call = Uri.parse(
+                                              'sms:0733156102?body=$encodedMessage');
+                                          if (await canLaunchUrl(call)) {
+                                            launchUrl(call);
+                                          } else {
+                                            throw 'Could not launch $call';
+                                          }
+                                        } else {
+                                          locationSubscription?.cancel();
+                                          setState(() {
+                                            locationSubscription = null;
+                                          });
+
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(FirebaseAuth
+                                                  .instance.currentUser!.uid)
+                                              .update({
+                                            "trackMeNow": false,
+                                          });
+                                        }
+                                        setState(() {
+                                          wasLongPressed = !wasLongPressed;
+                                        });
+                                      },
+                                      child: Container(
+                                        height: 175,
+                                        width: 175,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.mainRed,
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Color.fromARGB(
+                                                  255, 255, 60, 0),
+                                              spreadRadius: 0,
+                                              blurRadius: 80,
+                                            ),
+                                          ],
+                                        ),
+                                        child: wasLongPressed
+                                            ? const Icon(
+                                                Icons.cancel,
+                                                size: 85,
+                                                color: AppColors.white,
+                                              )
+                                            : const Icon(
+                                                Icons.sos_outlined,
+                                                size: 85,
+                                                color: AppColors.white,
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                      visible: wasLongPressed,
+                                      child: const SizedBox(
+                                          height: AppSizes.bigDistance)),
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: SizedBox(
+                                      width: 175,
+                                      child: Visibility(
+                                          visible: wasLongPressed,
+                                          child: const Text(
+                                            AppStrings
+                                                .emergencyGroupIsContacted,
+                                            style: AppStyles.bodyStyle,
+                                            textAlign: TextAlign.center,
+                                          )),
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSizes.buttonHeight),
+                                  emergencyUser != null
+                                      ? Row(
+                                          children: [
+                                            const Text(
+                                              AppStrings.emergencyContact,
+                                              style:
+                                                  AppStyles.sectionTitleStyle,
+                                            ),
+                                            const SizedBox(
+                                                width: AppSizes.smallDistance),
+                                            IconButton(
+                                                onPressed: () =>
+                                                    showAllFriendsList(context),
+                                                icon: const Icon(
+                                                  Icons.edit_outlined,
+                                                  color: AppColors.mainDarkGray,
+                                                ))
+                                          ],
+                                        )
+                                      : Container(),
+
+                                  const SizedBox(
+                                      height: AppSizes.smallDistance),
+                                  emergencyUser != null
+                                      ? EmergencyMember(
+                                          emergencyUser: emergencyUser!)
+                                      : Container(),
+
+                                  // const Row(
+                                  //   children: [
+                                  //     EmergencyMember(),
+                                  //     SizedBox(width: AppSizes.smallDistance),
+                                  //     EmergencyMember(),
+                                  //     SizedBox(width: AppSizes.smallDistance),
+                                  //     EmergencyMember(),
+                                  //   ],
+                                  // ),
+                                  const SizedBox(
+                                      height: kBottomNavigationBarHeight)
                                 ],
                               ),
-                              child: wasLongPressed
-                                  ? const Icon(
-                                      Icons.cancel,
-                                      size: 85,
-                                      color: AppColors.white,
-                                    )
-                                  : const Icon(
-                                      Icons.sos_outlined,
-                                      size: 85,
-                                      color: AppColors.white,
-                                    ),
-                            ),
-                          ),
-                        ),
-                        Visibility(
-                            visible: wasLongPressed,
-                            child:
-                                const SizedBox(height: AppSizes.bigDistance)),
-                        Align(
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            width: 175,
-                            child: Visibility(
-                                visible: wasLongPressed,
-                                child: const Text(
-                                  AppStrings.emergencyGroupIsContacted,
-                                  style: AppStyles.bodyStyle,
-                                  textAlign: TextAlign.center,
-                                )),
-                          ),
-                        ),
-                        const SizedBox(height: AppSizes.buttonHeight),
-                        emergencyUser != null
-                            ? Row(
-                                children: [
-                                  const Text(
-                                    AppStrings.emergencyContact,
-                                    style: AppStyles.sectionTitleStyle,
-                                  ),
-                                  const SizedBox(width: AppSizes.smallDistance),
-                                  IconButton(
-                                      onPressed: () =>
-                                          showAllFriendsList(context),
-                                      icon: const Icon(
-                                        Icons.edit_outlined,
-                                        color: AppColors.mainDarkGray,
-                                      ))
-                                ],
-                              )
-                            : Container(),
-
-                        const SizedBox(height: AppSizes.smallDistance),
-                        emergencyUser != null
-                            ? EmergencyMember(emergencyUser: emergencyUser!)
-                            : Container(),
-
-                        // const Row(
-                        //   children: [
-                        //     EmergencyMember(),
-                        //     SizedBox(width: AppSizes.smallDistance),
-                        //     EmergencyMember(),
-                        //     SizedBox(width: AppSizes.smallDistance),
-                        //     EmergencyMember(),
-                        //   ],
-                        // ),
-                        const SizedBox(height: kBottomNavigationBarHeight)
-                      ],
-                    ),
-                  );
-                }
-                return Container();
-              }),
-        ));
+                            );
+                          }
+                          return Container();
+                        });
+                  }
+                  return Container();
+                })));
   }
 }
