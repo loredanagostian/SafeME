@@ -97,20 +97,6 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
     return false;
   }
 
-  Future<String> getAccountId(Account account) async {
-    String data = "";
-
-    await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: account.email)
-        .get()
-        .then((snapshot) {
-      data = snapshot.docs[0].id;
-    });
-
-    return data;
-  }
-
   Color getButtonColor(Account account) {
     if (userAlreadyFriend(account)) return AppColors.mediumGray;
     if (userAlreadyRequested(account)) return AppColors.mainGreen;
@@ -195,8 +181,8 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                                       if (item.email !=
                                           FirebaseAuth
                                               .instance.currentUser!.email) {
-                                        String itemId =
-                                            await getAccountId(item);
+                                        String itemId = FirebaseAuth
+                                            .instance.currentUser!.uid;
 
                                         await FirebaseFirestore.instance
                                             .collection('users')

@@ -41,16 +41,11 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   List<Account> accountsData = [];
-  late Future _futureFriends;
-  late Future _futureRequests;
   String totalFoundsAccounts = "";
 
   @override
   void initState() {
     super.initState();
-
-    _futureFriends = fetchFriends(widget.friendsList);
-    _futureRequests = fetchFriendRequests(widget.friendRequests);
 
     _searchController.addListener(() {
       _onSearchTextChanged(_searchController.text);
@@ -91,26 +86,23 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
   }
 
   Future<List<Account>> fetchFriends(List<String> friendsIds) async {
+    // Use Future.wait to fetch all friends in parallel
+    var friendsFutures = friendsIds.map((friendId) {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .get()
+          .then((snapshot) => snapshot.data());
+    }).toList();
+
+    var friendsData = await Future.wait(friendsFutures);
     List<Account> friendsList = [];
 
-    for (int i = 0; i < friendsIds.length; i++) {
-      Map<String, dynamic>? data;
+    for (var data in friendsData) {
+      if (data != null) {
+        final friend = Account.fromJson(data);
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(friendsIds[i].toString())
-          .get()
-          .then((snapshot) {
-        data = snapshot.data();
-      });
-
-      if (widget.isAllFriends) {
-        friendsList.add(Account.fromJson(data!));
-      }
-
-      if (widget.isTrackNow) {
-        final friend = Account.fromJson(data!);
-        if (friend.trackMeNow) {
+        if (widget.isAllFriends || (widget.isTrackNow && friend.trackMeNow)) {
           friendsList.add(friend);
         }
       }
@@ -121,20 +113,21 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
 
   Future<List<Account>> fetchFriendRequests(
       List<String> friendRequestsIds) async {
+    var friendRequestsFutures = friendRequestsIds.map((requestId) {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(requestId)
+          .get()
+          .then((snapshot) => snapshot.data());
+    }).toList();
+
+    var friendRequestsData = await Future.wait(friendRequestsFutures);
     List<Account> friendRequests = [];
 
-    for (int i = 0; i < friendRequestsIds.length; i++) {
-      Map<String, dynamic>? data;
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(friendRequestsIds[i].toString())
-          .get()
-          .then((snapshot) {
-        data = snapshot.data();
-      });
-
-      friendRequests.add(Account.fromJson(data!));
+    for (var data in friendRequestsData) {
+      if (data != null) {
+        friendRequests.add(Account.fromJson(data));
+      }
     }
 
     return friendRequests;
@@ -236,93 +229,125 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
 
   @override
   Widget build(BuildContext context) {
+    Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .snapshots();
+
     return SingleChildScrollView(
-      child: FutureBuilder(
-          future: widget.isRequests ? _futureRequests : _futureFriends,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData) {
-              accountsData = snapshot.data!;
-              totalFoundsAccounts = _searchQuery.isNotEmpty
-                  ? filteredData.length.toString()
-                  : accountsData.length.toString();
+        child: StreamBuilder(
+            stream: stream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (snapshot.hasData && snapshot.data!.data() != null) {
+                var userData = snapshot.data!.data()!;
+                List<String> ids = widget.isRequests
+                    ? (userData['friendRequests'] as List<dynamic>)
+                        .cast<String>()
+                    : (userData['friends'] as List<dynamic>).cast<String>();
 
-              return Container(
-                padding: const EdgeInsets.all(AppSizes.smallDistance),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomSearchBar(
-                        onChanged: _onSearchTextChanged,
-                        searchController: _searchController),
-                    const SizedBox(height: AppSizes.marginSize),
-                    Text(
-                      "$totalFoundsAccounts ${returnCountType()}",
-                      style: AppStyles.textComponentStyle
-                          .copyWith(color: AppColors.mainBlue),
-                    ),
-                    const Divider(
-                      color: AppColors.mainDarkGray,
-                      thickness: 1,
-                    ),
-                    ListView.builder(
-                      itemCount: _searchQuery.isNotEmpty
-                          ? filteredData.length
-                          : accountsData.length,
-                      itemBuilder: (context, index) {
-                        final item = _searchQuery.isNotEmpty
-                            ? filteredData[index]
-                            : accountsData[index];
+                return FutureBuilder<List<Account>>(
+                    future: widget.isRequests
+                        ? fetchFriendRequests(ids)
+                        : fetchFriends(ids),
+                    builder: (context,
+                        AsyncSnapshot<List<Account>> accountsSnapshot) {
+                      if (accountsSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (accountsSnapshot.hasData) {
+                        accountsData = accountsSnapshot.data!;
+                        totalFoundsAccounts = _searchQuery.isNotEmpty
+                            ? filteredData.length.toString()
+                            : accountsData.length.toString();
 
-                        return CustomListTile(
-                          photoUrl: item.imageURL,
-                          title: item.firstName,
-                          subtitle: item.phoneNumber,
-                          isRequest: widget.isRequests,
-                          buttonText: _getButtonText(),
-                          button1Action: () async {
-                            await _getButton1Action(item);
-                          },
-                          button2Action: () async {
-                            String accountId = await getAccountId(item);
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .update({
-                              "friendRequests":
-                                  FieldValue.arrayRemove([accountId])
-                            });
-                          },
-                          onDismiss: (DismissDirection direction) async {
-                            String accountId = await getAccountId(item);
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .update({
-                              "friends": FieldValue.arrayRemove([accountId])
-                            });
+                        return Container(
+                          padding: const EdgeInsets.all(AppSizes.smallDistance),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomSearchBar(
+                                  onChanged: _onSearchTextChanged,
+                                  searchController: _searchController),
+                              const SizedBox(height: AppSizes.marginSize),
+                              Text(
+                                "$totalFoundsAccounts ${returnCountType()}",
+                                style: AppStyles.textComponentStyle
+                                    .copyWith(color: AppColors.mainBlue),
+                              ),
+                              const Divider(
+                                color: AppColors.mainDarkGray,
+                                thickness: 1,
+                              ),
+                              ListView.builder(
+                                itemCount: _searchQuery.isNotEmpty
+                                    ? filteredData.length
+                                    : accountsData.length,
+                                itemBuilder: (context, index) {
+                                  final item = _searchQuery.isNotEmpty
+                                      ? filteredData[index]
+                                      : accountsData[index];
 
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(accountId)
-                                .update({
-                              "friends": FieldValue.arrayRemove(
-                                  [FirebaseAuth.instance.currentUser!.uid])
-                            });
-                          },
+                                  return CustomListTile(
+                                    photoUrl: item.imageURL,
+                                    title: item.firstName,
+                                    subtitle: item.phoneNumber,
+                                    isRequest: widget.isRequests,
+                                    buttonText: _getButtonText(),
+                                    button1Action: () async {
+                                      await _getButton1Action(item);
+                                    },
+                                    button2Action: () async {
+                                      String accountId =
+                                          await getAccountId(item);
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(FirebaseAuth
+                                              .instance.currentUser!.uid)
+                                          .update({
+                                        "friendRequests":
+                                            FieldValue.arrayRemove([accountId])
+                                      });
+                                    },
+                                    onDismiss:
+                                        (DismissDirection direction) async {
+                                      String accountId =
+                                          await getAccountId(item);
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(FirebaseAuth
+                                              .instance.currentUser!.uid)
+                                          .update({
+                                        "friends":
+                                            FieldValue.arrayRemove([accountId])
+                                      });
+
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(accountId)
+                                          .update({
+                                        "friends": FieldValue.arrayRemove([
+                                          FirebaseAuth.instance.currentUser!.uid
+                                        ])
+                                      });
+                                    },
+                                  );
+                                },
+                                shrinkWrap: true,
+                              )
+                            ],
+                          ),
                         );
-                      },
-                      shrinkWrap: true,
-                    )
-                  ],
-                ),
-              );
-            }
-            return Container();
-          }),
-    );
+                      }
+                      return Container();
+                    });
+              }
+              return Container();
+            }));
   }
 }
