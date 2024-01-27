@@ -87,7 +87,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 if (snapshot.hasData && snapshot.data!.data() != null) {
                   account = Account.fromJson(snapshot.data!.data()!);
 
-                  return Padding(
+                  return SingleChildScrollView(
                     padding: const EdgeInsets.all(AppSizes.smallDistance),
                     child: Column(children: [
                       Row(
@@ -195,7 +195,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                       //   thickness: 0.6,
                       // ),
                       ListTile(
-                        onTap: () => Navigator.pushReplacement(
+                        onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => DefaultEmergencySmsScreen(

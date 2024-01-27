@@ -25,6 +25,16 @@ class _DefaultTrackingSmsScreenState extends State<DefaultTrackingSmsScreen> {
   void initState() {
     super.initState();
     trackingSMSController = TextEditingController(text: widget.trackingSMS);
+
+    trackingSMSController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    trackingSMSController.dispose();
+    super.dispose();
   }
 
   @override
@@ -68,7 +78,7 @@ class _DefaultTrackingSmsScreenState extends State<DefaultTrackingSmsScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      widget.trackingSMS,
+                      trackingSMSController.text,
                       style: AppStyles.hintComponentStyle.copyWith(
                         color: AppColors.white,
                       ),
