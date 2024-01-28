@@ -70,6 +70,14 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
     );
   }
 
+  void sendMessage() async {
+    if (_messageController.text.isNotEmpty) {
+      await ChatManager.sendMessage(
+          widget.account.userId, _messageController.text);
+      _messageController.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -255,7 +263,9 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                                   .copyWith(color: AppColors.mediumGray),
                               fillColor: AppColors.componentGray,
                               filled: true,
-                              suffixIcon: const Icon(Icons.send_outlined),
+                              suffixIcon: IconButton(
+                                  icon: Icon(Icons.send_outlined),
+                                  onPressed: sendMessage),
                               suffixIconColor: AppColors.mainDarkGray,
                               border: OutlineInputBorder(
                                 borderRadius:
