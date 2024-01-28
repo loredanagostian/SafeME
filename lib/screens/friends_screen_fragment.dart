@@ -223,6 +223,12 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
         "friends":
             FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
       });
+
+      NotificationManager.sendNotification(
+        token: account.deviceToken,
+        body: AppStrings.friendRequestAccepted,
+        friendId: account.userId,
+      );
     }
   }
 

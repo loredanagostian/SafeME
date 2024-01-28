@@ -12,6 +12,7 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/notification_model.dart';
+import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
@@ -30,7 +31,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool wasLongPressed = false;
+  bool wasLongPress = false;
   Location location = Location();
   StreamSubscription<loc.LocationData>? locationSubscription;
   Account? emergencyUser;
@@ -276,45 +277,68 @@ class _HomeScreenState extends State<HomeScreen> {
                                     alignment: Alignment.center,
                                     child: GestureDetector(
                                       onLongPress: () async {
-                                        if (!wasLongPressed) {
-                                          await storeLocationInDB();
+                                        if (userData
+                                            .emergencyContact.isNotEmpty) {
+                                          if (!userData.trackMeNow &&
+                                              !wasLongPress) {
+                                            wasLongPress = true;
+                                            await storeLocationInDB();
 
-                                          FirebaseFirestore.instance
-                                              .collection('users')
-                                              .doc(FirebaseAuth
-                                                  .instance.currentUser!.uid)
-                                              .update({
-                                            "trackMeNow": true,
-                                          });
+                                            FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .update({
+                                              "trackMeNow": true,
+                                            });
 
-                                          String message =
-                                              widget.userAccount.emergencySMS;
-                                          String encodedMessage =
-                                              Uri.encodeFull(message);
-                                          final call = Uri.parse(
-                                              'sms:0733156102?body=$encodedMessage');
-                                          if (await canLaunchUrl(call)) {
-                                            launchUrl(call);
+                                            String message =
+                                                widget.userAccount.emergencySMS;
+                                            String encodedMessage =
+                                                Uri.encodeFull(message);
+
+                                            Account emergencyAccount =
+                                                await FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(userData
+                                                        .emergencyContact)
+                                                    .get()
+                                                    .then((snapshot) {
+                                              Map<String, dynamic>? data =
+                                                  snapshot.data();
+                                              return Account.fromJson(
+                                                  data ?? {});
+                                            });
+
+                                            final call = Uri.parse(
+                                                'sms:${emergencyAccount.phoneNumber}?body=$encodedMessage');
+                                            if (await canLaunchUrl(call)) {
+                                              launchUrl(call);
+                                            } else {
+                                              throw 'Could not launch $call';
+                                            }
                                           } else {
-                                            throw 'Could not launch $call';
+                                            locationSubscription?.cancel();
+                                            setState(() {
+                                              locationSubscription = null;
+                                            });
+
+                                            FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .update({
+                                              "trackMeNow": false,
+                                            });
+                                            wasLongPress = false;
                                           }
                                         } else {
-                                          locationSubscription?.cancel();
-                                          setState(() {
-                                            locationSubscription = null;
-                                          });
-
-                                          FirebaseFirestore.instance
-                                              .collection('users')
-                                              .doc(FirebaseAuth
-                                                  .instance.currentUser!.uid)
-                                              .update({
-                                            "trackMeNow": false,
-                                          });
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      AddFriendScreen()));
                                         }
-                                        setState(() {
-                                          wasLongPressed = !wasLongPressed;
-                                        });
                                       },
                                       child: Container(
                                         height: 175,
@@ -331,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                           ],
                                         ),
-                                        child: wasLongPressed
+                                        child: userData.trackMeNow
                                             ? const Icon(
                                                 Icons.cancel,
                                                 size: 85,
@@ -346,7 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   Visibility(
-                                      visible: wasLongPressed,
+                                      visible:
+                                          userData.trackMeNow && wasLongPress,
                                       child: const SizedBox(
                                           height: AppSizes.bigDistance)),
                                   Align(
@@ -354,7 +379,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: SizedBox(
                                       width: 175,
                                       child: Visibility(
-                                          visible: wasLongPressed,
+                                          visible: userData.trackMeNow &&
+                                              userData.emergencyContact
+                                                  .isNotEmpty &&
+                                              wasLongPress,
                                           child: const Text(
                                             AppStrings
                                                 .emergencyGroupIsContacted,
@@ -364,33 +392,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: AppSizes.buttonHeight),
-                                  emergencyUser != null
-                                      ? Row(
-                                          children: [
-                                            const Text(
-                                              AppStrings.emergencyContact,
-                                              style:
-                                                  AppStyles.sectionTitleStyle,
-                                            ),
-                                            const SizedBox(
-                                                width: AppSizes.smallDistance),
-                                            IconButton(
-                                                onPressed: () =>
-                                                    showAllFriendsList(context),
-                                                icon: const Icon(
-                                                  Icons.edit_outlined,
-                                                  color: AppColors.mainDarkGray,
-                                                ))
-                                          ],
-                                        )
-                                      : Container(),
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        AppStrings.emergencyContact,
+                                        style: AppStyles.sectionTitleStyle,
+                                      ),
+                                      const SizedBox(
+                                          width: AppSizes.smallDistance),
+                                      Visibility(
+                                        visible: userData
+                                            .emergencyContact.isNotEmpty,
+                                        child: IconButton(
+                                            onPressed: () =>
+                                                showAllFriendsList(context),
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              color: AppColors.mainDarkGray,
+                                            )),
+                                      )
+                                    ],
+                                  ),
 
                                   const SizedBox(
                                       height: AppSizes.smallDistance),
-                                  emergencyUser != null
-                                      ? EmergencyMember(
-                                          emergencyUser: emergencyUser!)
-                                      : Container(),
+                                  EmergencyMember(emergencyUser: emergencyUser),
 
                                   // const Row(
                                   //   children: [
