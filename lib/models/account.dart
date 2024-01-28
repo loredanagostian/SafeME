@@ -98,10 +98,10 @@ class Account extends HiveObject {
     List<NotificationModel> notifications = [];
     for (int i = 0; i < notificationsJson.length; i++) {
       NotificationModel item = NotificationModel(
-        title: notificationsJson[i]['title'],
         body: notificationsJson[i]['body'],
         opened: notificationsJson[i]['opened'],
         id: notificationsJson[i]['id'],
+        senderEmail: notificationsJson[i]['senderEmail'],
       );
       notifications.add(item);
     }

@@ -30,16 +30,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     for (int i = 0; i < userNotifications.length; i++) {
       arrayData.add({
         'id': userNotifications[i].id,
-        'title': userNotifications[i].title,
         'body': userNotifications[i].body,
-        'opened': userNotifications[i].opened
+        'opened': userNotifications[i].opened,
+        'senderEmail': userNotifications[i].senderEmail,
       });
     }
     Map<String, dynamic> updatedData = {
       'id': notification.id,
-      'title': notification.title,
       'body': notification.body,
       'opened': true,
+      'senderEmail': notification.senderEmail,
     };
 
     arrayData.add(updatedData);
@@ -48,6 +48,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         .collection('users')
         .doc(widget.userAccount.userId)
         .update({'notifications': arrayData});
+
+    setState(() {});
   }
 
   void markAllNotificationsAsRead() {
@@ -132,8 +134,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   markNotificationAsRead(item);
                               },
                               child: CustomNotificationTile(
-                                notificationTitle: item.title,
-                                notificationBody: item.body,
+                                notificationTitle: item.body,
+                                notificationBody: item.senderEmail,
                                 opened: item.opened,
                               ),
                             );
