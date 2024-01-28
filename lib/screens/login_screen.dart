@@ -96,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: passwordController,
                     hintText: AppStrings.password,
                     isPassword: true,
+                    isDone: true,
                   ),
                   const SizedBox(height: AppSizes.smallDistance),
                   Align(

@@ -104,6 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     controller: confirmPasswordController,
                     hintText: AppStrings.confirmPassword,
                     isPassword: true,
+                    isDone: true,
                   ),
                   const SizedBox(height: AppSizes.buttonHeight),
                   CustomButton(

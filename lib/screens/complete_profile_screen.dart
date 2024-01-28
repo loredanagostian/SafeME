@@ -123,6 +123,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     controller: phoneNumberController,
                     hintText: AppStrings.phoneNumber,
                     isPhoneNumber: true,
+                    isDone: true,
                   ),
                   const SizedBox(height: AppSizes.titleFieldDistance),
                   CustomButton(

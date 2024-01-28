@@ -64,6 +64,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: emailController,
                     hintText: AppStrings.email,
                     isEmail: true,
+                    isDone: true,
                   ),
                   const SizedBox(height: AppSizes.titleFieldDistance),
                   CustomButton(

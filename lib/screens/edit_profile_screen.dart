@@ -114,6 +114,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 CustomTextField(
                   controller: lastNameController,
+                  isDone: true,
                 ),
                 SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
                 CustomButton(
