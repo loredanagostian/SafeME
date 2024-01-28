@@ -90,4 +90,5 @@ class AppStrings {
   static const String defaultEmergencySMS = "Emergency! Track me, please!";
   static const String defaultTrackingSMS = "I'm tracking you! You're safe!";
   static const String otpError = "There was an error at OTP";
+  static const String activeNow = "Active now";
 }

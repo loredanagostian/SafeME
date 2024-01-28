@@ -18,8 +18,6 @@ class FriendsScreenFragment extends StatefulWidget {
   final bool isGroups;
   final bool isAllFriends;
   final bool isRequests;
-  final List<String> friendsList;
-  final List<String> friendRequests;
   final Account userAccount;
   const FriendsScreenFragment({
     super.key,
@@ -27,8 +25,6 @@ class FriendsScreenFragment extends StatefulWidget {
     this.isGroups = false,
     this.isAllFriends = false,
     this.isRequests = false,
-    this.friendRequests = const [],
-    required this.friendsList,
     required this.userAccount,
   });
 
@@ -42,6 +38,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
   String _searchQuery = '';
   List<Account> accountsData = [];
   String totalFoundsAccounts = "";
+  late Account currentUser;
 
   @override
   void initState() {
@@ -50,6 +47,8 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     _searchController.addListener(() {
       _onSearchTextChanged(_searchController.text);
     });
+
+    currentUser = widget.userAccount;
   }
 
   @override
@@ -158,7 +157,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
           MaterialPageRoute(
               builder: (context) => TrackLocationScreen(
                     account: account,
-                    currentUser: widget.userAccount,
+                    currentUser: currentUser,
                   )));
     }
 
@@ -170,7 +169,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
         "trackMeNow": true,
       });
 
-      String message = widget.userAccount.emergencySMS;
+      String message = currentUser.emergencySMS;
       String encodedMessage = Uri.encodeFull(message);
       final call = Uri.parse('sms:${account.phoneNumber}?body=$encodedMessage');
       if (await canLaunchUrl(call)) {
@@ -181,7 +180,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
 
       NotificationManager.sendNotification(
         token: account.deviceToken,
-        body: widget.userAccount.emergencySMS,
+        body: currentUser.emergencySMS,
         friendId: account.userId,
       );
 
@@ -197,7 +196,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     if (widget.isRequests) {
       String accountId = await getAccountId(account);
 
-      widget.userAccount.emergencyContact.isEmpty
+      currentUser.emergencyContact.isEmpty
           ? FirebaseFirestore.instance
               .collection('users')
               .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -216,7 +215,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
 
       if (account.emergencyContact.isEmpty) {
         FirebaseFirestore.instance.collection('users').doc(accountId).update({
-          "emergencyContact": widget.userAccount.userId,
+          "emergencyContact": currentUser.userId,
         });
       }
 
@@ -245,15 +244,12 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                 return Center(child: Text('Error: ${snapshot.error}'));
               } else if (snapshot.hasData && snapshot.data!.data() != null) {
                 var userData = snapshot.data!.data()!;
-                List<String> ids = widget.isRequests
-                    ? (userData['friendRequests'] as List<dynamic>)
-                        .cast<String>()
-                    : (userData['friends'] as List<dynamic>).cast<String>();
+                currentUser = Account.fromJson(userData);
 
                 return FutureBuilder<List<Account>>(
                     future: widget.isRequests
-                        ? fetchFriendRequests(ids)
-                        : fetchFriends(ids),
+                        ? fetchFriendRequests(currentUser.friendsRequest)
+                        : fetchFriends(currentUser.friends),
                     builder: (context,
                         AsyncSnapshot<List<Account>> accountsSnapshot) {
                       if (accountsSnapshot.connectionState ==

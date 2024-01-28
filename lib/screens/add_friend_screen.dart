@@ -181,12 +181,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                                       if (item.email !=
                                           FirebaseAuth
                                               .instance.currentUser!.email) {
-                                        String itemId = FirebaseAuth
-                                            .instance.currentUser!.uid;
-
                                         await FirebaseFirestore.instance
                                             .collection('users')
-                                            .doc(itemId)
+                                            .doc(item.userId)
                                             .update({
                                           "friendRequests":
                                               FieldValue.arrayUnion([

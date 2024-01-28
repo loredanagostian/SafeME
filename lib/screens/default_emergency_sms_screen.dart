@@ -68,7 +68,7 @@ class _DefaultEmergencySmsScreenState extends State<DefaultEmergencySmsScreen> {
                   width: 230,
                   padding: const EdgeInsets.all(AppSizes.mediumDistance),
                   decoration: BoxDecoration(
-                    color: AppColors.lightBlue.withOpacity(0.6),
+                    color: AppColors.lightBlue,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(AppSizes.borders),
                       topRight: Radius.circular(AppSizes.borders),
