@@ -4,67 +4,41 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/chat_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
+import 'package:safe_me/screens/chat_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
-import 'package:safe_me/screens/track_location_screen.dart';
+import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
-import 'package:safe_me/widgets/person_live_location.dart';
+import 'package:safe_me/widgets/person_chat_room.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:location/location.dart' as loc;
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final Account userAccount;
   const HomeScreen({super.key, required this.userAccount});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool wasLongPress = false;
   Location location = Location();
   StreamSubscription<loc.LocationData>? locationSubscription;
   Account? emergencyUser;
   List<Account> allFriends = [];
-
-  Future<List<Account>> fetchTrackMeFriends(List<String> friendsIds) async {
-    List<Account> friendsList = [];
-
-    for (int i = 0; i < friendsIds.length; i++) {
-      Map<String, dynamic>? data;
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(friendsIds[i].toString())
-          .get()
-          .then((snapshot) {
-        data = snapshot.data();
-      });
-
-      final friend = Account.fromJson(data!);
-      if (friend.trackMeNow) {
-        friendsList.add(friend);
-      }
-
-      if (widget.userAccount.emergencyContact == friend.userId) {
-        emergencyUser = friend;
-      }
-
-      allFriends.add(friend);
-    }
-
-    return friendsList;
-  }
 
   Future<LocationPermission> getLocationPermission() async {
     var isPermission = await Geolocator.checkPermission();
@@ -138,6 +112,9 @@ class _HomeScreenState extends State<HomeScreen> {
     Stream<QuerySnapshot<Map<String, dynamic>>> stream =
         FirebaseFirestore.instance.collection('users').snapshots();
 
+    Stream<QuerySnapshot<Map<String, dynamic>>> chatStream =
+        FirebaseFirestore.instance.collection('chat_rooms').snapshots();
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -160,25 +137,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         return const Center(child: CircularProgressIndicator());
                       } else if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      User? currentUser = FirebaseAuth.instance.currentUser;
-                      var user = snapshot.data!.docs.firstWhere(
-                          (value) => value["userId"] == currentUser!.uid);
-                      Account userData = Account.fromJson(user.data());
-                      List<NotificationModel> unreadNotifications = [];
-                      unreadNotifications = userData.notifications
-                          .where((element) => element.opened == false)
-                          .toList();
+                      } else if (snapshot.hasData) {
+                        User? currentUser = FirebaseAuth.instance.currentUser;
+                        var user = snapshot.data!.docs.firstWhere(
+                            (value) => value["userId"] == currentUser!.uid);
+                        Account userData = Account.fromJson(user.data());
+                        List<NotificationModel> unreadNotifications = [];
+                        unreadNotifications = userData.notifications
+                            .where((element) => element.opened == false)
+                            .toList();
 
-                      return Icon(
-                        unreadNotifications.isEmpty
-                            ? Icons.notifications_outlined
-                            : Icons.notifications,
-                        color: unreadNotifications.isEmpty
-                            ? AppColors.mainDarkGray
-                            : AppColors.mainBlue,
-                        size: 30,
-                      );
+                        return Icon(
+                          unreadNotifications.isEmpty
+                              ? Icons.notifications_outlined
+                              : Icons.notifications,
+                          color: unreadNotifications.isEmpty
+                              ? AppColors.mainDarkGray
+                              : AppColors.mainBlue,
+                          size: 30,
+                        );
+                      }
+                      return Container();
                     })),
             GestureDetector(
               onTap: () => Navigator.push(context,
@@ -211,17 +190,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         (value) => value["userId"] == currentUser!.uid);
                     Account userData = Account.fromJson(user.data());
 
-                    return FutureBuilder<List<Account>>(
-                        future: fetchTrackMeFriends(userData.friends),
-                        builder: (context,
-                            AsyncSnapshot<List<Account>> asyncSnapshot) {
+                    Future<Account> emergencyAccount = FirebaseFirestore
+                        .instance
+                        .collection('users')
+                        .doc(userData.emergencyContact)
+                        .get()
+                        .then((snapshot) {
+                      Map<String, dynamic>? data = snapshot.data();
+                      return Account.fromJson(data ?? {});
+                    });
+
+                    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: chatStream,
+                        builder: (context, asyncSnapshot) {
+                          if (asyncSnapshot.hasError) {
+                            print("Error${asyncSnapshot.error}");
+                          }
                           if (asyncSnapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
                                 child: CircularProgressIndicator());
-                          } else if (asyncSnapshot.hasData) {
-                            List<Account> trackMeFriends =
-                                asyncSnapshot.data ?? [];
+                          } else if (asyncSnapshot.hasData &&
+                              asyncSnapshot.data != null) {
+                            List<String> friendsId =
+                                ChatManager.getFriendsIdForUser(
+                                    currentUser!.uid, asyncSnapshot.data!.docs);
 
                             return Padding(
                               padding:
@@ -230,49 +223,98 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Visibility(
-                                    visible: trackMeFriends.isNotEmpty,
-                                    child: const Text(
-                                      AppStrings.sharingLiveLocationNow,
-                                      style: AppStyles.sectionTitleStyle,
-                                    ),
+                                  const Text(
+                                    AppStrings.chatRooms,
+                                    style: AppStyles.sectionTitleStyle,
                                   ),
-
                                   const SizedBox(
                                       height: AppSizes.smallDistance),
-
                                   SizedBox(
-                                      height: 65,
-                                      child: ListView.separated(
-                                        shrinkWrap: true,
-                                        itemCount: trackMeFriends.length,
-                                        scrollDirection: Axis.horizontal,
-                                        itemBuilder:
-                                            (BuildContext context, int index) {
-                                          final item =
-                                              asyncSnapshot.data![index];
-                                          return GestureDetector(
-                                              onTap: () => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          TrackLocationScreen(
-                                                            account: item,
-                                                            currentUser: widget
-                                                                .userAccount,
-                                                          ))),
-                                              child: PersonLiveLocation(
-                                                  account: item));
-                                        },
-                                        separatorBuilder:
-                                            (BuildContext context, int index) {
-                                          return const SizedBox(
-                                            width: AppSizes.smallDistance,
-                                          );
-                                        },
-                                      )),
+                                    height: 65,
+                                    child: friendsId.length > 0
+                                        ? ListView.separated(
+                                            shrinkWrap: true,
+                                            itemCount: friendsId.length,
+                                            scrollDirection: Axis.horizontal,
+                                            itemBuilder: (BuildContext context,
+                                                int index) {
+                                              Future<Account> item =
+                                                  FirebaseFirestore.instance
+                                                      .collection('users')
+                                                      .doc(friendsId[index])
+                                                      .get()
+                                                      .then((value) {
+                                                Map<String, dynamic>? data =
+                                                    value.data();
+                                                return Account.fromJson(
+                                                    data ?? {});
+                                              });
+                                              return GestureDetector(
+                                                  onTap: () => Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              FutureBuilder(
+                                                                  future: item,
+                                                                  builder: (context,
+                                                                      snapshot) {
+                                                                    if (snapshot
+                                                                        .hasError) {
+                                                                      print(
+                                                                          "Error${snapshot.error}");
+                                                                    } else if (snapshot
+                                                                            .connectionState ==
+                                                                        ConnectionState
+                                                                            .waiting) {
+                                                                      return Center(
+                                                                          child:
+                                                                              CircularProgressIndicator());
+                                                                    } else if (snapshot
+                                                                        .hasData) {
+                                                                      return ChatScreen(
+                                                                        friendAccount:
+                                                                            snapshot.data!,
+                                                                        currentUserImageUrl:
+                                                                            userData.imageURL,
+                                                                      );
+                                                                    }
+                                                                    return Container();
+                                                                  }))),
+                                                  child: PersonChatRoom(
+                                                      futureFriend: item));
+                                            },
+                                            separatorBuilder:
+                                                (BuildContext context,
+                                                    int index) {
+                                              return const SizedBox(
+                                                width: AppSizes.smallDistance,
+                                              );
+                                            },
+                                          )
+                                        : Container(
+                                            width: 65,
+                                            decoration: BoxDecoration(
+                                                color: AppColors.lightGray,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppSizes.borders)),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(
+                                                  AppSizes.smallDistance),
+                                              child: IconButton(
+                                                icon: Icon(
+                                                  Icons.add_circle,
+                                                  color: AppColors.mainDarkGray,
+                                                  size: 35,
+                                                ),
+                                                onPressed: () => ref
+                                                    .read(bottomNavigatorIndex
+                                                        .notifier)
+                                                    .update((state) => 2),
+                                              ),
+                                            )),
+                                  ),
                                   const SizedBox(height: AppSizes.buttonHeight),
-                                  // const SizedBox(height: AppSizes.buttonHeight), // TODO change when adding emergency group
                                   Align(
                                     alignment: Alignment.center,
                                     child: GestureDetector(
@@ -413,11 +455,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                       )
                                     ],
                                   ),
-
                                   const SizedBox(
                                       height: AppSizes.smallDistance),
-                                  EmergencyMember(emergencyUser: emergencyUser),
 
+                                  userData.emergencyContact.isNotEmpty
+                                      ? EmergencyMember(
+                                          emergencyUser: emergencyAccount)
+                                      : Container(
+                                          height: 100,
+                                          width: 75,
+                                          decoration: BoxDecoration(
+                                              color: AppColors.lightGray,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      AppSizes.borders)),
+                                          child: IconButton(
+                                            icon: Icon(
+                                              Icons.add_circle,
+                                              color: AppColors.mainDarkGray,
+                                              size: 35,
+                                            ),
+                                            onPressed: () => Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        AddFriendScreen())),
+                                          ),
+                                        ),
                                   // const Row(
                                   //   children: [
                                   //     EmergencyMember(),
