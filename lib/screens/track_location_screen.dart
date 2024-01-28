@@ -114,7 +114,9 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
             ],
           ),
           leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => ChatManager.deleteAllMessages(
+                    widget.account.userId, widget.currentUser.userId)
+                .then((value) => Navigator.pop(context)),
             icon: const Icon(
               Icons.arrow_back_ios,
               color: AppColors.mainDarkGray,

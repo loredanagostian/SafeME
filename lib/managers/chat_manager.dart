@@ -43,4 +43,28 @@ class ChatManager extends ChangeNotifier {
         .orderBy('timestamp', descending: false)
         .snapshots();
   }
+
+  static Future<void> deleteAllMessages(
+      String userId, String otherUserId) async {
+    List<String> ids = [userId, otherUserId];
+    ids.sort();
+    String chatRoomId = ids.join("_");
+
+    var messagesCollection = _firestore
+        .collection('chat_rooms')
+        .doc(chatRoomId)
+        .collection('messages');
+
+    // Retrieve all message documents
+    var snapshot = await messagesCollection.get();
+    var batch = _firestore.batch();
+
+    // Iterate over the documents and mark them for deletion
+    for (var doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // Execute the batch delete
+    await batch.commit();
+  }
 }
