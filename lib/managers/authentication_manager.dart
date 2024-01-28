@@ -120,4 +120,31 @@ class AuthenticationManager {
 
     return "Unknown error.";
   }
+
+  static Future<String> sendForgotPasswordEmail(String email) async {
+    String _result = "Unknown error.";
+
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: email)
+          .then((value) => _result = "");
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "invalid-email":
+          _result = "The email address is not valid.";
+          break;
+        case "user-not-found":
+          _result = "There is no user corresponding to the email address.";
+          break;
+
+        default:
+          _result = "Unknown error.";
+          break;
+      }
+    } catch (e) {
+      _result = e.toString();
+    }
+
+    return _result;
+  }
 }
