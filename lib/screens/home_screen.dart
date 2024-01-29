@@ -63,17 +63,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           isPermission == LocationPermission.whileInUse) {
         location.changeSettings(accuracy: loc.LocationAccuracy.high);
 
-        locationSubscription =
-            location.onLocationChanged.listen((LocationData currentLocation) {
+        locationSubscription = location.onLocationChanged
+            .listen((LocationData currentLocation) async {
           if (currentLocation.latitude != null &&
               currentLocation.longitude != null) {
-            FirebaseFirestore.instance
+            // Fetch the last stored location from Firestore
+            var userDoc = await FirebaseFirestore.instance
                 .collection('users')
                 .doc(FirebaseAuth.instance.currentUser!.uid)
-                .update({
-              "userLastLatitude": currentLocation.latitude,
-              "userLastLongitude": currentLocation.longitude,
-            });
+                .get();
+
+            if (userDoc.exists) {
+              var userLastLatitude =
+                  userDoc.data()!['userLastLatitude'] as double?;
+              var userLastLongitude =
+                  userDoc.data()!['userLastLongitude'] as double?;
+
+              // Calculate the distance between the new location and the last stored location
+              final double distance = Geolocator.distanceBetween(
+                userLastLatitude ?? 0,
+                userLastLongitude ?? 0,
+                currentLocation.latitude!,
+                currentLocation.longitude!,
+              );
+
+              // If the distance is more than 5 meters, update the location in Firestore
+              if (distance > 5) {
+                FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .update({
+                  "userLastLatitude": currentLocation.latitude,
+                  "userLastLongitude": currentLocation.longitude,
+                });
+              }
+            } else {
+              // If there is no last location stored, just update with the new location
+              FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .set({
+                "userLastLatitude": currentLocation.latitude,
+                "userLastLongitude": currentLocation.longitude,
+              });
+            }
           }
         });
       } else {
