@@ -34,7 +34,7 @@ class CustomFriendsBottomModal extends StatelessWidget {
                     .doc(userAccount.userId)
                     .update({
                     "emergencyContact": item.userId,
-                  });
+                  }).then((value) => Navigator.pop(context));
           },
           isAlreadyFriend: item.userId == userAccount.emergencyContact,
           buttonColor: item.userId == userAccount.emergencyContact

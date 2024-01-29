@@ -85,7 +85,6 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
   }
 
   Future<List<Account>> fetchFriends(List<String> friendsIds) async {
-    // Use Future.wait to fetch all friends in parallel
     var friendsFutures = friendsIds.map((friendId) {
       return FirebaseFirestore.instance
           .collection('users')

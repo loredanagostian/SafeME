@@ -38,7 +38,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Location location = Location();
   StreamSubscription<loc.LocationData>? locationSubscription;
   Account? emergencyUser;
-  List<Account> allFriends = [];
 
   Future<LocationPermission> getLocationPermission() async {
     var isPermission = await Geolocator.checkPermission();
@@ -119,7 +118,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void showAllFriendsList(BuildContext context) {
+  Future<List<Account>> fetchFriends(List<String> friendsIds) async {
+    var friendsFutures = friendsIds.map((friendId) {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .get()
+          .then((snapshot) => snapshot.data());
+    }).toList();
+
+    var friendsData = await Future.wait(friendsFutures);
+    List<Account> friendsList = [];
+
+    for (var data in friendsData) {
+      if (data != null) {
+        final friend = Account.fromJson(data);
+        friendsList.add(friend);
+      }
+    }
+
+    return friendsList;
+  }
+
+  void showAllFriendsList(BuildContext context, List<Account> friends) {
     showModalBottomSheet<void>(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -128,7 +149,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         context: context,
         builder: (BuildContext context) {
           return CustomFriendsBottomModal(
-            allFriends: allFriends,
+            allFriends: friends,
             userAccount: widget.userAccount,
           );
         });
@@ -478,13 +499,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       Visibility(
                                         visible: userData
                                             .emergencyContact.isNotEmpty,
-                                        child: IconButton(
-                                            onPressed: () =>
-                                                showAllFriendsList(context),
-                                            icon: const Icon(
-                                              Icons.edit_outlined,
-                                              color: AppColors.mainDarkGray,
-                                            )),
+                                        child: FutureBuilder(
+                                          future:
+                                              fetchFriends(userData.friends),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasError) {
+                                              print("Error${snapshot.error}");
+                                            } else if (snapshot.hasData) {
+                                              return IconButton(
+                                                  onPressed: () =>
+                                                      showAllFriendsList(
+                                                          context,
+                                                          snapshot.data!),
+                                                  icon: const Icon(
+                                                    Icons.edit_outlined,
+                                                    color:
+                                                        AppColors.mainDarkGray,
+                                                  ));
+                                            }
+                                            return Container();
+                                          },
+                                        ),
                                       )
                                     ],
                                   ),
