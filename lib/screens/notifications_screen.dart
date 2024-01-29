@@ -35,14 +35,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         'senderEmail': userNotifications[i].senderEmail,
       });
     }
-    Map<String, dynamic> updatedData = {
-      'id': notification.id,
-      'body': notification.body,
-      'opened': true,
-      'senderEmail': notification.senderEmail,
-    };
-
-    arrayData.add(updatedData);
 
     FirebaseFirestore.instance
         .collection('users')
