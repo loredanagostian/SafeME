@@ -21,9 +21,10 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   void markNotificationAsRead(NotificationModel notification) {
     List<NotificationModel> userNotifications =
-        widget.userAccount.notifications;
+        // widget.userAccount.notifications;
 
-    userNotifications.removeWhere((element) => element.id == notification.id);
+        userNotifications
+            .removeWhere((element) => element.id == notification.id);
 
     List<Map<String, dynamic>> arrayData = [];
 
