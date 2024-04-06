@@ -94,6 +94,7 @@ class _DefaultEmergencySmsScreenState extends State<DefaultEmergencySmsScreen> {
               CustomTextField(
                 controller: emergencySMSController,
                 isEditMessage: true,
+                isDone: true,
               ),
               const SizedBox(height: AppSizes.titleFieldDistance),
               CustomButton(

@@ -27,6 +27,11 @@ class ChatManager extends ChangeNotifier {
     await _firestore
         .collection('chat_rooms')
         .doc(chatRoomId)
+        .set({'latestMessage': newMessage.toMap()});
+
+    await _firestore
+        .collection('chat_rooms')
+        .doc(chatRoomId)
         .collection('messages')
         .add(newMessage.toMap());
   }
@@ -42,6 +47,22 @@ class ChatManager extends ChangeNotifier {
         .collection('messages')
         .orderBy('timestamp', descending: false)
         .snapshots();
+  }
+
+  static List<String> getFriendsIdForUser(
+      String userId, List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
+    List<String> friendsId = [];
+
+    docs.forEach((doc) {
+      List<String> usersId = doc.id.split("_");
+      if (usersId.contains(userId)) {
+        usersId[0] == userId
+            ? friendsId.add(usersId[1])
+            : friendsId.add(usersId[0]);
+      }
+    });
+
+    return friendsId;
   }
 
   static Future<void> deleteAllMessages(

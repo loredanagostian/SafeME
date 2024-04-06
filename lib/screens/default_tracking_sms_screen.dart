@@ -95,6 +95,7 @@ class _DefaultTrackingSmsScreenState extends State<DefaultTrackingSmsScreen> {
               CustomTextField(
                 controller: trackingSMSController,
                 isEditMessage: true,
+                isDone: true,
               ),
               const SizedBox(height: AppSizes.titleFieldDistance),
               CustomButton(

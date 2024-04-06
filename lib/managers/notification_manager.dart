@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:safe_me/constants/strings.dart';
 
 Future<void> handleBackgroundMessage(RemoteMessage message) async {
   print('Got a message whilst in the background!');
@@ -29,7 +29,6 @@ class NotificationManager {
 
   static Future<void> sendNotification(
       {required String token,
-      String title = AppStrings.appTitle,
       required String body,
       required String friendId}) async {
     try {
@@ -44,17 +43,15 @@ class NotificationManager {
             'data': {
               'click_action': 'FLUTTER_NOTIFICATION_CLICK',
               'status': 'done',
-              'body': body,
-              'title': title,
+              'title': body,
             },
             "notification": {
-              "title": title,
-              "body": body,
+              "title": body,
               "android_channel_id": "com.example.safe_me",
             },
             "to": token,
           }));
-      addNotificationToFirebase(title, body, friendId);
+      addNotificationToFirebase(body, friendId);
     } catch (e) {
       print(e);
     }
@@ -62,13 +59,12 @@ class NotificationManager {
     FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
   }
 
-  static void addNotificationToFirebase(
-      String title, String body, String friendId) {
+  static void addNotificationToFirebase(String body, String friendId) {
     var map = <String, dynamic>{};
     map["id"] = DateTime.now().microsecondsSinceEpoch.toString();
-    map["title"] = title;
     map["body"] = body;
     map["opened"] = false;
+    map["senderEmail"] = FirebaseAuth.instance.currentUser!.email;
 
     FirebaseFirestore.instance.collection('users').doc(friendId).update(
       {

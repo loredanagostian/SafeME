@@ -63,6 +63,7 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                     controller: codeController,
                     hintText: AppStrings.code,
                     isPhoneNumber: true,
+                    isDone: true,
                   ),
                   SizedBox(height: MediaQuery.sizeOf(context).height * 0.45),
                   CustomButton(

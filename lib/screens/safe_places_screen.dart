@@ -260,101 +260,82 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
             )
           ],
         ),
-        body: StreamBuilder<Position>(
-            stream: positionStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.active) {
-                if (snapshot.hasData) {
-                  // Update current position with the new data
-                  currentPosition =
-                      LatLng(snapshot.data!.latitude, snapshot.data!.longitude);
-                  // Update markers based on the new position
-                  markers = _getNearbyPlaces();
-                  // Build the map UI with the current position and markers
-                  return FutureBuilder(
-                    future: markers,
-                    builder: (context, markerSnapshot) {
-                      if (markerSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (markerSnapshot.connectionState ==
-                              ConnectionState.done &&
-                          markerSnapshot.hasData) {
-                        return Stack(children: [
-                          GoogleMap(
-                            onMapCreated: _onMapCreated,
-                            initialCameraPosition: CameraPosition(
-                              target: currentPosition,
-                              zoom: 17,
+        body: FutureBuilder(
+          future: markers,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              return Stack(children: [
+                GoogleMap(
+                  onMapCreated: _onMapCreated,
+                  initialCameraPosition: CameraPosition(
+                    target: currentPosition,
+                    zoom: 17,
+                  ),
+                  myLocationEnabled: true,
+                  mapToolbarEnabled: true,
+                  myLocationButtonEnabled: true,
+                  zoomControlsEnabled: false,
+                  markers: Set<Marker>.of(snapshot.data),
+                  polylines: Set<Polyline>.of(polylines.values),
+                ),
+                Visibility(
+                  visible: isSelectedDestination,
+                  child: Positioned(
+                      bottom: 130,
+                      right: 25,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: const BoxDecoration(
+                            shape: BoxShape.circle, color: AppColors.mainRed),
+                        child: Center(
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white,
                             ),
-                            myLocationEnabled: true,
-                            mapToolbarEnabled: true,
-                            myLocationButtonEnabled: true,
-                            zoomControlsEnabled: false,
-                            markers: Set<Marker>.of(markerSnapshot.data),
-                            polylines: Set<Polyline>.of(polylines.values),
+                            onPressed: () async {
+                              setState(() {
+                                isSelectedDestination = false;
+                                polylines = {};
+                              });
+                            },
                           ),
-                          Visibility(
-                            visible: isSelectedDestination,
-                            child: Positioned(
-                                bottom: 130,
-                                right: 25,
-                                child: Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.mainRed),
-                                  child: Center(
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () async {
-                                        setState(() {
-                                          isSelectedDestination = false;
-                                          polylines = {};
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                )),
+                        ),
+                      )),
+                ),
+                Visibility(
+                  visible: isSelectedDestination,
+                  child: Positioned(
+                      bottom: 75,
+                      right: 25,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: const BoxDecoration(
+                            shape: BoxShape.circle, color: AppColors.mainBlue),
+                        child: Center(
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.navigation_outlined,
+                              color: Colors.white,
+                            ),
+                            onPressed: () async {
+                              await launchUrl(Uri.parse(
+                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
+                            },
                           ),
-                          Visibility(
-                            visible: isSelectedDestination,
-                            child: Positioned(
-                                bottom: 75,
-                                right: 25,
-                                child: Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.mainBlue),
-                                  child: Center(
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.navigation_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () async {
-                                        await launchUrl(Uri.parse(
-                                            'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
-                                      },
-                                    ),
-                                  ),
-                                )),
-                          )
-                        ]);
-                      } else {
-                        return Container();
-                      }
-                    },
-                  );
-                }
-              }
+                        ),
+                      )),
+                )
+              ]);
+            } else {
               return Container();
-            }));
+            }
+          },
+        ));
   }
 }

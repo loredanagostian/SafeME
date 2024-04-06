@@ -21,50 +21,42 @@ class CustomNotificationTile extends StatefulWidget {
 class _CustomNotificationTileState extends State<CustomNotificationTile> {
   @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      key: Key(widget.notificationTitle),
-      onDismissed: (direction) {
-        // Remove the item from the data source.
-        setState(() {});
-      },
-      background: Container(color: AppColors.mainRed),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.smallDistance),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(
-                widget.opened
-                    ? Icons.mail_outlined
-                    : Icons.mark_email_unread_outlined,
-                size: 33,
-                color:
-                    widget.opened ? AppColors.mainDarkGray : AppColors.mainBlue,
-              ),
-              const SizedBox(width: AppSizes.smallDistance),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.notificationTitle,
-                    style: widget.opened
-                        ? AppStyles.notificationTitleStyle
-                            .copyWith(color: AppColors.mainDarkGray)
-                        : AppStyles.notificationTitleStyle,
-                  ),
-                  Text(
-                    widget.notificationBody,
-                    style: widget.opened
-                        ? AppStyles.notificationBodyStyle
-                            .copyWith(color: AppColors.mainDarkGray)
-                        : AppStyles.notificationBodyStyle,
-                  ),
-                ],
-              )
-            ]),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(AppSizes.smallDistance),
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              widget.opened
+                  ? Icons.mail_outlined
+                  : Icons.mark_email_unread_outlined,
+              size: 33,
+              color:
+                  widget.opened ? AppColors.mainDarkGray : AppColors.mainBlue,
+            ),
+            const SizedBox(width: AppSizes.smallDistance),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.notificationTitle,
+                  style: widget.opened
+                      ? AppStyles.notificationTitleStyle
+                          .copyWith(color: AppColors.mainDarkGray)
+                      : AppStyles.notificationTitleStyle,
+                ),
+                Text(
+                  widget.notificationBody,
+                  style: widget.opened
+                      ? AppStyles.notificationBodyStyle
+                          .copyWith(color: AppColors.mainDarkGray)
+                      : AppStyles.notificationBodyStyle,
+                ),
+              ],
+            )
+          ]),
     );
   }
 }

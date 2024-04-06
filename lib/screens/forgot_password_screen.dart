@@ -3,7 +3,9 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/widgets/custom_button.dart';
+import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -62,12 +64,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: emailController,
                     hintText: AppStrings.email,
                     isEmail: true,
+                    isDone: true,
                   ),
                   const SizedBox(height: AppSizes.titleFieldDistance),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.resetPassword,
-                      onTap: () {}),
+                      onTap: () async {
+                        if (emailController.text.isNotEmpty) {
+                          String result = await AuthenticationManager
+                              .sendForgotPasswordEmail(emailController.text);
+
+                          if (result.isEmpty)
+                            Navigator.pop(context);
+                          else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: CustomSnackbarContent(
+                                  snackBarMessage: result),
+                              backgroundColor: AppColors.mainRed,
+                            ));
+                          }
+                        }
+                      }),
                 ]),
           ),
         ),

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -35,7 +34,7 @@ class CustomFriendsBottomModal extends StatelessWidget {
                     .doc(userAccount.userId)
                     .update({
                     "emergencyContact": item.userId,
-                  });
+                  }).then((value) => Navigator.pop(context));
           },
           isAlreadyFriend: item.userId == userAccount.emergencyContact,
           buttonColor: item.userId == userAccount.emergencyContact

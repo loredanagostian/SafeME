@@ -23,11 +23,14 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   List<Account> accountsData = [];
+  late Future _future;
   String totalFoundsAccounts = "";
 
   @override
   void initState() {
     super.initState();
+
+    _future = fetchAllUsers();
 
     _searchController.addListener(() {
       _onSearchTextChanged(_searchController.text);
@@ -48,7 +51,6 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
   void _onSearchTextChanged(String text) {
     setState(() {
       _searchQuery = text;
-
       filteredData = accountsData
           .where((item) =>
               item.firstName.toLowerCase().contains(text.toLowerCase()) ||
@@ -57,43 +59,47 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
     });
   }
 
-  Future<List<Account>> fetchAllUsers(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) async {
-    List<String> usersIds = docs.map((doc) => doc.id).toList();
-    List<Future<Account>> futureAccounts = [];
+  Future<List<Account>> fetchAllUsers() async {
+    List<String> usersIds = [];
+    List<Account> usersList = [];
 
-    for (String userId in usersIds) {
-      Future<Account> accountFuture = FirebaseFirestore.instance
+    final docs =
+        (await FirebaseFirestore.instance.collection('users').get()).docs;
+
+    for (var item in docs) {
+      usersIds.add(item.id);
+    }
+
+    for (int i = 0; i < usersIds.length; i++) {
+      Map<String, dynamic>? data;
+
+      await FirebaseFirestore.instance
           .collection('users')
-          .doc(userId)
+          .doc(usersIds[i])
           .get()
           .then((snapshot) {
-        Map<String, dynamic>? data = snapshot.data();
-        return Account.fromJson(data ?? {});
+        data = snapshot.data();
       });
 
-      futureAccounts.add(accountFuture);
+      usersList.add(Account.fromJson(data!));
     }
-    return Future.wait(futureAccounts);
+
+    return usersList;
   }
 
   bool userAlreadyFriend(Account account) {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
     for (String userId in account.friends) {
       if (userId == currentUserId) return true;
     }
-
     return false;
   }
 
   bool userAlreadyRequested(Account account) {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
     for (String userId in account.friendsRequest) {
       if (userId == currentUserId) return true;
     }
-
     return false;
   }
 
@@ -106,126 +112,114 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.white,
-          elevation: 0,
-          title: const Text(
-            AppStrings.allUsers,
-            style: AppStyles.titleStyle,
-          ),
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: AppColors.mainDarkGray,
-            ),
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        title: const Text(
+          AppStrings.allUsers,
+          style: AppStyles.titleStyle,
+        ),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.mainDarkGray,
           ),
         ),
-        body: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection('users').snapshots(),
-            builder: (context,
-                AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasData) {
-                return FutureBuilder<List<Account>>(
-                    future: fetchAllUsers(snapshot.data!.docs),
-                    builder:
-                        (context, AsyncSnapshot<List<Account>> asyncSnapshot) {
-                      if (asyncSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (asyncSnapshot.hasData) {
-                        List<Account> accountsData = asyncSnapshot.data!;
-                        totalFoundsAccounts = _searchQuery.isNotEmpty
-                            ? filteredData.length.toString()
-                            : accountsData.length.toString();
+      ),
+      body: FutureBuilder(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              accountsData = snapshot.data!;
+              totalFoundsAccounts = _searchQuery.isNotEmpty
+                  ? filteredData.length.toString()
+                  : accountsData.length.toString();
 
-                        return Container(
-                          padding: const EdgeInsets.all(AppSizes.smallDistance),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomSearchBar(
-                                  onChanged: _onSearchTextChanged,
-                                  searchController: _searchController),
-                              const SizedBox(height: AppSizes.marginSize),
-                              Text(
-                                "$totalFoundsAccounts total users",
-                                style: AppStyles.textComponentStyle
-                                    .copyWith(color: AppColors.mainBlue),
-                              ),
-                              const Divider(
-                                color: AppColors.mainDarkGray,
-                                thickness: 1,
-                              ),
-                              ListView.builder(
-                                itemCount: _searchQuery.isNotEmpty
-                                    ? filteredData.length
-                                    : accountsData.length,
-                                itemBuilder: (context, index) {
-                                  final item = _searchQuery.isNotEmpty
-                                      ? filteredData[index]
-                                      : accountsData[index];
+              return SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.all(AppSizes.smallDistance),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomSearchBar(
+                          onChanged: _onSearchTextChanged,
+                          searchController: _searchController),
+                      const SizedBox(height: AppSizes.marginSize),
+                      Text(
+                        "$totalFoundsAccounts total users",
+                        style: AppStyles.textComponentStyle
+                            .copyWith(color: AppColors.mainBlue),
+                      ),
+                      const Divider(
+                        color: AppColors.mainDarkGray,
+                        thickness: 1,
+                      ),
+                      ListView.builder(
+                        itemCount: _searchQuery.isNotEmpty
+                            ? filteredData.length
+                            : accountsData.length,
+                        itemBuilder: (context, index) {
+                          final item = _searchQuery.isNotEmpty
+                              ? filteredData[index]
+                              : accountsData[index];
 
-                                  return CustomListTile(
-                                    photoUrl: item.imageURL,
-                                    title: item.firstName,
-                                    subtitle: item.phoneNumber,
-                                    buttonText: userAlreadyFriend(item)
-                                        ? AppStrings.addedButton
-                                        : AppStrings.addButton,
-                                    isAlreadyFriend: userAlreadyFriend(item),
-                                    button1Action: () async {
-                                      if (item.email !=
-                                          FirebaseAuth
-                                              .instance.currentUser!.email) {
-                                        await FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(item.userId)
-                                            .update({
-                                          "friendRequests":
-                                              FieldValue.arrayUnion([
-                                            FirebaseAuth
-                                                .instance.currentUser!.uid
-                                          ]),
-                                        }).then((value) =>
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                        const SnackBar(
-                                                  content: CustomSnackbarContent(
-                                                      snackBarMessage: AppStrings
-                                                          .userAddedSuccessfully),
-                                                  backgroundColor:
-                                                      AppColors.mainGreen,
-                                                )));
+                          return CustomListTile(
+                            photoUrl: item.imageURL,
+                            title: item.firstName,
+                            subtitle: item.phoneNumber,
+                            buttonText: userAlreadyFriend(item)
+                                ? AppStrings.addedButton
+                                : AppStrings.addButton,
+                            isAlreadyFriend: userAlreadyFriend(item) ||
+                                userAlreadyRequested(item),
+                            button1Action: () async {
+                              if (item.email !=
+                                  FirebaseAuth.instance.currentUser!.email) {
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(item.userId)
+                                    .update({
+                                  "friendRequests": FieldValue.arrayUnion(
+                                      [FirebaseAuth.instance.currentUser!.uid]),
+                                }).then((value) => ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                          content: CustomSnackbarContent(
+                                              snackBarMessage: AppStrings
+                                                  .userAddedSuccessfully),
+                                          backgroundColor: AppColors.mainGreen,
+                                        )));
 
-                                        NotificationManager.sendNotification(
-                                          token: item.deviceToken,
-                                          body: AppStrings.newFriendRequest,
-                                          friendId: item.userId,
-                                        );
-                                      }
-                                    },
-                                    buttonColor: item.email ==
-                                            FirebaseAuth
-                                                .instance.currentUser!.email
-                                        ? AppColors.mediumGray
-                                        : getButtonColor(item),
-                                  );
-                                },
-                                shrinkWrap: true,
-                              )
-                            ],
-                          ),
-                        );
-                      } else {
-                        return Container();
-                      }
-                    });
-              }
-              return Container();
-            }));
+                                NotificationManager.sendNotification(
+                                  token: item.deviceToken,
+                                  body: AppStrings.newFriendRequest,
+                                  friendId: item.userId,
+                                );
+
+                                setState(() {
+                                  _future = fetchAllUsers();
+                                });
+                              }
+                            },
+                            buttonColor: item.email ==
+                                    FirebaseAuth.instance.currentUser!.email
+                                ? AppColors.mediumGray
+                                : getButtonColor(item),
+                          );
+                        },
+                        shrinkWrap: true,
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+            return Container();
+          }),
+    );
   }
 }

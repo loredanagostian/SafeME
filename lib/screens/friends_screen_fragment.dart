@@ -85,7 +85,6 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
   }
 
   Future<List<Account>> fetchFriends(List<String> friendsIds) async {
-    // Use Future.wait to fetch all friends in parallel
     var friendsFutures = friendsIds.map((friendId) {
       return FirebaseFirestore.instance
           .collection('users')
@@ -136,20 +135,6 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     return widget.isTrackNow ? AppStrings.trackButton : AppStrings.sosButton;
   }
 
-  Future<String> getAccountId(Account account) async {
-    String data = "";
-
-    await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: account.email)
-        .get()
-        .then((snapshot) {
-      data = snapshot.docs[0].id;
-    });
-
-    return data;
-  }
-
   Future<void> _getButton1Action(Account account) async {
     if (widget.isTrackNow) {
       Navigator.push(
@@ -194,35 +179,45 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     }
 
     if (widget.isRequests) {
-      String accountId = await getAccountId(account);
-
       currentUser.emergencyContact.isEmpty
           ? FirebaseFirestore.instance
               .collection('users')
               .doc(FirebaseAuth.instance.currentUser!.uid)
               .update({
-              "friendRequests": FieldValue.arrayRemove([accountId]),
-              "friends": FieldValue.arrayUnion([accountId]),
+              "friendRequests": FieldValue.arrayRemove([account.userId]),
+              "friends": FieldValue.arrayUnion([account.userId]),
               "emergencyContact": account.userId,
             })
           : FirebaseFirestore.instance
               .collection('users')
               .doc(FirebaseAuth.instance.currentUser!.uid)
               .update({
-              "friendRequests": FieldValue.arrayRemove([accountId]),
-              "friends": FieldValue.arrayUnion([accountId]),
+              "friendRequests": FieldValue.arrayRemove([account.userId]),
+              "friends": FieldValue.arrayUnion([account.userId]),
             });
 
       if (account.emergencyContact.isEmpty) {
-        FirebaseFirestore.instance.collection('users').doc(accountId).update({
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(account.userId)
+            .update({
           "emergencyContact": currentUser.userId,
         });
       }
 
-      FirebaseFirestore.instance.collection('users').doc(accountId).update({
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(account.userId)
+          .update({
         "friends":
             FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
       });
+
+      NotificationManager.sendNotification(
+        token: account.deviceToken,
+        body: AppStrings.friendRequestAccepted,
+        friendId: account.userId,
+      );
     }
   }
 
@@ -267,10 +262,10 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CustomSearchBar(
-                                  onChanged: _onSearchTextChanged,
-                                  searchController: _searchController),
-                              const SizedBox(height: AppSizes.marginSize),
+                              // CustomSearchBar(
+                              //     onChanged: _onSearchTextChanged,
+                              //     searchController: _searchController),
+                              // const SizedBox(height: AppSizes.marginSize),
                               Text(
                                 "$totalFoundsAccounts ${returnCountType()}",
                                 style: AppStyles.textComponentStyle
@@ -299,33 +294,30 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                                       await _getButton1Action(item);
                                     },
                                     button2Action: () async {
-                                      String accountId =
-                                          await getAccountId(item);
                                       FirebaseFirestore.instance
                                           .collection('users')
                                           .doc(FirebaseAuth
                                               .instance.currentUser!.uid)
                                           .update({
                                         "friendRequests":
-                                            FieldValue.arrayRemove([accountId])
+                                            FieldValue.arrayRemove(
+                                                [item.userId])
                                       });
                                     },
                                     onDismiss:
                                         (DismissDirection direction) async {
-                                      String accountId =
-                                          await getAccountId(item);
                                       FirebaseFirestore.instance
                                           .collection('users')
                                           .doc(FirebaseAuth
                                               .instance.currentUser!.uid)
                                           .update({
-                                        "friends":
-                                            FieldValue.arrayRemove([accountId])
+                                        "friends": FieldValue.arrayRemove(
+                                            [item.userId])
                                       });
 
                                       FirebaseFirestore.instance
                                           .collection('users')
-                                          .doc(accountId)
+                                          .doc(item.userId)
                                           .update({
                                         "friends": FieldValue.arrayRemove([
                                           FirebaseAuth.instance.currentUser!.uid

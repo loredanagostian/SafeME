@@ -30,6 +30,7 @@ class CustomPlaceBottomModal extends StatelessWidget {
         child: Text(
           text,
           style: AppStyles.textComponentStyle.copyWith(color: AppColors.white),
+          overflow: TextOverflow.visible,
         ),
       ),
     );
@@ -37,6 +38,8 @@ class CustomPlaceBottomModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    categories.removeWhere((item) => item.contains("_"));
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
