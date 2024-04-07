@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -13,6 +16,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/safe_place.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
@@ -21,16 +25,20 @@ import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;
 
-class SafePlacesScreen extends StatefulWidget {
+final startTimeSafePlaceHistory =
+    StateProvider<DateTime>((ref) => DateTime.now());
+final startTimeTrackHistory = StateProvider<DateTime>((ref) => DateTime.now());
+
+class SafePlacesScreen extends ConsumerStatefulWidget {
   final Account userAccount;
 
   const SafePlacesScreen({super.key, required this.userAccount});
 
   @override
-  State<SafePlacesScreen> createState() => _SafePlacesScreenState();
+  ConsumerState<SafePlacesScreen> createState() => _SafePlacesScreenState();
 }
 
-class _SafePlacesScreenState extends State<SafePlacesScreen> {
+class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
   late GoogleMapController mapController;
   late LatLng currentPosition;
   SafePlace? destinationSafePlace;
@@ -122,7 +130,8 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
                   name,
                   getDistance(LatLng(lat, lng)).toStringAsFixed(2),
                   categories,
-                  LatLng(lat, lng));
+                  LatLng(lat, lng),
+                  ref);
             }
           }));
       counterId++;
@@ -181,7 +190,7 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
   }
 
   void showPlaceInformationModal(BuildContext context, String placeName,
-      String kmAway, List<String> categories, LatLng latLng) {
+      String kmAway, List<String> categories, LatLng latLng, WidgetRef ref) {
     showModalBottomSheet<void>(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -211,6 +220,10 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
                 icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueCyan),
               );
+
+              ref
+                  .read(startTimeSafePlaceHistory.notifier)
+                  .update((state) => DateTime.now());
             },
           );
         });
@@ -298,9 +311,33 @@ class _SafePlacesScreenState extends State<SafePlacesScreen> {
                               color: Colors.white,
                             ),
                             onPressed: () async {
+                              // Create history element
+                              HistoryEvent historyEvent = HistoryEvent(
+                                startDate: ref.read(startTimeSafePlaceHistory),
+                                endDate: DateTime.now(),
+                                duration: DateTime.now()
+                                    .difference(
+                                        ref.read(startTimeSafePlaceHistory))
+                                    .inMinutes,
+                                isTrackingEvent: false,
+                              );
+
                               setState(() {
                                 isSelectedDestination = false;
                                 polylines = {};
+                              });
+
+                              FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                                  .update({
+                                "history": FieldValue.arrayUnion(
+                                    [historyEvent.toMap()]),
+                              }).then((value) {
+                                // Check if there are routes available to pop
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                }
                               });
                             },
                           ),

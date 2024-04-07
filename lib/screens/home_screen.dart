@@ -13,11 +13,13 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/chat_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
+import 'package:safe_me/screens/safe_places_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
@@ -380,6 +382,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             wasLongPress = true;
                                             await storeLocationInDB();
 
+                                            ref
+                                                .read(startTimeSafePlaceHistory
+                                                    .notifier)
+                                                .update(
+                                                    (state) => DateTime.now());
+
                                             FirebaseFirestore.instance
                                                 .collection('users')
                                                 .doc(FirebaseAuth
@@ -417,6 +425,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             locationSubscription?.cancel();
                                             setState(() {
                                               locationSubscription = null;
+                                            });
+
+                                            // Create history element
+                                            HistoryEvent historyEvent =
+                                                HistoryEvent(
+                                              startDate: ref
+                                                  .read(startTimeTrackHistory),
+                                              endDate: DateTime.now(),
+                                              duration: DateTime.now()
+                                                  .difference(ref.read(
+                                                      startTimeTrackHistory))
+                                                  .inMinutes,
+                                              isTrackingEvent: true,
+                                            );
+
+                                            FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .update({
+                                              "history": FieldValue.arrayUnion(
+                                                  [historyEvent.toMap()]),
+                                            }).then((value) {
+                                              // Check if there are routes available to pop
+                                              if (Navigator.canPop(context)) {
+                                                Navigator.pop(context);
+                                              }
                                             });
 
                                             FirebaseFirestore.instance

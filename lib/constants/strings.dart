@@ -94,4 +94,5 @@ class AppStrings {
   static const String friendRequestAccepted =
       "Your friend request was accepted.";
   static const String chatRooms = "Chat rooms";
+  static const String history = "History";
 }

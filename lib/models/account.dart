@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
 // part 'account.g.dart';
 
@@ -55,6 +56,9 @@ class Account extends HiveObject {
   @HiveField(16)
   final List<NotificationModel> notifications;
 
+  @HiveField(17)
+  final List<HistoryEvent> history;
+
   Account({
     required this.email,
     required this.firstName,
@@ -73,6 +77,7 @@ class Account extends HiveObject {
     required this.emergencyContact,
     required this.deviceToken,
     required this.notifications,
+    required this.history,
   });
 
   factory Account.fromJson(Map<String, dynamic> json) {
@@ -106,6 +111,18 @@ class Account extends HiveObject {
       notifications.add(item);
     }
 
+    List<dynamic> historyJson = json['history'];
+    List<HistoryEvent> history = [];
+    for (int i = 0; i < historyJson.length; i++) {
+      HistoryEvent item = HistoryEvent(
+          startDate: historyJson[i]['startDate'].toDate(),
+          endDate: historyJson[i]['endDate'].toDate(),
+          duration: historyJson[i]['duration'],
+          isTrackingEvent: historyJson[i]['isTrackingEvent']);
+
+      history.add(item);
+    }
+
     return Account(
       email: json['email'],
       firstName: json['firstName'],
@@ -124,6 +141,7 @@ class Account extends HiveObject {
       emergencyContact: json['emergencyContact'],
       deviceToken: json['deviceToken'],
       notifications: notifications,
+      history: history,
     );
   }
 }
