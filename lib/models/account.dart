@@ -116,8 +116,8 @@ class Account extends HiveObject {
     for (int i = 0; i < historyJson.length; i++) {
       HistoryEvent item = HistoryEvent(
           startDate: historyJson[i]['startDate'].toDate(),
-          endDate: historyJson[i]['endDate'].toDate(),
-          duration: historyJson[i]['duration'],
+          // endDate: historyJson[i]['endDate'].toDate(),
+          // duration: historyJson[i]['duration'],
           isTrackingEvent: historyJson[i]['isTrackingEvent']);
 
       history.add(item);

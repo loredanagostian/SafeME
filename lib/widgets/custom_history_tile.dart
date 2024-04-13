@@ -16,8 +16,8 @@ class CustomHistoryTile extends StatelessWidget {
           '${item.startDate.day}/${item.startDate.month}/${item.startDate.year}'),
       titleTextStyle: AppStyles.notificationTitleStyle
           .copyWith(color: AppColors.mainDarkGray),
-      subtitle: Text('${item.duration} min'),
-      subtitleTextStyle: AppStyles.hintComponentStyle,
+      // subtitle: Text('${item.duration} min'),
+      // subtitleTextStyle: AppStyles.hintComponentStyle,
       leading: SizedBox(
         height: 45,
         width: 45,

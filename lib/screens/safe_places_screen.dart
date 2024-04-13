@@ -26,9 +26,9 @@ import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;
 
-final startTimeSafePlaceHistory =
-    StateProvider<DateTime>((ref) => DateTime.now());
-final startTimeTrackHistory = StateProvider<DateTime>((ref) => DateTime.now());
+// final startTimeSafePlaceHistory =
+//     StateProvider<DateTime>((ref) => DateTime.now());
+// final startTimeTrackHistory = StateProvider<DateTime>((ref) => DateTime.now());
 
 class SafePlacesScreen extends ConsumerStatefulWidget {
   final Account userAccount;
@@ -212,9 +212,9 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                     BitmapDescriptor.hueCyan),
               );
 
-              ref
-                  .read(startTimeSafePlaceHistory.notifier)
-                  .update((state) => DateTime.now());
+              // ref
+              //     .read(startTimeSafePlaceHistory.notifier)
+              //     .update((state) => DateTime.now());
             },
           );
         });
@@ -304,12 +304,12 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                             onPressed: () async {
                               // Create history element
                               HistoryEvent historyEvent = HistoryEvent(
-                                startDate: ref.read(startTimeSafePlaceHistory),
-                                endDate: DateTime.now(),
-                                duration: DateTime.now()
-                                    .difference(
-                                        ref.read(startTimeSafePlaceHistory))
-                                    .inMinutes,
+                                startDate: DateTime.now(),
+                                // endDate: DateTime.now(),
+                                // duration: DateTime.now()
+                                //     .difference(
+                                //         ref.read(startTimeSafePlaceHistory))
+                                //     .inMinutes,
                                 isTrackingEvent: false,
                               );
 

@@ -19,7 +19,6 @@ import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/chat_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
-import 'package:safe_me/screens/safe_places_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
@@ -35,8 +34,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  bool wasLongPress = false;
   Account? emergencyUser;
+  bool wasLongPress = false;
 
   Future<LocationPermission> getLocationPermission() async {
     var isPermission = await Geolocator.checkPermission();
@@ -304,76 +303,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       onLongPress: () async {
                                         if (userData
                                             .emergencyContact.isNotEmpty) {
-                                          if (!userData.trackMeNow &&
-                                              !wasLongPress) {
+                                          setState(() {
                                             wasLongPress = true;
-                                            LocationManager
-                                                .enableLocationSharing(ref);
-
-                                            ref
-                                                .read(startTimeSafePlaceHistory
-                                                    .notifier)
-                                                .update(
-                                                    (state) => DateTime.now());
-
-                                            String message =
-                                                widget.userAccount.emergencySMS;
-                                            String encodedMessage =
-                                                Uri.encodeFull(message);
-
-                                            Account emergencyAccount =
-                                                await FirebaseFirestore.instance
-                                                    .collection('users')
-                                                    .doc(userData
-                                                        .emergencyContact)
-                                                    .get()
-                                                    .then((snapshot) {
-                                              Map<String, dynamic>? data =
-                                                  snapshot.data();
-                                              return Account.fromJson(
-                                                  data ?? {});
+                                          });
+                                          Timer(Duration(seconds: 30), () {
+                                            setState(() {
+                                              wasLongPress = false;
                                             });
+                                          });
 
-                                            final call = Uri.parse(
-                                                'sms:${emergencyAccount.phoneNumber}?body=$encodedMessage');
-                                            if (await canLaunchUrl(call)) {
-                                              launchUrl(call);
-                                            } else {
-                                              throw 'Could not launch $call';
-                                            }
+                                          LocationManager.enableLocationSharing(
+                                              ref);
+
+                                          // ref
+                                          //     .read(startTimeSafePlaceHistory
+                                          //         .notifier)
+                                          //     .update(
+                                          //         (state) => DateTime.now());
+
+                                          String message =
+                                              widget.userAccount.emergencySMS;
+                                          String encodedMessage =
+                                              Uri.encodeFull(message);
+
+                                          Account emergencyAccount =
+                                              await FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(
+                                                      userData.emergencyContact)
+                                                  .get()
+                                                  .then((snapshot) {
+                                            Map<String, dynamic>? data =
+                                                snapshot.data();
+                                            return Account.fromJson(data ?? {});
+                                          });
+
+                                          final call = Uri.parse(
+                                              'sms:${emergencyAccount.phoneNumber}?body=$encodedMessage');
+                                          if (await canLaunchUrl(call)) {
+                                            launchUrl(call);
                                           } else {
-                                            LocationManager
-                                                .disableLocationSharing(ref);
-
-                                            // Create history element
-                                            HistoryEvent historyEvent =
-                                                HistoryEvent(
-                                              startDate: ref
-                                                  .read(startTimeTrackHistory),
-                                              endDate: DateTime.now(),
-                                              duration: DateTime.now()
-                                                  .difference(ref.read(
-                                                      startTimeTrackHistory))
-                                                  .inMinutes,
-                                              isTrackingEvent: true,
-                                            );
-
-                                            FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(FirebaseAuth
-                                                    .instance.currentUser!.uid)
-                                                .update({
-                                              "history": FieldValue.arrayUnion(
-                                                  [historyEvent.toMap()]),
-                                            }).then((value) {
-                                              // Check if there are routes available to pop
-                                              if (Navigator.canPop(context)) {
-                                                Navigator.pop(context);
-                                              }
-                                            });
-
-                                            wasLongPress = false;
+                                            throw 'Could not launch $call';
                                           }
+
+                                          // Create history element
+                                          HistoryEvent historyEvent =
+                                              HistoryEvent(
+                                            startDate: DateTime.now(),
+                                            // endDate: DateTime.now(),
+                                            // duration: DateTime.now()
+                                            //     .difference(ref.read(
+                                            //         startTimeTrackHistory))
+                                            //     .inMinutes,
+                                            isTrackingEvent: true,
+                                          );
+
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(FirebaseAuth
+                                                  .instance.currentUser!.uid)
+                                              .update({
+                                            "history": FieldValue.arrayUnion(
+                                                [historyEvent.toMap()]),
+                                          }).then((value) {
+                                            // Check if there are routes available to pop
+                                            if (Navigator.canPop(context)) {
+                                              Navigator.pop(context);
+                                            }
+                                          });
                                         } else {
                                           Navigator.push(
                                               context,
@@ -397,17 +394,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             ),
                                           ],
                                         ),
-                                        child: userData.trackMeNow
-                                            ? const Icon(
-                                                Icons.cancel,
-                                                size: 85,
-                                                color: AppColors.white,
-                                              )
-                                            : const Icon(
-                                                Icons.sos_outlined,
-                                                size: 85,
-                                                color: AppColors.white,
-                                              ),
+                                        child: const Icon(
+                                          Icons.sos_outlined,
+                                          size: 85,
+                                          color: AppColors.white,
+                                        ),
                                       ),
                                     ),
                                   ),
