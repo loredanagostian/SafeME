@@ -99,6 +99,7 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                             "friendRequests": [],
                             "notifications": [],
                             "emergencyContact": "",
+                            "history": [],
                           };
 
                           FirebaseFirestore.instance

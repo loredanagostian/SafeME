@@ -62,7 +62,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 .copyWith(color: AppColors.mainDarkGray),
             unselectedLabelColor: AppColors.mediumGray,
             indicatorColor: AppColors.mainBlue,
-            indicatorWeight: AppSizes.smallDistance,
+            indicatorWeight: AppSizes.smallDistance / 2,
             padding: EdgeInsets.zero,
             indicatorPadding: const EdgeInsets.all(AppSizes.smallDistance),
             labelPadding: EdgeInsets.zero,

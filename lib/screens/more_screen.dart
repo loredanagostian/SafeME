@@ -12,6 +12,7 @@ import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/default_emergency_sms_screen.dart';
 import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
+import 'package:safe_me/screens/history_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
@@ -169,6 +170,26 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                                     (route) => false));
                           }),
                       const SizedBox(height: AppSizes.mediumDistance),
+                      const Divider(
+                        color: AppColors.mediumGray,
+                        thickness: 0.6,
+                      ),
+                      ListTile(
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HistoryScreen())),
+                        title: Text(
+                          AppStrings.history,
+                          style: AppStyles.textComponentStyle
+                              .copyWith(fontSize: 15),
+                        ),
+                        leading: const Icon(
+                          Icons.history,
+                          size: 35,
+                          color: AppColors.mainDarkGray,
+                        ),
+                      ),
                       const Divider(
                         color: AppColors.mediumGray,
                         thickness: 0.6,
