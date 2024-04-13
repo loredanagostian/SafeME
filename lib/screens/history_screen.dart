@@ -59,14 +59,40 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           return Padding(
             padding: const EdgeInsets.all(AppSizes.smallDistance),
-            child: ListView.builder(
-              itemCount: userAccount.history.length,
-              itemBuilder: (context, index) {
-                final item = userAccount.history[index];
-                return CustomHistoryTile(item: item);
-              },
-              shrinkWrap: true,
-            ),
+            child: userAccount.history.isNotEmpty
+                ? ListView.builder(
+                    itemCount: userAccount.history.length,
+                    itemBuilder: (context, index) {
+                      final item = userAccount.history[index];
+                      return CustomHistoryTile(item: item);
+                    },
+                    shrinkWrap: true,
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history_toggle_off,
+                          size: 200,
+                          color: AppColors.darkGray,
+                        ),
+                        SizedBox(height: AppSizes.bigDistance),
+                        SizedBox(
+                          width: 200,
+                          child: Text(
+                            AppStrings.noHistoryToDisplay,
+                            style: AppStyles.titleStyle.copyWith(
+                              color: AppColors.darkGray,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
           );
         },
       ),

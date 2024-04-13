@@ -246,15 +246,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         (value) => value["userId"] == currentUser!.uid);
                     Account userData = Account.fromJson(user.data());
 
-                    Future<Account> emergencyAccount = FirebaseFirestore
-                        .instance
-                        .collection('users')
-                        .doc(userData.emergencyContact)
-                        .get()
-                        .then((snapshot) {
-                      Map<String, dynamic>? data = snapshot.data();
-                      return Account.fromJson(data ?? {});
-                    });
+                    Future<Account> emergencyAccount;
+                    if (userData.emergencyContact.isNotEmpty) {
+                      emergencyAccount = FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userData.emergencyContact)
+                          .get()
+                          .then((snapshot) {
+                        Map<String, dynamic>? data = snapshot.data();
+                        return Account.fromJson(data ?? {});
+                      });
+                    } else {
+                      emergencyAccount = Future(() => Account.fromJson({}));
+                    }
 
                     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                         stream: chatStream,
@@ -302,8 +306,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                       .then((value) {
                                                 Map<String, dynamic>? data =
                                                     value.data();
-                                                return Account.fromJson(
+                                                var test = Account.fromJson(
                                                     data ?? {});
+                                                return test;
                                               });
                                               return GestureDetector(
                                                   onTap: () => Navigator.push(

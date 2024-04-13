@@ -95,4 +95,5 @@ class AppStrings {
       "Your friend request was accepted.";
   static const String chatRooms = "Chat rooms";
   static const String history = "History";
+  static const String noHistoryToDisplay = "There's no history to display.";
 }
