@@ -6,12 +6,13 @@ class CustomButton extends StatelessWidget {
   final Color buttonColor;
   final String buttonText;
   final Function() onTap;
-  // final bool isGoogle;
+  final Color? buttonTextColor;
   const CustomButton({
     super.key,
     required this.buttonColor,
     required this.buttonText,
     required this.onTap,
+    this.buttonTextColor,
   });
 
   @override
@@ -28,7 +29,9 @@ class CustomButton extends StatelessWidget {
           child: Center(
             child: Text(
               buttonText,
-              style: AppStyles.buttonTextStyle,
+              style: buttonTextColor != null
+                  ? AppStyles.buttonTextStyle.copyWith(color: buttonTextColor)
+                  : AppStyles.buttonTextStyle,
             ),
           ),
         ));

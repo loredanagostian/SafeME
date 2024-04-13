@@ -9,6 +9,7 @@ import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
+import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_search_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -221,6 +222,41 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     }
   }
 
+  void _showDeleteDialog(Account account) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return CustomAlertDialog(
+            title: AppStrings.deleteUser,
+            message:
+                "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteUserMessage2}",
+            onConfirm: () async {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .update({
+                "friends": FieldValue.arrayRemove([account.userId])
+              });
+
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(account.userId)
+                  .update({
+                "friends": FieldValue.arrayRemove(
+                    [FirebaseAuth.instance.currentUser!.uid])
+              });
+
+              Navigator.pop(context);
+            },
+            onCancel: () {
+              Navigator.pop(context);
+              setState(() {});
+            },
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
@@ -304,26 +340,8 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                                                 [item.userId])
                                       });
                                     },
-                                    onDismiss:
-                                        (DismissDirection direction) async {
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(FirebaseAuth
-                                              .instance.currentUser!.uid)
-                                          .update({
-                                        "friends": FieldValue.arrayRemove(
-                                            [item.userId])
-                                      });
-
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(item.userId)
-                                          .update({
-                                        "friends": FieldValue.arrayRemove([
-                                          FirebaseAuth.instance.currentUser!.uid
-                                        ])
-                                      });
-                                    },
+                                    onDismiss: (DismissDirection direction) =>
+                                        _showDeleteDialog(item),
                                   );
                                 },
                                 shrinkWrap: true,

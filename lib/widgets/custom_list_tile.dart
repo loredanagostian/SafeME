@@ -117,7 +117,26 @@ class _CustomListTileState extends State<CustomListTile> {
             ? Dismissible(
                 key: Key(widget.photoUrl),
                 onDismissed: widget.onDismiss,
-                background: Container(color: AppColors.mainRed),
+                background: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.mainRed,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(AppSizes.borders),
+                      bottomRight: Radius.circular(AppSizes.borders),
+                    ),
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.only(right: AppSizes.mediumDistance),
+                      child: Icon(
+                        Icons.delete_outline,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ),
                 child: _getListTile())
             : _getListTile();
   }

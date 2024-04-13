@@ -96,4 +96,9 @@ class AppStrings {
   static const String chatRooms = "Chat rooms";
   static const String history = "History";
   static const String noHistoryToDisplay = "There's no history to display.";
+  static const String deleteUser = "DELETE USER";
+  static const String deleteUserMessage1 = "Are you sure you want to delete";
+  static const String deleteUserMessage2 = "from your friends list?";
+  static const String delete = "DELETE";
+  static const String cancel = "CANCEL";
 }

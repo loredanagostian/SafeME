@@ -39,7 +39,7 @@ class CustomFriendsBottomModal extends StatelessWidget {
           isAlreadyFriend: item.userId == userAccount.emergencyContact,
           buttonColor: item.userId == userAccount.emergencyContact
               ? AppColors.mediumGray
-              : AppColors.lightBlue,
+              : AppColors.mainBlue,
         );
       },
       shrinkWrap: true,
