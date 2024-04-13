@@ -1,11 +1,17 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
@@ -14,7 +20,7 @@ import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_search_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class FriendsScreenFragment extends StatefulWidget {
+class FriendsScreenFragment extends ConsumerStatefulWidget {
   final bool isTrackNow;
   final bool isGroups;
   final bool isAllFriends;
@@ -30,10 +36,11 @@ class FriendsScreenFragment extends StatefulWidget {
   });
 
   @override
-  State<FriendsScreenFragment> createState() => _FriendsScreenFragmentState();
+  ConsumerState<FriendsScreenFragment> createState() =>
+      _FriendsScreenFragmentState();
 }
 
-class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
+class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
   List<Account> filteredData = [];
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -136,7 +143,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     return widget.isTrackNow ? AppStrings.trackButton : AppStrings.sosButton;
   }
 
-  Future<void> _getButton1Action(Account account) async {
+  Future<void> _getButton1Action(Account account, WidgetRef ref) async {
     if (widget.isTrackNow) {
       Navigator.push(
           context,
@@ -148,35 +155,41 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
     }
 
     if (widget.isAllFriends) {
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .update({
-        "trackMeNow": true,
-      });
+      var isPermission = await LocationManager.getLocationPermission();
+      var isLocationEnabled = await Location().serviceEnabled();
 
-      String message = currentUser.emergencySMS;
-      String encodedMessage = Uri.encodeFull(message);
-      final call = Uri.parse('sms:${account.phoneNumber}?body=$encodedMessage');
-      if (await canLaunchUrl(call)) {
-        launchUrl(call);
-      } else {
-        throw 'Could not launch $call';
+      if (!isLocationEnabled) {
+        isLocationEnabled = await Location().requestService();
       }
+      if ((isPermission == LocationPermission.always ||
+              isPermission == LocationPermission.whileInUse) &&
+          isLocationEnabled) {
+        await LocationManager.enableLocationSharing(ref);
 
-      NotificationManager.sendNotification(
-        token: account.deviceToken,
-        body: currentUser.emergencySMS,
-        friendId: account.userId,
-      );
-
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print('Got a message whilst in the foreground!');
-        if (message.notification != null) {
-          print('Notification Title: ${message.notification!.title}');
-          print('Notification Body: ${message.notification!.body}');
+        String message = currentUser.emergencySMS;
+        String encodedMessage = Uri.encodeFull(message);
+        final call =
+            Uri.parse('sms:${account.phoneNumber}?body=$encodedMessage');
+        if (await canLaunchUrl(call)) {
+          launchUrl(call);
+        } else {
+          throw 'Could not launch $call';
         }
-      });
+
+        NotificationManager.sendNotification(
+          token: account.deviceToken,
+          body: currentUser.emergencySMS,
+          friendId: account.userId,
+        );
+
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          print('Got a message whilst in the foreground!');
+          if (message.notification != null) {
+            print('Notification Title: ${message.notification!.title}');
+            print('Notification Body: ${message.notification!.body}');
+          }
+        });
+      }
     }
 
     if (widget.isRequests) {
@@ -327,7 +340,7 @@ class _FriendsScreenFragmentState extends State<FriendsScreenFragment> {
                                     isRequest: widget.isRequests,
                                     buttonText: _getButtonText(),
                                     button1Action: () async {
-                                      await _getButton1Action(item);
+                                      await _getButton1Action(item, ref);
                                     },
                                     button2Action: () async {
                                       FirebaseFirestore.instance

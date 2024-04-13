@@ -6,12 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:location/location.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
+import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
@@ -25,7 +25,6 @@ import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
 import 'package:safe_me/widgets/person_chat_room.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:location/location.dart' as loc;
 
 class HomeScreen extends ConsumerStatefulWidget {
   final Account userAccount;
@@ -37,8 +36,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool wasLongPress = false;
-  Location location = Location();
-  StreamSubscription<loc.LocationData>? locationSubscription;
   Account? emergencyUser;
 
   Future<LocationPermission> getLocationPermission() async {
@@ -49,75 +46,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return isPermission;
-  }
-
-  Future<void> storeLocationInDB() async {
-    try {
-      var isPermission = await getLocationPermission();
-
-      if (isPermission == LocationPermission.denied ||
-          isPermission == LocationPermission.deniedForever) {
-        throw Exception(AppStrings.locationPermissionDenied);
-      }
-
-      if (isPermission == LocationPermission.always ||
-          isPermission == LocationPermission.whileInUse) {
-        location.changeSettings(accuracy: loc.LocationAccuracy.high);
-
-        locationSubscription = location.onLocationChanged
-            .listen((LocationData currentLocation) async {
-          if (currentLocation.latitude != null &&
-              currentLocation.longitude != null) {
-            // Fetch the last stored location from Firestore
-            var userDoc = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(FirebaseAuth.instance.currentUser!.uid)
-                .get();
-
-            if (userDoc.exists) {
-              var userLastLatitude =
-                  userDoc.data()!['userLastLatitude'] as double?;
-              var userLastLongitude =
-                  userDoc.data()!['userLastLongitude'] as double?;
-
-              // Calculate the distance between the new location and the last stored location
-              final double distance = Geolocator.distanceBetween(
-                userLastLatitude ?? 0,
-                userLastLongitude ?? 0,
-                currentLocation.latitude!,
-                currentLocation.longitude!,
-              );
-
-              // If the distance is more than 5 meters, update the location in Firestore
-              if (distance > 5) {
-                FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .update({
-                  "userLastLatitude": currentLocation.latitude,
-                  "userLastLongitude": currentLocation.longitude,
-                });
-              }
-            } else {
-              // If there is no last location stored, just update with the new location
-              FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .set({
-                "userLastLatitude": currentLocation.latitude,
-                "userLastLongitude": currentLocation.longitude,
-              });
-            }
-          }
-        });
-      } else {
-        throw Exception(AppStrings.locationPermissionDenied);
-      }
-    } on TimeoutException catch (_) {
-      rethrow;
-    } catch (e) {
-      rethrow;
-    }
   }
 
   Future<List<Account>> fetchFriends(List<String> friendsIds) async {
@@ -155,12 +83,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             userAccount: widget.userAccount,
           );
         });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    locationSubscription?.cancel();
   }
 
   @override
@@ -385,21 +307,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           if (!userData.trackMeNow &&
                                               !wasLongPress) {
                                             wasLongPress = true;
-                                            await storeLocationInDB();
+                                            LocationManager
+                                                .enableLocationSharing(ref);
 
                                             ref
                                                 .read(startTimeSafePlaceHistory
                                                     .notifier)
                                                 .update(
                                                     (state) => DateTime.now());
-
-                                            FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(FirebaseAuth
-                                                    .instance.currentUser!.uid)
-                                                .update({
-                                              "trackMeNow": true,
-                                            });
 
                                             String message =
                                                 widget.userAccount.emergencySMS;
@@ -427,10 +342,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                               throw 'Could not launch $call';
                                             }
                                           } else {
-                                            locationSubscription?.cancel();
-                                            setState(() {
-                                              locationSubscription = null;
-                                            });
+                                            LocationManager
+                                                .disableLocationSharing(ref);
 
                                             // Create history element
                                             HistoryEvent historyEvent =
@@ -459,13 +372,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                               }
                                             });
 
-                                            FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(FirebaseAuth
-                                                    .instance.currentUser!.uid)
-                                                .update({
-                                              "trackMeNow": false,
-                                            });
                                             wasLongPress = false;
                                           }
                                         } else {

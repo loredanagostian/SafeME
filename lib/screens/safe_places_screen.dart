@@ -15,6 +15,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/safe_place.dart';
@@ -54,19 +55,9 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
     mapController = controller;
   }
 
-  Future<LocationPermission> getLocationPermission() async {
-    var isPermission = await Geolocator.checkPermission();
-    if (isPermission == LocationPermission.denied ||
-        isPermission == LocationPermission.deniedForever) {
-      isPermission = await Geolocator.requestPermission();
-    }
-
-    return isPermission;
-  }
-
   Future<List<Marker>> _getNearbyPlaces() async {
     try {
-      var isPermission = await getLocationPermission();
+      var isPermission = await LocationManager.getLocationPermission();
 
       if (isPermission == LocationPermission.denied ||
           isPermission == LocationPermission.deniedForever) {
