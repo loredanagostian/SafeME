@@ -153,24 +153,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           )
                         ],
                       ),
-                      const SizedBox(height: AppSizes.smallDistance),
-                      CustomButton(
-                          buttonColor: AppColors.mainBlue,
-                          buttonText: AppStrings.logout,
-                          // SIGN OUT
-                          onTap: () async {
-                            ref
-                                .read(bottomNavigatorIndex.notifier)
-                                .update((state) => 1);
-                            await FirebaseAuth.instance.signOut().then(
-                                (value) => Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const LoginScreen()),
-                                    (route) => false));
-                          }),
-                      const SizedBox(height: AppSizes.mediumDistance),
                       const Divider(
                         color: AppColors.mediumGray,
                         thickness: 0.6,
@@ -281,6 +263,23 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           color: AppColors.mainRed,
                         ),
                       ),
+                      const SizedBox(height: AppSizes.bigDistance),
+                      CustomButton(
+                          buttonColor: AppColors.mainBlue,
+                          buttonText: AppStrings.logout,
+                          // SIGN OUT
+                          onTap: () async {
+                            ref
+                                .read(bottomNavigatorIndex.notifier)
+                                .update((state) => 1);
+                            await FirebaseAuth.instance.signOut().then(
+                                (value) => Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LoginScreen()),
+                                    (route) => false));
+                          }),
                     ]),
                   );
                 } else {
