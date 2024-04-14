@@ -193,14 +193,14 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
     }
 
     if (widget.isRequests) {
-      currentUser.emergencyContact.isEmpty
+      currentUser.emergencyContacts.isEmpty
           ? FirebaseFirestore.instance
               .collection('users')
               .doc(FirebaseAuth.instance.currentUser!.uid)
               .update({
               "friendRequests": FieldValue.arrayRemove([account.userId]),
               "friends": FieldValue.arrayUnion([account.userId]),
-              "emergencyContact": account.userId,
+              "emergencyContacts": FieldValue.arrayUnion([account.userId]),
             })
           : FirebaseFirestore.instance
               .collection('users')
@@ -210,12 +210,12 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
               "friends": FieldValue.arrayUnion([account.userId]),
             });
 
-      if (account.emergencyContact.isEmpty) {
+      if (account.emergencyContacts.isEmpty) {
         FirebaseFirestore.instance
             .collection('users')
             .doc(account.userId)
             .update({
-          "emergencyContact": currentUser.userId,
+          "emergencyContacts": FieldValue.arrayUnion([currentUser.userId]),
         });
       }
 
@@ -243,7 +243,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
           return CustomAlertDialog(
             title: AppStrings.deleteUser,
             message:
-                "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteUserMessage2}",
+                "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteUserMessage2_friendList}",
             onConfirm: () async {
               await FirebaseFirestore.instance
                   .collection('users')

@@ -151,11 +151,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             "userLastLatitude": 0.0,
                             "userLastLongitude": 0.0,
                             "deviceToken": NotificationManager.token,
-                            "emergencyGroup": [],
                             "friends": [],
                             "friendRequests": [],
                             "notifications": [],
-                            "emergencyContact": "",
+                            "emergencyContacts": [],
                             "history": [],
                           };
 

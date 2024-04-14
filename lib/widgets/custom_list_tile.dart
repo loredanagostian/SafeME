@@ -115,8 +115,9 @@ class _CustomListTileState extends State<CustomListTile> {
         ? _getListTile()
         : widget.onDismiss != null
             ? Dismissible(
-                key: Key(widget.photoUrl),
+                key: UniqueKey(),
                 onDismissed: widget.onDismiss,
+                direction: DismissDirection.endToStart,
                 background: Container(
                   decoration: BoxDecoration(
                     color: AppColors.mainRed,

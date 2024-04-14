@@ -98,7 +98,7 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                             "friends": [],
                             "friendRequests": [],
                             "notifications": [],
-                            "emergencyContact": "",
+                            "emergencyContacts": [],
                             "history": [],
                           };
 

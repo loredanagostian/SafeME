@@ -26,9 +26,6 @@ class AppStrings {
   static const String alreadyHaveAccount = "Already have an account?";
   static const String signin = "signin";
   static const String sharingLiveLocationNow = "Sharing live location now";
-  static const String emergencyGroupIsContacted =
-      "Your emergency group has been contacted.";
-  static const String emergencyGroup = "Emergency Group";
   static const String yourFriendsTitle = "Your friends";
   static const String trackNow = "Track now";
   static const String groups = "Groups";
@@ -36,9 +33,10 @@ class AppStrings {
   static const String requests = "Requests";
   static const String notificationsTitle = "Notifications";
   static const String moreTitle = "More";
-  static const String changeEmergencyGroup = "Change default emergency group";
   static const String changeEmergencySMS = "Change default emergency SMS";
   static const String changeTrackingSMS = "Change default tracking SMS";
+  static const String changeDefaultEmergencyContacts =
+      "Change default emergency contacts";
   static const String call112 = "Call 112";
   static const String editProfile = "Edit profile";
   static const String changePicture = "Change picture";
@@ -73,7 +71,9 @@ class AppStrings {
   static const String categories = "Categories: ";
   static const String notifyTracking = "Notify you’re tracking";
   static const String openSMSApp = "Open SMS app";
-  static const String emergencyContact = "Emergency contact";
+  static const String emergencyContacts = "Emergency contacts";
+  static const String emergencyContactsAreContacted =
+      "Your emergency contacts are being contacted.";
   static const String switchContact = "SWITCH";
   static const String newFriendRequest = "You have a new friend request!";
   static const String verifyPhoneNumber = "Verify phone number";
@@ -98,7 +98,9 @@ class AppStrings {
   static const String noHistoryToDisplay = "There's no history to display.";
   static const String deleteUser = "DELETE USER";
   static const String deleteUserMessage1 = "Are you sure you want to delete";
-  static const String deleteUserMessage2 = "from your friends list?";
+  static const String deleteUserMessage2_friendList = "from your friends list?";
+  static const String deleteUserMessage2_emergencyContactsList =
+      "from your emergency contacts list?";
   static const String delete = "DELETE";
   static const String cancel = "CANCEL";
 }

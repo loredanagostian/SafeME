@@ -25,7 +25,6 @@ class EmergencyMember extends StatelessWidget {
 
           if (snapshot.hasData) {
             return Container(
-              height: 115,
               width: 75,
               decoration: BoxDecoration(
                   color: AppColors.lightGray,

@@ -25,19 +25,19 @@ class CustomFriendsBottomModal extends StatelessWidget {
           photoUrl: item.imageURL,
           title: item.firstName,
           subtitle: item.phoneNumber,
-          buttonText: AppStrings.switchContact,
+          buttonText: AppStrings.addButton,
           button1Action: () {
-            item.userId == userAccount.emergencyContact
+            userAccount.emergencyContacts.contains(item.userId)
                 ? null
                 : FirebaseFirestore.instance
                     .collection('users')
                     .doc(userAccount.userId)
                     .update({
-                    "emergencyContact": item.userId,
+                    "emergencyContacts": FieldValue.arrayUnion([item.userId]),
                   }).then((value) => Navigator.pop(context));
           },
-          isAlreadyFriend: item.userId == userAccount.emergencyContact,
-          buttonColor: item.userId == userAccount.emergencyContact
+          isAlreadyFriend: userAccount.emergencyContacts.contains(item.userId),
+          buttonColor: userAccount.emergencyContacts.contains(item.userId)
               ? AppColors.mediumGray
               : AppColors.mainBlue,
         );

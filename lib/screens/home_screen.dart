@@ -17,10 +17,10 @@ import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/chat_screen.dart';
+import 'package:safe_me/screens/default_emergency_group_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
-import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
 import 'package:safe_me/widgets/person_chat_room.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -67,21 +67,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return friendsList;
-  }
-
-  void showAllFriendsList(BuildContext context, List<Account> friends) {
-    showModalBottomSheet<void>(
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(AppSizes.borders),
-                topRight: Radius.circular(AppSizes.borders))),
-        context: context,
-        builder: (BuildContext context) {
-          return CustomFriendsBottomModal(
-            allFriends: friends,
-            userAccount: widget.userAccount,
-          );
-        });
   }
 
   @override
@@ -138,7 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     })),
             GestureDetector(
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const MoreScreen())),
+                  MaterialPageRoute(builder: (context) => MoreScreen())),
               child: SizedBox(
                 height: 50,
                 width: 50,
@@ -167,18 +152,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         (value) => value["userId"] == currentUser!.uid);
                     Account userData = Account.fromJson(user.data());
 
-                    Future<Account> emergencyAccount;
-                    if (userData.emergencyContact.isNotEmpty) {
-                      emergencyAccount = FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userData.emergencyContact)
-                          .get()
-                          .then((snapshot) {
-                        Map<String, dynamic>? data = snapshot.data();
-                        return Account.fromJson(data ?? {});
+                    List<Account> emergencyAccounts = [];
+                    if (userData.emergencyContacts.isNotEmpty) {
+                      List<Future<Account>> futures = userData.emergencyContacts
+                          .map((e) => FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(e)
+                                  .get()
+                                  .then((snapshot) {
+                                Map<String, dynamic>? data = snapshot.data();
+                                return Account.fromJson(data ?? {});
+                              }))
+                          .toList();
+
+                      Future.wait(futures).then((List<Account> accounts) {
+                        emergencyAccounts.addAll(accounts);
                       });
-                    } else {
-                      emergencyAccount = Future(() => Account.fromJson({}));
                     }
 
                     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -302,11 +291,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     child: GestureDetector(
                                       onLongPress: () async {
                                         if (userData
-                                            .emergencyContact.isNotEmpty) {
+                                            .emergencyContacts.isNotEmpty) {
                                           setState(() {
                                             wasLongPress = true;
                                           });
-                                          Timer(Duration(seconds: 30), () {
+                                          Timer(Duration(seconds: 10), () {
                                             setState(() {
                                               wasLongPress = false;
                                             });
@@ -325,21 +314,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                               widget.userAccount.emergencySMS;
                                           String encodedMessage =
                                               Uri.encodeFull(message);
-
-                                          Account emergencyAccount =
-                                              await FirebaseFirestore.instance
-                                                  .collection('users')
-                                                  .doc(
-                                                      userData.emergencyContact)
-                                                  .get()
-                                                  .then((snapshot) {
-                                            Map<String, dynamic>? data =
-                                                snapshot.data();
-                                            return Account.fromJson(data ?? {});
-                                          });
+                                          List<String> phoneNumbers =
+                                              List<String>.from(
+                                                  emergencyAccounts.map(
+                                                      (e) => e.phoneNumber));
+                                          String phoneNumbersString =
+                                              phoneNumbers.join(',');
 
                                           final call = Uri.parse(
-                                              'sms:${emergencyAccount.phoneNumber}?body=$encodedMessage');
+                                              'smsto:${phoneNumbersString}?body=$encodedMessage');
                                           if (await canLaunchUrl(call)) {
                                             launchUrl(call);
                                           } else {
@@ -413,12 +396,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       width: 175,
                                       child: Visibility(
                                           visible: userData.trackMeNow &&
-                                              userData.emergencyContact
+                                              userData.emergencyContacts
                                                   .isNotEmpty &&
                                               wasLongPress,
                                           child: const Text(
                                             AppStrings
-                                                .emergencyGroupIsContacted,
+                                                .emergencyContactsAreContacted,
                                             style: AppStyles.bodyStyle,
                                             textAlign: TextAlign.center,
                                           )),
@@ -428,14 +411,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   Row(
                                     children: [
                                       const Text(
-                                        AppStrings.emergencyContact,
+                                        AppStrings.emergencyContacts,
                                         style: AppStyles.sectionTitleStyle,
                                       ),
                                       const SizedBox(
                                           width: AppSizes.smallDistance),
                                       Visibility(
                                         visible: userData
-                                            .emergencyContact.isNotEmpty,
+                                            .emergencyContacts.isNotEmpty,
                                         child: FutureBuilder(
                                           future:
                                               fetchFriends(userData.friends),
@@ -444,10 +427,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                               print("Error${snapshot.error}");
                                             } else if (snapshot.hasData) {
                                               return IconButton(
-                                                  onPressed: () =>
-                                                      showAllFriendsList(
-                                                          context,
-                                                          snapshot.data!),
+                                                  onPressed: () => Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              DefaultEmergencyContactsScreen(
+                                                                  userAccount:
+                                                                      userData))),
                                                   icon: const Icon(
                                                     Icons.edit_outlined,
                                                     color:
@@ -462,10 +448,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ),
                                   const SizedBox(
                                       height: AppSizes.smallDistance),
-
-                                  userData.emergencyContact.isNotEmpty
-                                      ? EmergencyMember(
-                                          emergencyUser: emergencyAccount)
+                                  userData.emergencyContacts.isNotEmpty
+                                      ? SizedBox(
+                                          height: 115,
+                                          child: ListView.separated(
+                                            shrinkWrap: true,
+                                            itemCount: userData
+                                                .emergencyContacts.length,
+                                            scrollDirection: Axis.horizontal,
+                                            itemBuilder: (BuildContext context,
+                                                int index) {
+                                              Future<Account> item =
+                                                  FirebaseFirestore.instance
+                                                      .collection('users')
+                                                      .doc(userData
+                                                              .emergencyContacts[
+                                                          index])
+                                                      .get()
+                                                      .then((value) {
+                                                Map<String, dynamic>? data =
+                                                    value.data();
+                                                var test = Account.fromJson(
+                                                    data ?? {});
+                                                return test;
+                                              });
+                                              return EmergencyMember(
+                                                  emergencyUser: item);
+                                            },
+                                            separatorBuilder:
+                                                (BuildContext context,
+                                                    int index) {
+                                              return const SizedBox(
+                                                width: AppSizes.smallDistance,
+                                              );
+                                            },
+                                          ),
+                                        )
                                       : Container(
                                           height: 100,
                                           width: 75,
@@ -487,15 +505,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                         AddFriendScreen())),
                                           ),
                                         ),
-                                  // const Row(
-                                  //   children: [
-                                  //     EmergencyMember(),
-                                  //     SizedBox(width: AppSizes.smallDistance),
-                                  //     EmergencyMember(),
-                                  //     SizedBox(width: AppSizes.smallDistance),
-                                  //     EmergencyMember(),
-                                  //   ],
-                                  // ),
                                   const SizedBox(
                                       height: kBottomNavigationBarHeight)
                                 ],

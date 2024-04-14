@@ -9,6 +9,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/screens/default_emergency_group_screen.dart';
 import 'package:safe_me/screens/default_emergency_sms_screen.dart';
 import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
@@ -152,7 +153,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           )
                         ],
                       ),
-                      const SizedBox(height: AppSizes.bigDistance),
+                      const SizedBox(height: AppSizes.smallDistance),
                       CustomButton(
                           buttonColor: AppColors.mainBlue,
                           buttonText: AppStrings.logout,
@@ -194,27 +195,28 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                         color: AppColors.mediumGray,
                         thickness: 0.6,
                       ),
-                      // ListTile(
-                      //   onTap: () => Navigator.pushReplacement(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //           builder: (context) =>
-                      //               const DefaultEmergencyGroupScreen())),
-                      //   title: Text(
-                      //     AppStrings.changeEmergencyGroup,
-                      //     style:
-                      //         AppStyles.textComponentStyle.copyWith(fontSize: 15),
-                      //   ),
-                      //   leading: const Icon(
-                      //     Icons.group_outlined,
-                      //     size: 35,
-                      //     color: AppColors.mainDarkGray,
-                      //   ),
-                      // ),
-                      // const Divider(
-                      //   color: AppColors.mediumGray,
-                      //   thickness: 0.6,
-                      // ),
+                      ListTile(
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DefaultEmergencyContactsScreen(
+                                        userAccount: account))),
+                        title: Text(
+                          AppStrings.changeDefaultEmergencyContacts,
+                          style: AppStyles.textComponentStyle
+                              .copyWith(fontSize: 15),
+                        ),
+                        leading: const Icon(
+                          Icons.group_outlined,
+                          size: 35,
+                          color: AppColors.mainDarkGray,
+                        ),
+                      ),
+                      const Divider(
+                        color: AppColors.mediumGray,
+                        thickness: 0.6,
+                      ),
                       ListTile(
                         onTap: () => Navigator.push(
                             context,
