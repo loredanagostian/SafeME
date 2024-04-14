@@ -63,7 +63,7 @@ class CustomPlaceBottomModal extends StatelessWidget {
                 Text(
                   AppStrings.openNow,
                   style: AppStyles.textComponentStyle
-                      .copyWith(color: AppColors.lightGreen),
+                      .copyWith(color: AppColors.mediumBlue),
                 ),
                 const SizedBox(height: 5),
                 _returnTagContainer(

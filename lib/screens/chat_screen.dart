@@ -64,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   Text(AppStrings.activeNow,
                       style: AppStyles.notificationBodyStyle
-                          .copyWith(color: AppColors.lightGreen)),
+                          .copyWith(color: AppColors.mediumBlue)),
                 ],
               )
             ],

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -66,10 +65,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
             padding: EdgeInsets.zero,
             indicatorPadding: const EdgeInsets.all(AppSizes.smallDistance),
             labelPadding: EdgeInsets.zero,
-            tabs: const [
+            tabs: [
               Tab(text: AppStrings.trackNow),
               Tab(text: AppStrings.allFriends),
-              Tab(text: AppStrings.requests)
+              Tab(
+                child: Text(
+                  AppStrings.requests,
+                  style: TextStyle(
+                      color: widget.userAccount.friendsRequest.isNotEmpty
+                          ? AppColors.lightBlue
+                          : AppColors.mediumGray),
+                ),
+              )
             ],
           ),
         ),

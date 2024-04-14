@@ -108,7 +108,7 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                   ),
                   Text(AppStrings.activeNow,
                       style: AppStyles.notificationBodyStyle
-                          .copyWith(color: AppColors.lightGreen)),
+                          .copyWith(color: AppColors.mediumBlue)),
                 ],
               )
             ],

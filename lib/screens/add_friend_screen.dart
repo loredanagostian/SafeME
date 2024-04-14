@@ -105,7 +105,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
 
   Color getButtonColor(Account account) {
     if (userAlreadyFriend(account)) return AppColors.mediumGray;
-    if (userAlreadyRequested(account)) return AppColors.mainGreen;
+    if (userAlreadyRequested(account)) return AppColors.lightBlue;
     return AppColors.mainBlue;
   }
 
@@ -191,7 +191,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                                           content: CustomSnackbarContent(
                                               snackBarMessage: AppStrings
                                                   .userAddedSuccessfully),
-                                          backgroundColor: AppColors.mainGreen,
+                                          backgroundColor: AppColors.mediumBlue,
                                         )));
 
                                 NotificationManager.sendNotification(

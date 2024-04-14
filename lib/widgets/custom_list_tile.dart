@@ -61,7 +61,7 @@ class _CustomListTileState extends State<CustomListTile> {
                 height: 35,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.mainGreen,
+                  color: AppColors.mainBlue,
                 ),
                 child: IconButton(
                   onPressed: widget.button1Action,
