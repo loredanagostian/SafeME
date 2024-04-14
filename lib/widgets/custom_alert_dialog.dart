@@ -29,6 +29,7 @@ class CustomAlertDialog extends StatelessWidget {
           title,
           style: AppStyles.titleStyle
               .copyWith(color: AppColors.mainRed, fontWeight: FontWeight.w600),
+          textAlign: TextAlign.center,
         ),
       ),
       content: Text(

@@ -103,4 +103,11 @@ class AppStrings {
       "from your emergency contacts list?";
   static const String delete = "DELETE";
   static const String cancel = "CANCEL";
+  static const String information = "Information";
+  static const String notAvailable = "Not available";
+  static const String latestLocation = "Latest location";
+  static const String setAsEmergencyContact = "Set as emergency contact";
+  static const String removeFriend = "Remove friend";
+  static const String removeEmergencyContact = "Remove emergency contact";
+  static const String deleteEmergencyContact = "DELETE EMERGENCY CONTACT";
 }

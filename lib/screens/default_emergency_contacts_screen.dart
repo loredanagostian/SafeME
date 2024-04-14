@@ -9,6 +9,7 @@ import 'package:safe_me/models/account.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_friends_bottom_modal.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
+import 'package:safe_me/widgets/custom_user_information_modal.dart';
 
 class DefaultEmergencyContactsScreen extends StatefulWidget {
   final Account userAccount;
@@ -24,7 +25,8 @@ class DefaultEmergencyContactsScreen extends StatefulWidget {
 
 class _DefaultEmergencyContactsScreenState
     extends State<DefaultEmergencyContactsScreen> {
-  void _showAllFriendsList(BuildContext context, List<Account> friends) {
+  void _showAllFriendsList(
+      BuildContext context, List<Account> friends, Account user) {
     showModalBottomSheet<void>(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -34,7 +36,7 @@ class _DefaultEmergencyContactsScreenState
         builder: (BuildContext context) {
           return CustomFriendsBottomModal(
             allFriends: friends,
-            userAccount: widget.userAccount,
+            userAccount: user,
           );
         });
   }
@@ -97,6 +99,26 @@ class _DefaultEmergencyContactsScreenState
 
     List<Account> friends = await Future.wait(futures);
     return friends;
+  }
+
+  void _showUserInformationModal(
+      BuildContext context, Account friendUser, Account user) {
+    showModalBottomSheet<void>(
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppSizes.borders),
+                topRight: Radius.circular(AppSizes.borders))),
+        context: context,
+        builder: (BuildContext context) {
+          return Wrap(children: [
+            CustomUserInformationModal(
+              user: friendUser,
+              currentUser: user,
+              isEmergencyScreen: true,
+            )
+          ]);
+        });
   }
 
   @override
@@ -178,7 +200,7 @@ class _DefaultEmergencyContactsScreenState
                                           child: IconButton(
                                             onPressed: () =>
                                                 _showAllFriendsList(
-                                                    context, friends),
+                                                    context, friends, account),
                                             icon: const Icon(
                                               Icons.person_add_outlined,
                                               color: AppColors.mainDarkGray,
@@ -198,16 +220,20 @@ class _DefaultEmergencyContactsScreenState
                                     itemBuilder: (context, index) {
                                       final item = emergencyAccounts[index];
 
-                                      return CustomListTile(
-                                        photoUrl: item.imageURL,
-                                        title: item.firstName,
-                                        subtitle: item.phoneNumber,
-                                        onDismiss:
-                                            (DismissDirection direction) =>
-                                                _showDeleteDialog(item),
-                                        buttonText: '',
-                                        button1Action: () {},
-                                        buttonColor: AppColors.white,
+                                      return GestureDetector(
+                                        onTap: () => _showUserInformationModal(
+                                            context, item, account),
+                                        child: CustomListTile(
+                                          photoUrl: item.imageURL,
+                                          title: item.firstName,
+                                          subtitle: item.phoneNumber,
+                                          onDismiss:
+                                              (DismissDirection direction) =>
+                                                  _showDeleteDialog(item),
+                                          buttonText: '',
+                                          button1Action: () {},
+                                          buttonColor: AppColors.white,
+                                        ),
                                       );
                                     },
                                     shrinkWrap: true,

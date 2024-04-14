@@ -17,7 +17,7 @@ import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/chat_screen.dart';
-import 'package:safe_me/screens/default_emergency_group_screen.dart';
+import 'package:safe_me/screens/default_emergency_contacts_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';

@@ -9,7 +9,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
-import 'package:safe_me/screens/default_emergency_group_screen.dart';
+import 'package:safe_me/screens/default_emergency_contacts_screen.dart';
 import 'package:safe_me/screens/default_emergency_sms_screen.dart';
 import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';

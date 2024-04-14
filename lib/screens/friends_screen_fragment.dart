@@ -18,6 +18,7 @@ import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_search_bar.dart';
+import 'package:safe_me/widgets/custom_user_information_modal.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FriendsScreenFragment extends ConsumerStatefulWidget {
@@ -270,6 +271,25 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
         });
   }
 
+  void _showUserInformationModal(
+      BuildContext context, Account friendUser, Account user) {
+    showModalBottomSheet<void>(
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppSizes.borders),
+                topRight: Radius.circular(AppSizes.borders))),
+        context: context,
+        builder: (BuildContext context) {
+          return Wrap(children: [
+            CustomUserInformationModal(
+              user: friendUser,
+              currentUser: user,
+            )
+          ]);
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
@@ -333,28 +353,32 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
                                       ? filteredData[index]
                                       : accountsData[index];
 
-                                  return CustomListTile(
-                                    photoUrl: item.imageURL,
-                                    title: item.firstName,
-                                    subtitle: item.phoneNumber,
-                                    isRequest: widget.isRequests,
-                                    buttonText: _getButtonText(),
-                                    button1Action: () async {
-                                      await _getButton1Action(item, ref);
-                                    },
-                                    button2Action: () async {
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(FirebaseAuth
-                                              .instance.currentUser!.uid)
-                                          .update({
-                                        "friendRequests":
-                                            FieldValue.arrayRemove(
-                                                [item.userId])
-                                      });
-                                    },
-                                    onDismiss: (DismissDirection direction) =>
-                                        _showDeleteDialog(item),
+                                  return GestureDetector(
+                                    onTap: () => _showUserInformationModal(
+                                        context, item, currentUser),
+                                    child: CustomListTile(
+                                      photoUrl: item.imageURL,
+                                      title: item.firstName,
+                                      subtitle: item.phoneNumber,
+                                      isRequest: widget.isRequests,
+                                      buttonText: _getButtonText(),
+                                      button1Action: () async {
+                                        await _getButton1Action(item, ref);
+                                      },
+                                      button2Action: () async {
+                                        FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(FirebaseAuth
+                                                .instance.currentUser!.uid)
+                                            .update({
+                                          "friendRequests":
+                                              FieldValue.arrayRemove(
+                                                  [item.userId])
+                                        });
+                                      },
+                                      onDismiss: (DismissDirection direction) =>
+                                          _showDeleteDialog(item),
+                                    ),
                                   );
                                 },
                                 shrinkWrap: true,
