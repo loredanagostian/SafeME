@@ -73,7 +73,8 @@ class CustomUserInformationModal extends StatelessWidget {
                     .collection('users')
                     .doc(FirebaseAuth.instance.currentUser!.uid)
                     .update({
-                  "friends": FieldValue.arrayRemove([account.userId])
+                  "friends": FieldValue.arrayRemove([account.userId]),
+                  "emergencyContacts": FieldValue.arrayRemove([account.userId]),
                 });
 
                 await FirebaseFirestore.instance
