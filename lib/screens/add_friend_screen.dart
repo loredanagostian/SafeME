@@ -89,23 +89,25 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
 
   bool userAlreadyFriend(Account account) {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    for (String userId in account.friends) {
-      if (userId == currentUserId) return true;
-    }
-    return false;
+
+    return account.friends.contains(currentUserId);
   }
 
   bool userAlreadyRequested(Account account) {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    for (String userId in account.friendsRequest) {
-      if (userId == currentUserId) return true;
-    }
-    return false;
+
+    return account.friendsRequest.contains(currentUserId);
   }
 
-  Color getButtonColor(Account account) {
+  bool currentUserAlreadyHasARequest(Account currentUser, Account friendUser) {
+    return currentUser.friendsRequest.contains(friendUser.userId);
+  }
+
+  Color getButtonColor(Account account, Account currentUser) {
     if (userAlreadyFriend(account)) return AppColors.mediumGray;
-    if (userAlreadyRequested(account)) return AppColors.lightBlue;
+    if (userAlreadyRequested(account) ||
+        currentUserAlreadyHasARequest(currentUser, account))
+      return AppColors.lightBlue;
     return AppColors.mainBlue;
   }
 
@@ -135,6 +137,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
             } else if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.hasData) {
               accountsData = snapshot.data!;
+              Account currentUser = accountsData.firstWhere((element) =>
+                  element.userId == FirebaseAuth.instance.currentUser!.uid);
+
               totalFoundsAccounts = _searchQuery.isNotEmpty
                   ? filteredData.length.toString()
                   : accountsData.length.toString();
@@ -172,11 +177,11 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                             photoUrl: item.imageURL,
                             title: item.firstName,
                             subtitle: item.phoneNumber,
-                            buttonText: userAlreadyFriend(item)
-                                ? AppStrings.addedButton
-                                : AppStrings.addButton,
+                            buttonText: AppStrings.addButton,
                             isAlreadyFriend: userAlreadyFriend(item) ||
-                                userAlreadyRequested(item),
+                                userAlreadyRequested(item) ||
+                                currentUserAlreadyHasARequest(
+                                    currentUser, item),
                             button1Action: () async {
                               if (item.email !=
                                   FirebaseAuth.instance.currentUser!.email) {
@@ -208,7 +213,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                             buttonColor: item.email ==
                                     FirebaseAuth.instance.currentUser!.email
                                 ? AppColors.mediumGray
-                                : getButtonColor(item),
+                                : getButtonColor(item, currentUser),
                           );
                         },
                         shrinkWrap: true,
