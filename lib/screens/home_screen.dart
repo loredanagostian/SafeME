@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
@@ -91,6 +93,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             },
           );
         });
+  }
+
+  Future<Placemark?> _getAddressFromLatLng(Account user) async {
+    try {
+      if (user.lastLatitude != 0 || user.lastLongitude != 0) {
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+            user.lastLatitude, user.lastLongitude);
+        Placemark place = placemarks[0];
+
+        return place;
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return null;
   }
 
   @override
@@ -312,104 +330,120 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             )),
                                   ),
                                   const SizedBox(height: AppSizes.buttonHeight),
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: GestureDetector(
-                                      onLongPress: () async {
-                                        if (userData
-                                            .emergencyContacts.isNotEmpty) {
-                                          setState(() {
-                                            wasLongPress = true;
-                                          });
-                                          Timer(Duration(seconds: 10), () {
-                                            setState(() {
-                                              wasLongPress = false;
-                                            });
-                                          });
+                                  FutureBuilder(
+                                    future: _getAddressFromLatLng(userData),
+                                    builder: (context, locationSnapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.active) {
+                                        return Align(
+                                          alignment: Alignment.center,
+                                          child: GestureDetector(
+                                            onLongPress: () async {
+                                              if (userData.emergencyContacts
+                                                  .isNotEmpty) {
+                                                setState(() {
+                                                  wasLongPress = true;
+                                                });
+                                                Timer(Duration(seconds: 10),
+                                                    () {
+                                                  setState(() {
+                                                    wasLongPress = false;
+                                                  });
+                                                });
 
-                                          LocationManager.enableLocationSharing(
-                                              ref);
+                                                LocationManager
+                                                    .enableLocationSharing(ref);
 
-                                          // ref
-                                          //     .read(startTimeSafePlaceHistory
-                                          //         .notifier)
-                                          //     .update(
-                                          //         (state) => DateTime.now());
+                                                String message = widget
+                                                    .userAccount.emergencySMS;
+                                                String encodedMessage =
+                                                    Uri.encodeFull(message);
+                                                List<String> phoneNumbers =
+                                                    List<String>.from(
+                                                        emergencyAccounts.map(
+                                                            (e) =>
+                                                                e.phoneNumber));
+                                                String phoneNumbersString =
+                                                    phoneNumbers.join(',');
 
-                                          String message =
-                                              widget.userAccount.emergencySMS;
-                                          String encodedMessage =
-                                              Uri.encodeFull(message);
-                                          List<String> phoneNumbers =
-                                              List<String>.from(
-                                                  emergencyAccounts.map(
-                                                      (e) => e.phoneNumber));
-                                          String phoneNumbersString =
-                                              phoneNumbers.join(',');
+                                                final call = Uri.parse(
+                                                    'smsto:${phoneNumbersString}?body=$encodedMessage');
+                                                if (await canLaunchUrl(call)) {
+                                                  launchUrl(call);
+                                                } else {
+                                                  throw 'Could not launch $call';
+                                                }
 
-                                          final call = Uri.parse(
-                                              'smsto:${phoneNumbersString}?body=$encodedMessage');
-                                          if (await canLaunchUrl(call)) {
-                                            launchUrl(call);
-                                          } else {
-                                            throw 'Could not launch $call';
-                                          }
+                                                // Create history element
+                                                HistoryEvent historyEvent =
+                                                    HistoryEvent(
+                                                        startDate:
+                                                            DateTime.now(),
+                                                        isTrackingEvent: true,
+                                                        city: snapshot.hasData
+                                                            ? locationSnapshot
+                                                                    .data
+                                                                    ?.locality ??
+                                                                ""
+                                                            : "",
+                                                        country: snapshot
+                                                                .hasData
+                                                            ? locationSnapshot
+                                                                    .data
+                                                                    ?.country ??
+                                                                ""
+                                                            : "");
 
-                                          // Create history element
-                                          HistoryEvent historyEvent =
-                                              HistoryEvent(
-                                            startDate: DateTime.now(),
-                                            // endDate: DateTime.now(),
-                                            // duration: DateTime.now()
-                                            //     .difference(ref.read(
-                                            //         startTimeTrackHistory))
-                                            //     .inMinutes,
-                                            isTrackingEvent: true,
-                                          );
-
-                                          FirebaseFirestore.instance
-                                              .collection('users')
-                                              .doc(FirebaseAuth
-                                                  .instance.currentUser!.uid)
-                                              .update({
-                                            "history": FieldValue.arrayUnion(
-                                                [historyEvent.toMap()]),
-                                          }).then((value) {
-                                            // Check if there are routes available to pop
-                                            if (Navigator.canPop(context)) {
-                                              Navigator.pop(context);
-                                            }
-                                          });
-                                        } else {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AddFriendScreen()));
-                                        }
-                                      },
-                                      child: Container(
-                                        height: 175,
-                                        width: 175,
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.mainRed,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Color.fromARGB(
-                                                  255, 255, 60, 0),
-                                              spreadRadius: 0,
-                                              blurRadius: 80,
+                                                FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(FirebaseAuth.instance
+                                                        .currentUser!.uid)
+                                                    .update({
+                                                  "history":
+                                                      FieldValue.arrayUnion([
+                                                    historyEvent.toMap()
+                                                  ]),
+                                                }).then((value) {
+                                                  // Check if there are routes available to pop
+                                                  if (Navigator.canPop(
+                                                      context)) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                });
+                                              } else {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            AddFriendScreen()));
+                                              }
+                                            },
+                                            child: Container(
+                                              height: 175,
+                                              width: 175,
+                                              decoration: const BoxDecoration(
+                                                color: AppColors.mainRed,
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Color.fromARGB(
+                                                        255, 255, 60, 0),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 80,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: const Icon(
+                                                Icons.sos_outlined,
+                                                size: 85,
+                                                color: AppColors.white,
+                                              ),
                                             ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.sos_outlined,
-                                          size: 85,
-                                          color: AppColors.white,
-                                        ),
-                                      ),
-                                    ),
+                                          ),
+                                        );
+                                      }
+                                      return Container();
+                                    },
                                   ),
                                   Visibility(
                                       visible:

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -304,14 +305,18 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                             onPressed: () async {
                               // Create history element
                               HistoryEvent historyEvent = HistoryEvent(
-                                startDate: DateTime.now(),
-                                // endDate: DateTime.now(),
-                                // duration: DateTime.now()
-                                //     .difference(
-                                //         ref.read(startTimeSafePlaceHistory))
-                                //     .inMinutes,
-                                isTrackingEvent: false,
-                              );
+                                  startDate: DateTime.now(),
+                                  isTrackingEvent: false,
+                                  city: (await placemarkFromCoordinates(
+                                              currentPosition.latitude,
+                                              currentPosition.longitude))[0]
+                                          .locality ??
+                                      "",
+                                  country: (await placemarkFromCoordinates(
+                                              currentPosition.latitude,
+                                              currentPosition.longitude))[0]
+                                          .country ??
+                                      "");
 
                               setState(() {
                                 isSelectedDestination = false;

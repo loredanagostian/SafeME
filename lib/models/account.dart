@@ -1,4 +1,3 @@
-import 'package:hive/hive.dart';
 import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
 // part 'account.g.dart';
@@ -77,10 +76,11 @@ class Account {
     List<HistoryEvent> history = [];
     for (int i = 0; i < historyJson.length; i++) {
       HistoryEvent item = HistoryEvent(
-          startDate: historyJson[i]['startDate'].toDate(),
-          // endDate: historyJson[i]['endDate'].toDate(),
-          // duration: historyJson[i]['duration'],
-          isTrackingEvent: historyJson[i]['isTrackingEvent']);
+        startDate: historyJson[i]['startDate'].toDate(),
+        isTrackingEvent: historyJson[i]['isTrackingEvent'],
+        city: historyJson[i]['city'],
+        country: historyJson[i]['country'],
+      );
 
       history.add(item);
     }
