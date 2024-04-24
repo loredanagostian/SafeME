@@ -109,4 +109,6 @@ class AppStrings {
   static const String removeFriend = "Remove friend";
   static const String removeEmergencyContact = "Remove emergency contact";
   static const String deleteEmergencyContact = "DELETE EMERGENCY CONTACT";
+  static const String deleteChatTitle = "DELETE CHAT";
+  static const String deleteChatMessage = "from your chats list?";
 }

@@ -20,6 +20,7 @@ import 'package:safe_me/screens/chat_screen.dart';
 import 'package:safe_me/screens/default_emergency_contacts_screen.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/screens/notifications_screen.dart';
+import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
 import 'package:safe_me/widgets/person_chat_room.dart';
@@ -67,6 +68,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return friendsList;
+  }
+
+  void _showDeleteDialog(Account account) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return CustomAlertDialog(
+            title: AppStrings.deleteChatTitle,
+            message:
+                "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteChatMessage}",
+            onConfirm: () async {
+              await ChatManager.deleteAllMessages(
+                  FirebaseAuth.instance.currentUser!.uid, account.userId);
+
+              Navigator.pop(context);
+            },
+            onCancel: () {
+              Navigator.pop(context);
+              setState(() {});
+            },
+          );
+        });
   }
 
   @override
@@ -220,6 +244,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                 return test;
                                               });
                                               return GestureDetector(
+                                                  onLongPress: () async =>
+                                                      _showDeleteDialog(
+                                                          await item),
                                                   onTap: () => Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
