@@ -90,8 +90,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => NotificationsScreen(
-                            userAccount: widget.userAccount))),
+                        builder: (context) => NotificationsScreen())),
                 icon: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                     stream: stream,
                     builder: (context, snapshot) {

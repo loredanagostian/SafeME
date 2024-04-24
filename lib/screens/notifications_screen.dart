@@ -10,35 +10,33 @@ import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/widgets/custom_notification_tile.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  final Account userAccount;
-
-  const NotificationsScreen({Key? key, required this.userAccount})
-      : super(key: key);
+  const NotificationsScreen({Key? key}) : super(key: key);
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  late Future _userDataFuture;
-
   @override
   void initState() {
     super.initState();
-    _userDataFuture = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .get();
   }
 
-  void markNotificationAsRead(NotificationModel notification) {
-    List<NotificationModel> userNotifications =
-        widget.userAccount.notifications;
+  void markNotificationAsRead(NotificationModel notification,
+      List<NotificationModel> userNotifications) {
+    // Remove the notification from the list
+    var item = userNotifications.firstWhere(
+      (x) =>
+          x.id == notification.id &&
+          x.body == notification.body &&
+          x.opened == notification.opened &&
+          x.senderEmail == notification.senderEmail,
+    );
 
-    userNotifications.removeWhere((element) => element.id == notification.id);
+    userNotifications.remove(item);
 
+    // Prepare updated notifications list
     List<Map<String, dynamic>> arrayData = [];
-
     for (int i = 0; i < userNotifications.length; i++) {
       arrayData.add({
         'id': userNotifications[i].id,
@@ -48,26 +46,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     }
 
+    // Add the tapped notification with opened state changed
+    arrayData.add({
+      'id': notification.id,
+      'body': notification.body,
+      'opened': true,
+      'senderEmail': notification.senderEmail,
+    });
+
+    // Update Firestore with the entire notifications list
     FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.userAccount.userId)
+        .doc(FirebaseAuth.instance.currentUser?.uid)
         .update({'notifications': arrayData});
-
-    setState(() {});
   }
 
-  void markAllNotificationsAsRead() {
-    List<NotificationModel> userNotifications =
-        widget.userAccount.notifications;
+  void markAllNotificationsAsRead(List<NotificationModel> userNotifications) {
     for (NotificationModel notification in userNotifications) {
       if (!notification.opened) {
-        markNotificationAsRead(notification);
+        markNotificationAsRead(notification, userNotifications);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
+        .instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .snapshots();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.white,
@@ -84,8 +93,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
       ),
-      body: FutureBuilder(
-        future: _userDataFuture,
+      body: StreamBuilder(
+        stream: stream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -113,7 +122,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       height: 30,
                       width: 30,
                       child: IconButton(
-                        onPressed: () => markAllNotificationsAsRead(),
+                        onPressed: () => markAllNotificationsAsRead(
+                            userAccount.notifications),
                         icon: const Icon(
                           Icons.done_all,
                           color: AppColors.mainDarkGray,
@@ -133,7 +143,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                     return GestureDetector(
                       onTap: () {
-                        if (item.opened == false) markNotificationAsRead(item);
+                        if (item.opened == false)
+                          markNotificationAsRead(
+                              item, userAccount.notifications);
                       },
                       child: CustomNotificationTile(
                         notificationTitle: item.body,
