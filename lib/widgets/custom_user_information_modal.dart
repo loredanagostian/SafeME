@@ -16,11 +16,13 @@ class CustomUserInformationModal extends StatelessWidget {
   final Account user;
   final Account currentUser;
   final bool isEmergencyScreen;
+  final bool isRequests;
   const CustomUserInformationModal(
       {super.key,
       required this.user,
       required this.currentUser,
-      this.isEmergencyScreen = false});
+      this.isEmergencyScreen = false,
+      this.isRequests = false});
 
   Future<Placemark?> _getAddressFromLatLng() async {
     try {
@@ -82,7 +84,9 @@ class CustomUserInformationModal extends StatelessWidget {
                     .doc(account.userId)
                     .update({
                   "friends": FieldValue.arrayRemove(
-                      [FirebaseAuth.instance.currentUser!.uid])
+                      [FirebaseAuth.instance.currentUser!.uid]),
+                  "emergencyContacts": FieldValue.arrayRemove(
+                      [FirebaseAuth.instance.currentUser!.uid]),
                 });
 
                 Navigator.of(context)
@@ -211,9 +215,11 @@ class CustomUserInformationModal extends StatelessWidget {
                       })
                 ],
               ),
-              const SizedBox(height: AppSizes.buttonHeight),
               Visibility(
-                visible: !isEmergencyScreen,
+                  visible: !isRequests,
+                  child: const SizedBox(height: AppSizes.buttonHeight)),
+              Visibility(
+                visible: !isEmergencyScreen && !isRequests,
                 child: CustomButton(
                     buttonColor:
                         currentUser.emergencyContacts.contains(user.userId)
@@ -227,12 +233,15 @@ class CustomUserInformationModal extends StatelessWidget {
                     }),
               ),
               const SizedBox(height: AppSizes.smallDistance),
-              CustomButton(
-                  buttonColor: AppColors.mainRed,
-                  buttonText: isEmergencyScreen
-                      ? AppStrings.removeEmergencyContact
-                      : AppStrings.removeFriend,
-                  onTap: () => _showDeleteDialog(user, context)),
+              Visibility(
+                visible: !isRequests,
+                child: CustomButton(
+                    buttonColor: AppColors.mainRed,
+                    buttonText: isEmergencyScreen
+                        ? AppStrings.removeEmergencyContact
+                        : AppStrings.removeFriend,
+                    onTap: () => _showDeleteDialog(user, context)),
+              ),
             ]));
   }
 }

@@ -139,7 +139,7 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
         'AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4',
         PointLatLng(currentPosition.latitude, currentPosition.longitude),
         PointLatLng(dst.latitude, dst.longitude),
-        travelMode: TravelMode.driving);
+        travelMode: TravelMode.walking);
     if (result.points.isNotEmpty) {
       result.points.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
@@ -358,7 +358,7 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                             ),
                             onPressed: () async {
                               await launchUrl(Uri.parse(
-                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
+                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4&mode=w'));
                             },
                           ),
                         ),

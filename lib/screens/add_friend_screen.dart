@@ -175,7 +175,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
 
                           return CustomListTile(
                             photoUrl: item.imageURL,
-                            title: item.firstName,
+                            title: "${item.firstName} ${item.lastName}",
                             subtitle: item.phoneNumber,
                             buttonText: AppStrings.addButton,
                             isAlreadyFriend: userAlreadyFriend(item) ||

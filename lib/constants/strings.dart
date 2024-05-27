@@ -111,4 +111,12 @@ class AppStrings {
   static const String deleteEmergencyContact = "DELETE EMERGENCY CONTACT";
   static const String deleteChatTitle = "DELETE CHAT";
   static const String deleteChatMessage = "from your chats list?";
+  static const String providerAlreadyLinked =
+      "The provider has already been linked to the user.";
+  static const String invalidProviderCredentials =
+      "The provider's credential is not valid.";
+  static const String accountExistsOrLinked =
+      "The account corresponding to the credential already exists, or is already linked to a Firebase User.";
+  static const String unknownError = "Unknown error.";
+  static const String invalidCode = "Invalid code";
 }

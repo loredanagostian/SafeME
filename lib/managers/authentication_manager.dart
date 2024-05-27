@@ -40,7 +40,7 @@ class AuthenticationManager {
       if (e.code == 'weak-password') {
         return {'error': AppStrings.passwordTooWeak};
       } else if (e.code == 'email-already-in-use') {
-        return {'error': AppStrings.alreadyHaveAccount};
+        return {'error': AppStrings.emailAlreadyExists};
       }
     } catch (e) {
       return {'error': e.toString()};
@@ -77,7 +77,7 @@ class AuthenticationManager {
             return;
           },
           verificationFailed: (FirebaseAuthException e) async {
-            return;
+            errorStep(e.message);
           },
           codeSent: (String verificationId, int? resendToken) async {
             verifyId = verificationId;
@@ -104,25 +104,25 @@ class AuthenticationManager {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case "provider-already-linked":
-          return "The provider has already been linked to the user.";
+          return AppStrings.providerAlreadyLinked;
         case "invalid-credential":
-          return "The provider's credential is not valid.";
-
+          return AppStrings.invalidProviderCredentials;
         case "credential-already-in-use":
-          return "The account corresponding to the credential already exists, "
-              "or is already linked to a Firebase User.";
+          return AppStrings.accountExistsOrLinked;
+        case "invalid-verification-code":
+          return AppStrings.invalidCode;
 
         // See the API reference for the full list of error codes.
         default:
-          return "Unknown error.";
+          return AppStrings.unknownError;
       }
     }
 
-    return "Unknown error.";
+    return AppStrings.unknownError;
   }
 
   static Future<String> sendForgotPasswordEmail(String email) async {
-    String _result = "Unknown error.";
+    String _result = AppStrings.unknownError;
 
     try {
       await FirebaseAuth.instance
@@ -131,14 +131,14 @@ class AuthenticationManager {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case "invalid-email":
-          _result = "The email address is not valid.";
+          _result = AppStrings.invalidEmail;
           break;
         case "user-not-found":
-          _result = "There is no user corresponding to the email address.";
+          _result = AppStrings.noUserFound;
           break;
 
         default:
-          _result = "Unknown error.";
+          _result = AppStrings.unknownError;
           break;
       }
     } catch (e) {

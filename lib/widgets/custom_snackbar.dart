@@ -17,9 +17,11 @@ class CustomSnackbarContent extends StatelessWidget {
           color: AppColors.white,
         ),
         const SizedBox(width: AppSizes.smallDistance),
-        Text(
-          snackBarMessage,
-          style: AppStyles.bottomItemStyle.copyWith(color: AppColors.white),
+        Flexible(
+          child: Text(
+            snackBarMessage,
+            style: AppStyles.bottomItemStyle.copyWith(color: AppColors.white),
+          ),
         )
       ]),
     );

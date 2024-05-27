@@ -259,7 +259,9 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
                   .doc(account.userId)
                   .update({
                 "friends": FieldValue.arrayRemove(
-                    [FirebaseAuth.instance.currentUser!.uid])
+                    [FirebaseAuth.instance.currentUser!.uid]),
+                "emergencyContacts": FieldValue.arrayRemove(
+                    [FirebaseAuth.instance.currentUser!.uid]),
               });
 
               Navigator.pop(context);
@@ -286,6 +288,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
             CustomUserInformationModal(
               user: friendUser,
               currentUser: user,
+              isRequests: widget.isRequests,
             )
           ]);
         });
@@ -359,7 +362,8 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
                                         context, item, currentUser),
                                     child: CustomListTile(
                                       photoUrl: item.imageURL,
-                                      title: item.firstName,
+                                      title:
+                                          "${item.firstName} ${item.lastName}",
                                       subtitle: item.phoneNumber,
                                       isRequest: widget.isRequests,
                                       buttonText: _getButtonText(),
