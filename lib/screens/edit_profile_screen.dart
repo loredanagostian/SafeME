@@ -3,25 +3,25 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/models/account.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class EditProfileScreen extends StatefulWidget {
-  final Account user;
-
-  const EditProfileScreen({super.key, required this.user});
+class EditProfileScreen extends ConsumerStatefulWidget {
+  const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
   File? imageFile;
@@ -29,12 +29,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    firstNameController = TextEditingController(text: widget.user.firstName);
-    lastNameController = TextEditingController(text: widget.user.lastName);
+    firstNameController =
+        TextEditingController(text: ref.read(userStaticDataProvider).firstName);
+    lastNameController =
+        TextEditingController(text: ref.read(userStaticDataProvider).lastName);
   }
 
   @override
   Widget build(BuildContext context) {
+    UserStaticData userInfo = ref.read(userStaticDataProvider);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.white,
@@ -68,7 +72,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: CircleAvatar(
                             backgroundImage: FileImage(imageFile != null
                                 ? imageFile!
-                                : File(widget.user.imageURL)))),
+                                : File(userInfo.imageURL)))),
                   ),
                 ),
                 const SizedBox(height: AppSizes.smallDistance),
@@ -121,13 +125,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.saveChanges,
                     onTap: () {
+                      ref.read(userStaticDataProvider.notifier).updateUserInfo(
+                          UserStaticData(
+                              email: userInfo.email,
+                              firstName: firstNameController.text,
+                              lastName: lastNameController.text,
+                              phoneNumber: userInfo.phoneNumber,
+                              imageURL: userInfo.imageURL,
+                              emergencySMS: userInfo.emergencySMS,
+                              trackingSMS: userInfo.trackingSMS,
+                              friends: userInfo.friends,
+                              friendsRequest: userInfo.friendsRequest,
+                              userId: userInfo.userId,
+                              emergencyContacts: userInfo.emergencyContacts,
+                              deviceToken: userInfo.deviceToken,
+                              history: userInfo.history));
+
                       FirebaseFirestore.instance
                           .collection('users')
                           .doc(FirebaseAuth.instance.currentUser!.uid)
                           .update({
                         "firstName": firstNameController.text,
                         "lastName": lastNameController.text,
-                        "imageURL": imageFile?.path ?? widget.user.imageURL
+                        "imageURL": imageFile?.path ??
+                            ref.watch(userStaticDataProvider).imageURL
                       }).then((value) {
                         Navigator.pop(context);
                       });

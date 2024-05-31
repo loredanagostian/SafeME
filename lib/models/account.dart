@@ -43,47 +43,37 @@ class Account {
 
   factory Account.fromJson(Map<String, dynamic> json) {
     List<dynamic> emergencyContacts = json['emergencyContacts'];
-    List<String> emergencyContactsIds = [];
-    for (int i = 0; i < emergencyContacts.length; i++) {
-      emergencyContactsIds.add(emergencyContacts[i].toString());
-    }
+    List<String> emergencyContactsIds =
+        emergencyContacts.map((contact) => contact.toString()).toList();
 
     List<dynamic> friends = json['friends'];
-    List<String> friendsListIds = [];
-    for (int i = 0; i < friends.length; i++) {
-      friendsListIds.add(friends[i].toString());
-    }
+    List<String> friendsListIds =
+        friends.map((friend) => friend.toString()).toList();
 
     List<dynamic> friendsRequest = json['friendRequests'];
-    List<String> friendsRequestIds = [];
-    for (int i = 0; i < friendsRequest.length; i++) {
-      friendsRequestIds.add(friendsRequest[i].toString());
-    }
+    List<String> friendsRequestIds =
+        friendsRequest.map((request) => request.toString()).toList();
 
     List<dynamic> notificationsJson = json['notifications'];
-    List<NotificationModel> notifications = [];
-    for (int i = 0; i < notificationsJson.length; i++) {
-      NotificationModel item = NotificationModel(
-        body: notificationsJson[i]['body'],
-        opened: notificationsJson[i]['opened'],
-        id: notificationsJson[i]['id'],
-        senderEmail: notificationsJson[i]['senderEmail'],
+    List<NotificationModel> notifications =
+        notificationsJson.map((notification) {
+      return NotificationModel(
+        body: notification['body'],
+        opened: notification['opened'],
+        id: notification['id'],
+        senderEmail: notification['senderEmail'],
       );
-      notifications.add(item);
-    }
+    }).toList();
 
     List<dynamic> historyJson = json['history'];
-    List<HistoryEvent> history = [];
-    for (int i = 0; i < historyJson.length; i++) {
-      HistoryEvent item = HistoryEvent(
-        startDate: historyJson[i]['startDate'].toDate(),
-        isTrackingEvent: historyJson[i]['isTrackingEvent'],
-        city: historyJson[i]['city'],
-        country: historyJson[i]['country'],
+    List<HistoryEvent> history = historyJson.map((event) {
+      return HistoryEvent(
+        startDate: event['startDate'].toDate(),
+        isTrackingEvent: event['isTrackingEvent'],
+        city: event['city'],
+        country: event['country'],
       );
-
-      history.add(item);
-    }
+    }).toList();
 
     return Account(
       email: json['email'],

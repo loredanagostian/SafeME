@@ -3,31 +3,42 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 
-class CustomUserInformationModal extends StatelessWidget {
-  final Account user;
-  final Account currentUser;
+class CustomUserInformationModal extends ConsumerStatefulWidget {
+  final Account friend;
   final bool isEmergencyScreen;
   final bool isRequests;
   const CustomUserInformationModal(
       {super.key,
-      required this.user,
-      required this.currentUser,
+      required this.friend,
       this.isEmergencyScreen = false,
       this.isRequests = false});
 
+  @override
+  ConsumerState<CustomUserInformationModal> createState() =>
+      _CustomUserInformationModalState();
+}
+
+class _CustomUserInformationModalState
+    extends ConsumerState<CustomUserInformationModal> {
+  late UserStaticData _userStaticData;
+
   Future<Placemark?> _getAddressFromLatLng() async {
     try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(user.lastLatitude, user.lastLongitude);
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+          widget.friend.lastLatitude, widget.friend.lastLongitude);
       Placemark place = placemarks[0];
 
       return place;
@@ -41,9 +52,9 @@ class CustomUserInformationModal extends StatelessWidget {
   void _setEmergencyContact(BuildContext context) {
     FirebaseFirestore.instance
         .collection('users')
-        .doc(currentUser.userId)
+        .doc(FirebaseAuth.instance.currentUser!.uid)
         .update({
-      "emergencyContacts": FieldValue.arrayUnion([user.userId]),
+      "emergencyContacts": FieldValue.arrayUnion([widget.friend.userId]),
     }).then((value) => Navigator.pop(context));
   }
 
@@ -53,41 +64,20 @@ class CustomUserInformationModal extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return CustomAlertDialog(
-            title: isEmergencyScreen
+            title: widget.isEmergencyScreen
                 ? AppStrings.deleteEmergencyContact
                 : AppStrings.deleteUser,
             message:
-                "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${isEmergencyScreen ? AppStrings.deleteUserMessage2_emergencyContactsList : AppStrings.deleteUserMessage2_friendList}",
+                "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${widget.isEmergencyScreen ? AppStrings.deleteUserMessage2_emergencyContactsList : AppStrings.deleteUserMessage2_friendList}",
             onConfirm: () async {
-              if (isEmergencyScreen) {
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .update({
-                  "emergencyContacts": FieldValue.arrayRemove([account.userId])
-                });
+              if (widget.isEmergencyScreen) {
+                await FirebaseManager.removeEmergencyContact(account.userId);
 
                 Navigator.of(context)
                   ..pop()
                   ..pop();
               } else {
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .update({
-                  "friends": FieldValue.arrayRemove([account.userId]),
-                  "emergencyContacts": FieldValue.arrayRemove([account.userId]),
-                });
-
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(account.userId)
-                    .update({
-                  "friends": FieldValue.arrayRemove(
-                      [FirebaseAuth.instance.currentUser!.uid]),
-                  "emergencyContacts": FieldValue.arrayRemove(
-                      [FirebaseAuth.instance.currentUser!.uid]),
-                });
+                await FirebaseManager.removeFriend(account.userId);
 
                 Navigator.of(context)
                   ..pop()
@@ -102,7 +92,15 @@ class CustomUserInformationModal extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _userStaticData = ref.read(userStaticDataProvider);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _userStaticData = ref.watch(userStaticDataProvider);
+
     return Container(
         padding: EdgeInsets.only(
           top: AppSizes.mediumDistance,
@@ -122,13 +120,14 @@ class CustomUserInformationModal extends StatelessWidget {
                       padding:
                           const EdgeInsets.only(right: AppSizes.smallDistance),
                       child: CircleAvatar(
-                          backgroundImage: FileImage(File(user.imageURL)))),
+                          backgroundImage:
+                              FileImage(File(widget.friend.imageURL)))),
                 ),
               ),
               const SizedBox(height: AppSizes.smallDistance),
               Center(
                   child: Text(
-                "${user.firstName} ${user.lastName}",
+                "${widget.friend.firstName} ${widget.friend.lastName}",
                 style: AppStyles.titleStyle
                     .copyWith(color: AppColors.mainDarkGray),
               )),
@@ -150,7 +149,7 @@ class CustomUserInformationModal extends StatelessWidget {
                         .copyWith(color: AppColors.darkGray),
                   ),
                   Text(
-                    user.email,
+                    widget.friend.email,
                     style: AppStyles.textComponentStyle.copyWith(
                       color: AppColors.darkGray,
                       fontWeight: FontWeight.w400,
@@ -169,7 +168,7 @@ class CustomUserInformationModal extends StatelessWidget {
                         .copyWith(color: AppColors.darkGray),
                   ),
                   Text(
-                    user.phoneNumber,
+                    widget.friend.phoneNumber,
                     style: AppStyles.textComponentStyle.copyWith(
                       color: AppColors.darkGray,
                       fontWeight: FontWeight.w400,
@@ -193,8 +192,8 @@ class CustomUserInformationModal extends StatelessWidget {
                         if (snapshot.hasData &&
                             snapshot.connectionState == ConnectionState.done) {
                           return Text(
-                            (user.lastLatitude == 0 &&
-                                        user.lastLongitude == 0) ||
+                            (widget.friend.lastLatitude == 0 &&
+                                        widget.friend.lastLongitude == 0) ||
                                     snapshot.data == null
                                 ? AppStrings.notAvailable
                                 : "${snapshot.data?.street ?? AppStrings.notAvailable}\n${snapshot.data?.locality ?? ""}${snapshot.data?.country != null ? "," : ""} ${snapshot.data?.country ?? ""}",
@@ -216,31 +215,32 @@ class CustomUserInformationModal extends StatelessWidget {
                 ],
               ),
               Visibility(
-                  visible: !isRequests,
+                  visible: !widget.isRequests,
                   child: const SizedBox(height: AppSizes.buttonHeight)),
               Visibility(
-                visible: !isEmergencyScreen && !isRequests,
+                visible: !widget.isEmergencyScreen && !widget.isRequests,
                 child: CustomButton(
-                    buttonColor:
-                        currentUser.emergencyContacts.contains(user.userId)
-                            ? AppColors.mediumGray
-                            : AppColors.mainBlue,
+                    buttonColor: _userStaticData.emergencyContacts
+                            .contains(widget.friend.userId)
+                        ? AppColors.mediumGray
+                        : AppColors.mainBlue,
                     buttonText: AppStrings.setAsEmergencyContact,
                     onTap: () {
-                      currentUser.emergencyContacts.contains(user.userId)
+                      _userStaticData.emergencyContacts
+                              .contains(widget.friend.userId)
                           ? null
                           : _setEmergencyContact(context);
                     }),
               ),
               const SizedBox(height: AppSizes.smallDistance),
               Visibility(
-                visible: !isRequests,
+                visible: !widget.isRequests,
                 child: CustomButton(
                     buttonColor: AppColors.mainRed,
-                    buttonText: isEmergencyScreen
+                    buttonText: widget.isEmergencyScreen
                         ? AppStrings.removeEmergencyContact
                         : AppStrings.removeFriend,
-                    onTap: () => _showDeleteDialog(user, context)),
+                    onTap: () => _showDeleteDialog(widget.friend, context)),
               ),
             ]));
   }

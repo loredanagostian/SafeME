@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,8 +8,6 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
-import 'package:safe_me/managers/notification_manager.dart';
-import 'package:safe_me/screens/main_screen.dart';
 import 'package:safe_me/screens/verify_phone_number_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
@@ -136,62 +133,62 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         if (firstNameController.text.isNotEmpty &&
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {
-                          final userDatas = <String, dynamic>{
-                            "userId":
-                                FirebaseAuth.instance.currentUser?.uid ?? "",
-                            "email":
-                                FirebaseAuth.instance.currentUser?.email ?? "",
-                            "firstName": firstNameController.text,
-                            "lastName": lastNameController.text,
-                            "phoneNumber": phoneNumberController.text,
-                            "imageURL": imageFile?.path ?? defaultURL,
-                            "emergencySMS": AppStrings.defaultEmergencySMS,
-                            "trackingSMS": AppStrings.defaultTrackingSMS,
-                            "trackMeNow": false,
-                            "userLastLatitude": 0.0,
-                            "userLastLongitude": 0.0,
-                            "deviceToken": NotificationManager.token,
-                            "friends": [],
-                            "friendRequests": [],
-                            "notifications": [],
-                            "emergencyContacts": [],
-                            "history": [],
-                          };
+                          // final userDatas = <String, dynamic>{
+                          //   "userId":
+                          //       FirebaseAuth.instance.currentUser?.uid ?? "",
+                          //   "email":
+                          //       FirebaseAuth.instance.currentUser?.email ?? "",
+                          //   "firstName": firstNameController.text,
+                          //   "lastName": lastNameController.text,
+                          //   "phoneNumber": phoneNumberController.text,
+                          //   "imageURL": imageFile?.path ?? defaultURL,
+                          //   "emergencySMS": AppStrings.defaultEmergencySMS,
+                          //   "trackingSMS": AppStrings.defaultTrackingSMS,
+                          //   "trackMeNow": false,
+                          //   "userLastLatitude": 0.0,
+                          //   "userLastLongitude": 0.0,
+                          //   "deviceToken": NotificationManager.token,
+                          //   "friends": [],
+                          //   "friendRequests": [],
+                          //   "notifications": [],
+                          //   "emergencyContacts": [],
+                          //   "history": [],
+                          // };
 
-                          FirebaseFirestore.instance
-                              .collection("users")
-                              .doc(FirebaseAuth.instance.currentUser?.uid ?? "")
-                              .set(userDatas)
-                              .then((value) => Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const MainScreen()),
-                                  (route) => false));
-                          // AuthenticationManager.sendOtp(
-                          //     phoneNumber: phoneNumberController.text,
-                          //     errorStep: () {
-                          //       ScaffoldMessenger.of(context)
-                          //           .showSnackBar(const SnackBar(
-                          //         content: CustomSnackbarContent(
-                          //             snackBarMessage: AppStrings.otpError),
-                          //         backgroundColor: AppColors.mainRed,
-                          //       ));
-                          //     },
-                          //     nextStep: () {
-                          //       Navigator.pushAndRemoveUntil(
-                          //           context,
-                          //           MaterialPageRoute(
-                          //               builder: (context) => VerifyPhoneNumber(
-                          //                     firstName:
-                          //                         firstNameController.text,
-                          //                     lastName: lastNameController.text,
-                          //                     phoneNumber:
-                          //                         phoneNumberController.text,
-                          //                     imagePath:
-                          //                         imageFile?.path ?? defaultURL,
-                          //                   )),
-                          //           (route) => false);
-                          //     });
+                          // FirebaseFirestore.instance
+                          //     .collection("users")
+                          //     .doc(FirebaseAuth.instance.currentUser?.uid ?? "")
+                          //     .set(userDatas)
+                          //     .then((value) => Navigator.pushAndRemoveUntil(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //             builder: (context) => const MainScreen()),
+                          //         (route) => false));
+                          AuthenticationManager.sendOtp(
+                              phoneNumber: phoneNumberController.text,
+                              errorStep: () {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: CustomSnackbarContent(
+                                      snackBarMessage: AppStrings.otpError),
+                                  backgroundColor: AppColors.mainRed,
+                                ));
+                              },
+                              nextStep: () {
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => VerifyPhoneNumber(
+                                              firstName:
+                                                  firstNameController.text,
+                                              lastName: lastNameController.text,
+                                              phoneNumber:
+                                                  phoneNumberController.text,
+                                              imagePath:
+                                                  imageFile?.path ?? defaultURL,
+                                            )),
+                                    (route) => false);
+                              });
                         } else {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(

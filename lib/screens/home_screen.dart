@@ -14,9 +14,12 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
 import 'package:safe_me/managers/location_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/notification_model.dart';
+import 'package:safe_me/models/user_dynamic_data.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/chat_screen.dart';
 import 'package:safe_me/screens/default_emergency_contacts_screen.dart';
@@ -192,6 +195,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     var user = snapshot.data!.docs.firstWhere(
                         (value) => value["userId"] == currentUser!.uid);
                     Account userData = Account.fromJson(user.data());
+                    Future.microtask(() {
+                      // Schedule the update to occur after the build phase
+                      ref.read(userStaticDataProvider.notifier).updateUserInfo(
+                          UserStaticData(
+                              email: userData.email,
+                              firstName: userData.firstName,
+                              lastName: userData.lastName,
+                              phoneNumber: userData.phoneNumber,
+                              imageURL: userData.imageURL,
+                              emergencySMS: userData.emergencySMS,
+                              trackingSMS: userData.trackingSMS,
+                              friends: userData.friends,
+                              friendsRequest: userData.friendsRequest,
+                              userId: userData.userId,
+                              emergencyContacts: userData.emergencyContacts,
+                              deviceToken: userData.deviceToken,
+                              history: userData.history));
+
+                      ref.read(userDynamicDataProvider.notifier).updateUserInfo(
+                          UserDynamicData(
+                              trackMeNow: userData.trackMeNow,
+                              lastLatitude: userData.lastLatitude,
+                              lastLongitude: userData.lastLongitude,
+                              notifications: userData.notifications));
+                    });
+                    ;
 
                     List<Account> emergencyAccounts = [];
                     if (userData.emergencyContacts.isNotEmpty) {
@@ -491,9 +520,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                       context,
                                                       MaterialPageRoute(
                                                           builder: (context) =>
-                                                              DefaultEmergencyContactsScreen(
-                                                                  userAccount:
-                                                                      userData))),
+                                                              DefaultEmergencyContactsScreen())),
                                                   icon: const Icon(
                                                     Icons.edit_outlined,
                                                     color:
