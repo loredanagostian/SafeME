@@ -122,7 +122,6 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                         style: AppStyles.buttonTextStyle
                             .copyWith(color: AppColors.darkGray),
                       ),
-                      // TODO resend
                       GestureDetector(
                         onTap: () {
                           AuthenticationManager.sendOtp(
