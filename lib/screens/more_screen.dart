@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
@@ -29,6 +30,7 @@ class MoreScreen extends ConsumerStatefulWidget {
 class _MoreScreenState extends ConsumerState<MoreScreen> {
   User? currentUser;
   late UserStaticData account;
+  bool result = false;
 
   @override
   void initState() {
@@ -49,7 +51,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             style: AppStyles.titleStyle,
           ),
           leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, result),
             icon: const Icon(
               Icons.arrow_back_ios,
               color: AppColors.mainDarkGray,
@@ -69,8 +71,15 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   child: Padding(
                       padding:
                           const EdgeInsets.only(right: AppSizes.smallDistance),
-                      child: CircleAvatar(
-                          backgroundImage: FileImage(File(account.imageURL)))),
+                      child: FirebaseAuth.instance.currentUser!.photoURL != null
+                          ? CircleAvatar(
+                              backgroundImage: FileImage(File(FirebaseAuth
+                                  .instance.currentUser!.photoURL!)))
+                          : CircleAvatar(
+                              backgroundImage:
+                                  AssetImage(AppPaths.defaultProfilePicture),
+                              backgroundColor: AppColors.white,
+                            )),
                 ),
                 Align(
                   alignment: Alignment.topCenter,
@@ -106,7 +115,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   alignment: Alignment.topRight,
                   child: IconButton(
                       onPressed: () async {
-                        bool result = await Navigator.push(
+                        result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => EditProfileScreen()));

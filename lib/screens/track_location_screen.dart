@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
@@ -98,9 +99,15 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                 child: Padding(
                     padding:
                         const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage:
-                            FileImage(File(widget.friendAccount.imageURL)))),
+                    child: widget.friendAccount.imageURL != null
+                        ? CircleAvatar(
+                            backgroundImage:
+                                FileImage(File(widget.friendAccount.imageURL!)))
+                        : CircleAvatar(
+                            backgroundImage:
+                                AssetImage(AppPaths.defaultProfilePicture),
+                            backgroundColor: AppColors.white,
+                          )),
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -301,10 +308,21 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                                       child: SizedBox(
                                           height: 50,
                                           width: 50,
-                                          child: CircleAvatar(
-                                              backgroundImage: FileImage(File(
-                                                  widget.friendAccount
-                                                      .imageURL))))),
+                                          child:
+                                              widget.friendAccount.imageURL !=
+                                                      null
+                                                  ? CircleAvatar(
+                                                      backgroundImage:
+                                                          FileImage(File(widget
+                                                              .friendAccount
+                                                              .imageURL!)))
+                                                  : CircleAvatar(
+                                                      backgroundImage:
+                                                          AssetImage(AppPaths
+                                                              .defaultProfilePicture),
+                                                      backgroundColor:
+                                                          AppColors.white,
+                                                    ))),
                                 ),
                                 Visibility(
                                   visible: !isMessageSentByCurrentUser,

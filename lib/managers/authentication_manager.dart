@@ -147,4 +147,8 @@ class AuthenticationManager {
 
     return _result;
   }
+
+  static Future<void> updateProfilePicture(String? photoURL) async {
+    await FirebaseAuth.instance.currentUser!.updatePhotoURL(photoURL);
+  }
 }

@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
@@ -53,17 +55,26 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                   size: 30,
                 )),
             GestureDetector(
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const MoreScreen())),
+              onTap: () async {
+                bool result = await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => MoreScreen()));
+                if (result) setState(() {});
+              },
               child: SizedBox(
                 height: 50,
                 width: 50,
                 child: Padding(
                     padding:
                         const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage:
-                            FileImage(File(_userStaticData.imageURL)))),
+                    child: FirebaseAuth.instance.currentUser!.photoURL != null
+                        ? CircleAvatar(
+                            backgroundImage: FileImage(File(
+                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                        : CircleAvatar(
+                            backgroundImage:
+                                AssetImage(AppPaths.defaultProfilePicture),
+                            backgroundColor: AppColors.white,
+                          )),
               ),
             )
           ],

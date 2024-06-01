@@ -5,11 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
-import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -70,9 +70,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: SizedBox(
                   height: 50,
                   width: 50,
-                  child: CircleAvatar(
-                      backgroundImage:
-                          FileImage(File(widget.friendAccount.imageURL))))),
+                  child: widget.friendAccount.imageURL != null
+                      ? CircleAvatar(
+                          backgroundImage:
+                              FileImage(File(widget.friendAccount.imageURL!)))
+                      : CircleAvatar(
+                          backgroundImage:
+                              AssetImage(AppPaths.defaultProfilePicture),
+                          backgroundColor: AppColors.white,
+                        ))),
           Visibility(
               visible: !isMessageSentByCurrentUser,
               child: SizedBox(width: AppSizes.smallDistance)),
@@ -116,9 +122,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: SizedBox(
                 height: 50,
                 width: 50,
-                child: CircleAvatar(
-                    backgroundImage: FileImage(
-                        File(ref.watch(userStaticDataProvider).imageURL)))),
+                child: _firebaseAuth.currentUser!.photoURL != null
+                    ? CircleAvatar(
+                        backgroundImage: FileImage(
+                            File(_firebaseAuth.currentUser!.photoURL!)))
+                    : CircleAvatar(
+                        backgroundImage:
+                            AssetImage(AppPaths.defaultProfilePicture),
+                        backgroundColor: AppColors.white,
+                      )),
           ),
         ],
       ),
@@ -176,9 +188,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: Padding(
                     padding:
                         const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage:
-                            FileImage(File(widget.friendAccount.imageURL)))),
+                    child: widget.friendAccount.imageURL != null
+                        ? CircleAvatar(
+                            backgroundImage:
+                                FileImage(File(widget.friendAccount.imageURL!)))
+                        : CircleAvatar(
+                            backgroundImage:
+                                AssetImage(AppPaths.defaultProfilePicture),
+                            backgroundColor: AppColors.white,
+                          )),
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,

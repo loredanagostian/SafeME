@@ -8,7 +8,6 @@ class UserStaticData {
   final String deviceToken;
   String firstName;
   String lastName;
-  String imageURL;
   String emergencySMS;
   String trackingSMS;
   List<String> friends;
@@ -24,7 +23,6 @@ class UserStaticData {
       required this.deviceToken,
       required this.firstName,
       required this.lastName,
-      required this.imageURL,
       required this.emergencySMS,
       required this.trackingSMS,
       required this.friends,

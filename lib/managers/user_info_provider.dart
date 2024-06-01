@@ -8,7 +8,6 @@ class UserStaticProvider extends StateNotifier<UserStaticData> {
             firstName: "",
             lastName: "",
             phoneNumber: "",
-            imageURL: "",
             emergencySMS: "",
             trackingSMS: "",
             friends: [],

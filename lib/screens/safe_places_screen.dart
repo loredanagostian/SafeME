@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -12,6 +13,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/keys.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
@@ -240,17 +242,26 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
           ),
           actions: [
             GestureDetector(
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const MoreScreen())),
+              onTap: () async {
+                bool result = await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => MoreScreen()));
+                if (result) setState(() {});
+              },
               child: SizedBox(
                 height: 50,
                 width: 50,
                 child: Padding(
                     padding:
                         const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage: FileImage(
-                            File(ref.watch(userStaticDataProvider).imageURL)))),
+                    child: FirebaseAuth.instance.currentUser!.photoURL != null
+                        ? CircleAvatar(
+                            backgroundImage: FileImage(File(
+                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                        : CircleAvatar(
+                            backgroundImage:
+                                AssetImage(AppPaths.defaultProfilePicture),
+                            backgroundColor: AppColors.white,
+                          )),
               ),
             )
           ],

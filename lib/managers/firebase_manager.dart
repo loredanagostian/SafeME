@@ -58,14 +58,13 @@ class FirebaseManager {
   }
 
   static Future<void> changeUserInformation(
-      String firstName, String lastName, String profileURL) async {
+      String firstName, String lastName) async {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .update({
       "firstName": firstName,
       "lastName": lastName,
-      "imageURL": profileURL
     });
   }
 

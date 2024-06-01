@@ -7,7 +7,7 @@ class Account {
   final String firstName;
   final String lastName;
   final String phoneNumber;
-  final String imageURL;
+  final String? imageURL;
   final String emergencySMS;
   final String trackingSMS;
   final List<String> friends;

@@ -19,13 +19,11 @@ class VerifyPhoneNumber extends ConsumerStatefulWidget {
   final String firstName;
   final String lastName;
   final String phoneNumber;
-  final String imagePath;
   const VerifyPhoneNumber({
     super.key,
     required this.firstName,
     required this.lastName,
     required this.phoneNumber,
-    required this.imagePath,
   });
 
   @override
@@ -91,7 +89,6 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                                   firstName: widget.firstName,
                                   lastName: widget.lastName,
                                   phoneNumber: widget.phoneNumber,
-                                  imageURL: widget.imagePath,
                                   emergencySMS: "",
                                   trackingSMS: "",
                                   friends: [],
@@ -108,7 +105,6 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                             "firstName": widget.firstName,
                             "lastName": widget.lastName,
                             "phoneNumber": widget.phoneNumber,
-                            "imageURL": widget.imagePath,
                             "emergencySMS": AppStrings.defaultEmergencySMS,
                             "trackingSMS": AppStrings.defaultTrackingSMS,
                             "trackMeNow": false,
@@ -121,6 +117,8 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                             "notifications": [],
                             "emergencyContacts": [],
                             "history": [],
+                            "imageURL":
+                                FirebaseAuth.instance.currentUser!.photoURL
                           };
 
                           FirebaseManager.uploadNewUserData(userDatas).then(

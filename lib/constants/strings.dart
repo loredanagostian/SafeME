@@ -42,7 +42,7 @@ class AppStrings {
   static const String changePicture = "Change picture";
   static const String changeFirstName = "Change first name";
   static const String changeLastName = "Change last name";
-  static const String changePhoneNumber = "Change phone number";
+  static const String changePassword = "Change password";
   static const String selectPicture = "Select picture";
   static const String saveChanges = "Save changes";
   static const String emergencySMS = "Emergency SMS";
