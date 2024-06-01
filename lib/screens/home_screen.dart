@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -13,11 +12,11 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/history_event.dart';
-import 'package:safe_me/models/notification_model.dart';
 import 'package:safe_me/models/user_dynamic_data.dart';
 import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
@@ -32,8 +31,7 @@ import 'package:safe_me/widgets/person_chat_room.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
-  final Account userAccount;
-  const HomeScreen({super.key, required this.userAccount});
+  const HomeScreen({super.key});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -42,6 +40,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   Account? emergencyUser;
   bool wasLongPress = false;
+  late UserStaticData _userStaticData;
 
   Future<LocationPermission> getLocationPermission() async {
     var isPermission = await Geolocator.checkPermission();
@@ -51,28 +50,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return isPermission;
-  }
-
-  Future<List<Account>> fetchFriends(List<String> friendsIds) async {
-    var friendsFutures = friendsIds.map((friendId) {
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(friendId)
-          .get()
-          .then((snapshot) => snapshot.data());
-    }).toList();
-
-    var friendsData = await Future.wait(friendsFutures);
-    List<Account> friendsList = [];
-
-    for (var data in friendsData) {
-      if (data != null) {
-        final friend = Account.fromJson(data);
-        friendsList.add(friend);
-      }
-    }
-
-    return friendsList;
   }
 
   void _showDeleteDialog(Account account) {
@@ -115,12 +92,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _userStaticData = ref.read(userStaticDataProvider);
+  }
+
+  @override
   Widget build(BuildContext context) {
     Stream<QuerySnapshot<Map<String, dynamic>>> stream =
         FirebaseFirestore.instance.collection('users').snapshots();
 
     Stream<QuerySnapshot<Map<String, dynamic>>> chatStream =
         FirebaseFirestore.instance.collection('chat_rooms').snapshots();
+
+    _userStaticData = ref.watch(userStaticDataProvider);
 
     return Scaffold(
         appBar: AppBar(
@@ -136,35 +121,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => NotificationsScreen())),
-                icon: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: stream,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (snapshot.hasData) {
-                        User? currentUser = FirebaseAuth.instance.currentUser;
-                        var user = snapshot.data!.docs.firstWhere(
-                            (value) => value["userId"] == currentUser!.uid);
-                        Account userData = Account.fromJson(user.data());
-                        List<NotificationModel> unreadNotifications = [];
-                        unreadNotifications = userData.notifications
-                            .where((element) => element.opened == false)
-                            .toList();
-
-                        return Icon(
-                          unreadNotifications.isEmpty
-                              ? Icons.notifications_outlined
-                              : Icons.notifications,
-                          color: unreadNotifications.isEmpty
-                              ? AppColors.mainDarkGray
-                              : AppColors.mainBlue,
-                          size: 30,
-                        );
-                      }
-                      return Container();
-                    })),
+                icon: Icon(
+                  _userStaticData.notifications
+                          .where((element) => element.opened == false)
+                          .toList()
+                          .isEmpty
+                      ? Icons.notifications_outlined
+                      : Icons.notifications,
+                  color: _userStaticData.notifications
+                          .where((element) => element.opened == false)
+                          .toList()
+                          .isEmpty
+                      ? AppColors.mainDarkGray
+                      : AppColors.mainBlue,
+                  size: 30,
+                )),
             GestureDetector(
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (context) => MoreScreen())),
@@ -176,7 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const EdgeInsets.only(right: AppSizes.smallDistance),
                     child: CircleAvatar(
                         backgroundImage:
-                            FileImage(File(widget.userAccount.imageURL)))),
+                            FileImage(File(_userStaticData.imageURL)))),
               ),
             )
           ],
@@ -211,28 +182,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               userId: userData.userId,
                               emergencyContacts: userData.emergencyContacts,
                               deviceToken: userData.deviceToken,
-                              history: userData.history));
+                              history: userData.history,
+                              notifications: userData.notifications));
 
                       ref.read(userDynamicDataProvider.notifier).updateUserInfo(
                           UserDynamicData(
                               trackMeNow: userData.trackMeNow,
                               lastLatitude: userData.lastLatitude,
-                              lastLongitude: userData.lastLongitude,
-                              notifications: userData.notifications));
+                              lastLongitude: userData.lastLongitude));
                     });
                     ;
 
                     List<Account> emergencyAccounts = [];
                     if (userData.emergencyContacts.isNotEmpty) {
                       List<Future<Account>> futures = userData.emergencyContacts
-                          .map((e) => FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(e)
-                                  .get()
-                                  .then((snapshot) {
-                                Map<String, dynamic>? data = snapshot.data();
-                                return Account.fromJson(data ?? {});
-                              }))
+                          .map((e) =>
+                              FirebaseManager.fetchUserInfoAndReturnAccount(e))
                           .toList();
 
                       Future.wait(futures).then((List<Account> accounts) {
@@ -244,7 +209,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         stream: chatStream,
                         builder: (context, asyncSnapshot) {
                           if (asyncSnapshot.hasError) {
-                            print("Error${asyncSnapshot.error}");
+                            print("Error ${asyncSnapshot.error}");
                           }
                           if (asyncSnapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -278,18 +243,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             scrollDirection: Axis.horizontal,
                                             itemBuilder: (BuildContext context,
                                                 int index) {
-                                              Future<Account> item =
-                                                  FirebaseFirestore.instance
-                                                      .collection('users')
-                                                      .doc(friendsId[index])
-                                                      .get()
-                                                      .then((value) {
-                                                Map<String, dynamic>? data =
-                                                    value.data();
-                                                var test = Account.fromJson(
-                                                    data ?? {});
-                                                return test;
-                                              });
+                                              Future<Account> item = FirebaseManager
+                                                  .fetchUserInfoAndReturnAccount(
+                                                      friendsId[index]);
                                               return GestureDetector(
                                                   onLongPress: () async =>
                                                       _showDeleteDialog(
@@ -316,11 +272,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                                     } else if (snapshot
                                                                         .hasData) {
                                                                       return ChatScreen(
-                                                                        friendAccount:
-                                                                            snapshot.data!,
-                                                                        currentUserImageUrl:
-                                                                            userData.imageURL,
-                                                                      );
+                                                                          friendAccount:
+                                                                              snapshot.data!);
                                                                     }
                                                                     return Container();
                                                                   }))),
@@ -383,8 +336,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                 LocationManager
                                                     .enableLocationSharing(ref);
 
-                                                String message = widget
-                                                    .userAccount.emergencySMS;
+                                                String message = _userStaticData
+                                                    .emergencySMS;
                                                 String encodedMessage =
                                                     Uri.encodeFull(message);
                                                 List<String> phoneNumbers =
@@ -423,16 +376,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                                 ""
                                                             : "");
 
-                                                FirebaseFirestore.instance
-                                                    .collection('users')
-                                                    .doc(FirebaseAuth.instance
-                                                        .currentUser!.uid)
-                                                    .update({
-                                                  "history":
-                                                      FieldValue.arrayUnion([
-                                                    historyEvent.toMap()
-                                                  ]),
-                                                }).then((value) {
+                                                _userStaticData.history
+                                                    .add(historyEvent);
+                                                ref
+                                                    .read(userStaticDataProvider
+                                                        .notifier)
+                                                    .updateUserInfo(
+                                                        _userStaticData);
+
+                                                FirebaseManager
+                                                        .addNewHistoryElement(
+                                                            historyEvent)
+                                                    .then((value) {
                                                   // Check if there are routes available to pop
                                                   if (Navigator.canPop(
                                                       context)) {
@@ -509,8 +464,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         visible: userData
                                             .emergencyContacts.isNotEmpty,
                                         child: FutureBuilder(
-                                          future:
-                                              fetchFriends(userData.friends),
+                                          future: FirebaseManager
+                                              .fetchFriendsAndReturnAccounts(
+                                                  false,
+                                                  false,
+                                                  userData.friends),
                                           builder: (context, snapshot) {
                                             if (snapshot.hasError) {
                                               print("Error${snapshot.error}");
@@ -545,20 +503,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             scrollDirection: Axis.horizontal,
                                             itemBuilder: (BuildContext context,
                                                 int index) {
-                                              Future<Account> item =
-                                                  FirebaseFirestore.instance
-                                                      .collection('users')
-                                                      .doc(userData
-                                                              .emergencyContacts[
-                                                          index])
-                                                      .get()
-                                                      .then((value) {
-                                                Map<String, dynamic>? data =
-                                                    value.data();
-                                                var test = Account.fromJson(
-                                                    data ?? {});
-                                                return test;
-                                              });
+                                              Future<Account> item = FirebaseManager
+                                                  .fetchUserInfoAndReturnAccount(
+                                                      userData.emergencyContacts[
+                                                          index]);
                                               return EmergencyMember(
                                                   emergencyUser: item);
                                             },

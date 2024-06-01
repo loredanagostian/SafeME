@@ -5,6 +5,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
@@ -71,17 +72,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
     }
 
     for (int i = 0; i < usersIds.length; i++) {
-      Map<String, dynamic>? data;
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(usersIds[i])
-          .get()
-          .then((snapshot) {
-        data = snapshot.data();
-      });
-
-      usersList.add(Account.fromJson(data!));
+      Account userAccount =
+          await FirebaseManager.fetchUserInfoAndReturnAccount(usersIds[i]);
+      usersList.add(userAccount);
     }
 
     return usersList;
@@ -185,13 +178,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
                             button1Action: () async {
                               if (item.email !=
                                   FirebaseAuth.instance.currentUser!.email) {
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(item.userId)
-                                    .update({
-                                  "friendRequests": FieldValue.arrayUnion(
-                                      [FirebaseAuth.instance.currentUser!.uid]),
-                                }).then((value) => ScaffoldMessenger.of(context)
+                                FirebaseManager.sendFriendRequest(item.userId)
+                                    .then((value) =>
+                                        ScaffoldMessenger.of(context)
                                             .showSnackBar(const SnackBar(
                                           content: CustomSnackbarContent(
                                               snackBarMessage: AppStrings

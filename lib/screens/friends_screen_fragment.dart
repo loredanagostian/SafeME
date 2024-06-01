@@ -100,7 +100,8 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => TrackLocationScreen(account: account)));
+              builder: (context) =>
+                  TrackLocationScreen(friendAccount: account)));
     }
 
     if (widget.isAllFriends) {
@@ -260,7 +261,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
                                 await _getButton1Action(item, ref);
                               },
                               button2Action: () async {
-                                await FirebaseManager.declineFriendRequests(
+                                await FirebaseManager.declineFriendRequest(
                                     item.userId);
                               },
                               onDismiss: (DismissDirection direction) =>

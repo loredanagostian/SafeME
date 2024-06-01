@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/history_event.dart';
 
 class FirebaseManager {
   static Future<Account> fetchUserInfoAndReturnAccount(String userID) async {
@@ -22,6 +23,13 @@ class FirebaseManager {
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .get();
+  }
+
+  static Future<void> uploadNewUserData(Map<String, dynamic> userDatas) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set(userDatas);
   }
 
   static Future<void> addEmergencyContact(String friendID) async {
@@ -119,12 +127,19 @@ class FirebaseManager {
     });
   }
 
-  static Future<void> declineFriendRequests(String friendID) async {
+  static Future<void> declineFriendRequest(String friendID) async {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .update({
       "friendRequests": FieldValue.arrayRemove([friendID])
+    });
+  }
+
+  static Future<void> sendFriendRequest(String friendID) async {
+    await FirebaseFirestore.instance.collection('users').doc(friendID).update({
+      "friendRequests":
+          FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
     });
   }
 
@@ -191,5 +206,22 @@ class FirebaseManager {
     }
 
     return friendsList;
+  }
+
+  static Future<void> addNewHistoryElement(HistoryEvent historyEvent) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "history": FieldValue.arrayUnion([historyEvent.toMap()]),
+    });
+  }
+
+  static Future<void> updateNotificationsList(
+      List<Map<String, dynamic>> notifications) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .update({'notifications': notifications});
   }
 }

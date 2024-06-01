@@ -3,26 +3,24 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   final Account friendAccount;
-  final String currentUserImageUrl;
-  const ChatScreen(
-      {super.key,
-      required this.friendAccount,
-      required this.currentUserImageUrl});
+  const ChatScreen({super.key, required this.friendAccount});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
@@ -34,67 +32,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.white,
-          elevation: 0,
-          titleSpacing: 0.0,
-          title: Row(
-            children: [
-              SizedBox(
-                height: 50,
-                width: 50,
-                child: Padding(
-                    padding:
-                        const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage:
-                            FileImage(File(widget.friendAccount.imageURL)))),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${widget.friendAccount.firstName} ${widget.friendAccount.lastName}",
-                    style: AppStyles.notificationTitleStyle
-                        .copyWith(color: AppColors.mainDarkGray),
-                  ),
-                  Text(AppStrings.activeNow,
-                      style: AppStyles.notificationBodyStyle
-                          .copyWith(color: AppColors.mediumBlue)),
-                ],
-              )
-            ],
-          ),
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: AppColors.mainDarkGray,
-            ),
-          ),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(AppSizes.smallDistance),
-          child: Column(
-            children: [
-              Expanded(child: _buildMessageList()),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: _buildMessageInput(),
-              ),
-            ],
-          ),
-        ));
-  }
-
   Widget _buildMessageList() {
     return StreamBuilder(
-        stream: ChatManager.getMessages(
-            widget.friendAccount.userId, _firebaseAuth.currentUser!.uid),
+        stream: ChatManager.getMessages(widget.friendAccount.userId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Text('Error${snapshot.error}');
@@ -177,8 +117,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 height: 50,
                 width: 50,
                 child: CircleAvatar(
-                    backgroundImage:
-                        FileImage(File(widget.currentUserImageUrl)))),
+                    backgroundImage: FileImage(
+                        File(ref.watch(userStaticDataProvider).imageURL)))),
           ),
         ],
       ),
@@ -197,7 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
           AppSizes.mediumDistance,
           AppSizes.smallDistance,
         ),
-        hintText: "Type a message",
+        hintText: AppStrings.typeAMessageHint,
         hintStyle: AppStyles.bodyStyle.copyWith(color: AppColors.mediumGray),
         fillColor: AppColors.componentGray,
         filled: true,
@@ -219,5 +159,62 @@ class _ChatScreenState extends State<ChatScreen> {
       textCapitalization: TextCapitalization.sentences,
       keyboardType: TextInputType.text,
     ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          elevation: 0,
+          titleSpacing: 0.0,
+          title: Row(
+            children: [
+              SizedBox(
+                height: 50,
+                width: 50,
+                child: Padding(
+                    padding:
+                        const EdgeInsets.only(right: AppSizes.smallDistance),
+                    child: CircleAvatar(
+                        backgroundImage:
+                            FileImage(File(widget.friendAccount.imageURL)))),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${widget.friendAccount.firstName} ${widget.friendAccount.lastName}",
+                    style: AppStyles.notificationTitleStyle
+                        .copyWith(color: AppColors.mainDarkGray),
+                  ),
+                  Text(AppStrings.activeNow,
+                      style: AppStyles.notificationBodyStyle
+                          .copyWith(color: AppColors.mediumBlue)),
+                ],
+              )
+            ],
+          ),
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: AppColors.mainDarkGray,
+            ),
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(AppSizes.smallDistance),
+          child: Column(
+            children: [
+              Expanded(child: _buildMessageList()),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: _buildMessageInput(),
+              ),
+            ],
+          ),
+        ));
   }
 }

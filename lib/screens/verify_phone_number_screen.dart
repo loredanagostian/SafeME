@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_dynamic_data.dart';
@@ -85,6 +85,32 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                             FirebaseAuth.instance.currentUser?.email ?? "";
 
                         if (result.isEmpty) {
+                          ref
+                              .read(userStaticDataProvider.notifier)
+                              .updateUserInfo(UserStaticData(
+                                  email: userEmail,
+                                  firstName: widget.firstName,
+                                  lastName: widget.lastName,
+                                  phoneNumber: widget.phoneNumber,
+                                  imageURL: widget.imagePath,
+                                  emergencySMS: "",
+                                  trackingSMS: "",
+                                  friends: [],
+                                  friendsRequest: [],
+                                  userId: userId,
+                                  emergencyContacts: [],
+                                  deviceToken: NotificationManager.token,
+                                  history: [],
+                                  notifications: []));
+
+                          ref
+                              .read(userDynamicDataProvider.notifier)
+                              .updateUserInfo(UserDynamicData(
+                                trackMeNow: false,
+                                lastLatitude: 0,
+                                lastLongitude: 0,
+                              ));
+
                           final userDatas = <String, dynamic>{
                             "userId": userId,
                             "email": userEmail,
@@ -106,36 +132,8 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                             "history": [],
                           };
 
-                          ref
-                              .read(userStaticDataProvider.notifier)
-                              .updateUserInfo(UserStaticData(
-                                  email: userEmail,
-                                  firstName: widget.firstName,
-                                  lastName: widget.lastName,
-                                  phoneNumber: widget.phoneNumber,
-                                  imageURL: widget.imagePath,
-                                  emergencySMS: "",
-                                  trackingSMS: "",
-                                  friends: [],
-                                  friendsRequest: [],
-                                  userId: userId,
-                                  emergencyContacts: [],
-                                  deviceToken: NotificationManager.token,
-                                  history: []));
-
-                          ref
-                              .read(userDynamicDataProvider.notifier)
-                              .updateUserInfo(UserDynamicData(
-                                  trackMeNow: false,
-                                  lastLatitude: 0,
-                                  lastLongitude: 0,
-                                  notifications: []));
-
-                          FirebaseFirestore.instance
-                              .collection("users")
-                              .doc(userId)
-                              .set(userDatas)
-                              .then((value) => Navigator.pushAndRemoveUntil(
+                          FirebaseManager.uploadNewUserData(userDatas).then(
+                              (value) => Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => const MainScreen()),

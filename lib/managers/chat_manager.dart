@@ -36,8 +36,8 @@ class ChatManager extends ChangeNotifier {
         .add(newMessage.toMap());
   }
 
-  static Stream<QuerySnapshot> getMessages(String userId, String otherUserId) {
-    List<String> ids = [userId, otherUserId];
+  static Stream<QuerySnapshot> getMessages(String friendID) {
+    List<String> ids = [friendID, FirebaseAuth.instance.currentUser!.uid];
     ids.sort();
     String chatRoomId = ids.join("_");
 

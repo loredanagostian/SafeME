@@ -119,4 +119,5 @@ class AppStrings {
       "The account corresponding to the credential already exists, or is already linked to a Firebase User.";
   static const String unknownError = "Unknown error.";
   static const String invalidCode = "Invalid code";
+  static const String typeAMessageHint = "Type a message";
 }

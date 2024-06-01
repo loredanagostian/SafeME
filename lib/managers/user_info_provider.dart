@@ -17,7 +17,8 @@ class UserStaticProvider extends StateNotifier<UserStaticData> {
             userId: "",
             emergencyContacts: [],
             deviceToken: "",
-            history: []));
+            history: [],
+            notifications: []));
 
   void updateUserInfo(UserStaticData user) {
     state = user;
@@ -32,10 +33,7 @@ final userStaticDataProvider =
 class UserDynamicProvider extends StateNotifier<UserDynamicData> {
   UserDynamicProvider()
       : super(UserDynamicData(
-            trackMeNow: false,
-            lastLatitude: 0,
-            lastLongitude: 0,
-            notifications: []));
+            trackMeNow: false, lastLatitude: 0, lastLongitude: 0));
 
   void updateUserInfo(UserDynamicData user) {
     state = user;
