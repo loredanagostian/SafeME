@@ -148,7 +148,8 @@ class _DefaultEmergencyContactsScreenState
                     String friendID = _userData.emergencyContacts[index];
 
                     return FutureBuilder(
-                        future: FirebaseManager.fetchUserInfo(friendID),
+                        future: FirebaseManager.fetchUserInfoAndReturnAccount(
+                            friendID),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                                   ConnectionState.done &&

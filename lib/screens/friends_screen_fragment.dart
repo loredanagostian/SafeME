@@ -11,6 +11,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/models/account.dart';
@@ -193,39 +194,13 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
     }
 
     if (widget.isRequests) {
-      currentUser.emergencyContacts.isEmpty
-          ? FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .update({
-              "friendRequests": FieldValue.arrayRemove([account.userId]),
-              "friends": FieldValue.arrayUnion([account.userId]),
-              "emergencyContacts": FieldValue.arrayUnion([account.userId]),
-            })
-          : FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .update({
-              "friendRequests": FieldValue.arrayRemove([account.userId]),
-              "friends": FieldValue.arrayUnion([account.userId]),
-            });
+      FirebaseManager.acceptFriendRequest(account.userId);
 
-      if (account.emergencyContacts.isEmpty) {
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(account.userId)
-            .update({
-          "emergencyContacts": FieldValue.arrayUnion([currentUser.userId]),
-        });
-      }
+      if (currentUser.emergencyContacts.isEmpty)
+        FirebaseManager.addEmergencyContact(account.userId);
 
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(account.userId)
-          .update({
-        "friends":
-            FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
-      });
+      if (account.emergencyContacts.isEmpty)
+        FirebaseManager.addEmergencyContactForFriend(account.userId);
 
       NotificationManager.sendNotification(
         token: account.deviceToken,
@@ -245,24 +220,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
             message:
                 "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteUserMessage2_friendList}",
             onConfirm: () async {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .update({
-                "friends": FieldValue.arrayRemove([account.userId]),
-                "emergencyContacts": FieldValue.arrayRemove([account.userId]),
-              });
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(account.userId)
-                  .update({
-                "friends": FieldValue.arrayRemove(
-                    [FirebaseAuth.instance.currentUser!.uid]),
-                "emergencyContacts": FieldValue.arrayRemove(
-                    [FirebaseAuth.instance.currentUser!.uid]),
-              });
-
+              await FirebaseManager.removeFriend(account.userId);
               Navigator.pop(context);
             },
             onCancel: () {

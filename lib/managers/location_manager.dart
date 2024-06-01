@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:safe_me/constants/strings.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 
 final locationSubscription =
     StateProvider<StreamSubscription<loc.LocationData>?>((ref) => null);
@@ -49,10 +48,7 @@ class LocationManager {
               if (currentLocation.latitude != null &&
                   currentLocation.longitude != null) {
                 // Fetch the last stored location from Firestore
-                var userDoc = await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .get();
+                var userDoc = await FirebaseManager.fetchCurrentUser();
 
                 if (userDoc.exists) {
                   var userLastLatitude =
@@ -70,23 +66,13 @@ class LocationManager {
 
                   // If the distance is more than 5 meters, update the location in Firestore
                   if (distance > 5) {
-                    FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({
-                      "userLastLatitude": currentLocation.latitude,
-                      "userLastLongitude": currentLocation.longitude,
-                    });
+                    await FirebaseManager.updateUserLocation(
+                        currentLocation.latitude, currentLocation.longitude);
                   }
                 } else {
                   // If there is no last location stored, just update with the new location
-                  FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(FirebaseAuth.instance.currentUser!.uid)
-                      .set({
-                    "userLastLatitude": currentLocation.latitude,
-                    "userLastLongitude": currentLocation.longitude,
-                  });
+                  await FirebaseManager.setUserLocation(
+                      currentLocation.latitude, currentLocation.longitude);
                 }
               }
             }));
@@ -101,23 +87,12 @@ class LocationManager {
   }
 
   static Future<void> enableLocationSharing(WidgetRef ref) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({
-      "trackMeNow": true,
-    });
-
+    await FirebaseManager.changeTrackMeNow(true);
     _storeLocationInDB(ref);
   }
 
   static Future<void> disableLocationSharing(WidgetRef ref) async {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({
-      "trackMeNow": false,
-    });
+    await FirebaseManager.changeTrackMeNow(false);
 
     // Cancel the subscription to location updates
     ref.read(locationSubscription)?.cancel();

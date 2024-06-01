@@ -31,7 +31,7 @@ class _CustomFriendsBottomModalState
         final friendId = _userStaticData.friends[index];
 
         return FutureBuilder(
-            future: FirebaseManager.fetchUserInfo(friendId),
+            future: FirebaseManager.fetchUserInfoAndReturnAccount(friendId),
             builder: (context, snapshot) {
               if (snapshot.hasData &&
                   snapshot.connectionState == ConnectionState.done) {

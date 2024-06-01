@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safe_me/models/account.dart';
 
 class FirebaseManager {
-  static Future<Account> fetchUserInfo(String userID) async {
+  static Future<Account> fetchUserInfoAndReturnAccount(String userID) async {
     var friendFuture = await FirebaseFirestore.instance
         .collection('users')
         .doc(userID)
@@ -16,21 +16,12 @@ class FirebaseManager {
     return friendAccount;
   }
 
-  static Future<void> removeFriend(String friendID) async {
-    await FirebaseFirestore.instance
+  static Future<DocumentSnapshot<Map<String, dynamic>>>
+      fetchCurrentUser() async {
+    return await FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({
-      "friends": FieldValue.arrayRemove([friendID]),
-      "emergencyContacts": FieldValue.arrayRemove([friendID]),
-    });
-
-    await FirebaseFirestore.instance.collection('users').doc(friendID).update({
-      "friends":
-          FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid]),
-      "emergencyContacts":
-          FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid]),
-    });
+        .get();
   }
 
   static Future<void> addEmergencyContact(String friendID) async {
@@ -39,6 +30,13 @@ class FirebaseManager {
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .update({
       "emergencyContacts": FieldValue.arrayUnion([friendID]),
+    });
+  }
+
+  static Future<void> addEmergencyContactForFriend(String friendID) async {
+    FirebaseFirestore.instance.collection('users').doc(friendID).update({
+      "emergencyContacts":
+          FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
     });
   }
 
@@ -75,5 +73,66 @@ class FirebaseManager {
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .update({"emergencySMS": message});
+  }
+
+  static Future<void> updateUserLocation(double? lat, double? long) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "userLastLatitude": lat,
+      "userLastLongitude": long,
+    });
+  }
+
+  static Future<void> setUserLocation(double? lat, double? long) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
+      "userLastLatitude": lat,
+      "userLastLongitude": long,
+    });
+  }
+
+  static Future<void> changeTrackMeNow(bool value) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "trackMeNow": value,
+    });
+  }
+
+  static Future<void> acceptFriendRequest(String friendID) async {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "friendRequests": FieldValue.arrayRemove([friendID]),
+      "friends": FieldValue.arrayUnion([friendID]),
+    });
+
+    FirebaseFirestore.instance.collection('users').doc(friendID).update({
+      "friends":
+          FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid]),
+    });
+  }
+
+  static Future<void> removeFriend(String friendID) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "friends": FieldValue.arrayRemove([friendID]),
+      "emergencyContacts": FieldValue.arrayRemove([friendID]),
+    });
+
+    await FirebaseFirestore.instance.collection('users').doc(friendID).update({
+      "friends":
+          FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid]),
+      "emergencyContacts":
+          FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid]),
+    });
   }
 }
