@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:safe_me/constants/keys.dart';
 
 Future<void> handleBackgroundMessage(RemoteMessage message) async {
   print('Got a message whilst in the background!');
@@ -35,8 +36,7 @@ class NotificationManager {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization':
-                'key=AAAAHrUrYok:APA91bFF3ly4aduF-2x2dw7gh18AD7Cy3k5vF7AhoT3T88uTVvN3CIiJ0Xq9VHA3A3QmJj1XzFpEJ1b4ldu_k2_X4ceRFQMsoo8MQ-4VCz-aTRPPZFPP4kq6pRwow_3cbJoO68ojPIBz',
+            'Authorization': 'key=${AppKeys.FCMKey}',
           },
           body: jsonEncode({
             'priority': 'high',
