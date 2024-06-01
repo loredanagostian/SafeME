@@ -3,21 +3,26 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/keys.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/models/account.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
+import 'package:safe_me/managers/location_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/safe_place.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_me/widgets/custom_place_bottom_modal.dart';
@@ -25,14 +30,8 @@ import 'package:safe_me/widgets/custom_marker_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' show cos, sqrt, asin;
 
-final startTimeSafePlaceHistory =
-    StateProvider<DateTime>((ref) => DateTime.now());
-final startTimeTrackHistory = StateProvider<DateTime>((ref) => DateTime.now());
-
 class SafePlacesScreen extends ConsumerStatefulWidget {
-  final Account userAccount;
-
-  const SafePlacesScreen({super.key, required this.userAccount});
+  const SafePlacesScreen({super.key});
 
   @override
   ConsumerState<SafePlacesScreen> createState() => _SafePlacesScreenState();
@@ -41,32 +40,22 @@ class SafePlacesScreen extends ConsumerStatefulWidget {
 class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
   late GoogleMapController mapController;
   late LatLng currentPosition;
+  late Future markers;
+  late Marker destinationMarker;
+  late Stream<Position> positionStream;
   SafePlace? destinationSafePlace;
   bool isSelectedDestination = false;
-  late Future markers;
   int counterId = 0;
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
-  late Marker destinationMarker;
-  late Stream<Position> positionStream;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
 
-  Future<LocationPermission> getLocationPermission() async {
-    var isPermission = await Geolocator.checkPermission();
-    if (isPermission == LocationPermission.denied ||
-        isPermission == LocationPermission.deniedForever) {
-      isPermission = await Geolocator.requestPermission();
-    }
-
-    return isPermission;
-  }
-
   Future<List<Marker>> _getNearbyPlaces() async {
     try {
-      var isPermission = await getLocationPermission();
+      var isPermission = await LocationManager.getLocationPermission();
 
       if (isPermission == LocationPermission.denied ||
           isPermission == LocationPermission.deniedForever) {
@@ -100,7 +89,7 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
 
   Future<List<Marker>> _getNearbyLocations(LatLng latLng) async {
     String uri =
-        "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latLng.latitude},${latLng.longitude}&radius=500&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4&opennow=true";
+        "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latLng.latitude},${latLng.longitude}&radius=500&key=${AppKeys.googleMapsKey}&opennow=true";
     var url = Uri.parse(uri);
     var response = await http.post(url);
     List<SafePlace> safePlaces = [];
@@ -144,10 +133,10 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
     List<LatLng> polylineCoordinates = [];
     List<dynamic> points = [];
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-        'AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4',
+        AppKeys.googleMapsKey,
         PointLatLng(currentPosition.latitude, currentPosition.longitude),
         PointLatLng(dst.latitude, dst.longitude),
-        travelMode: TravelMode.driving);
+        travelMode: TravelMode.walking);
     if (result.points.isNotEmpty) {
       result.points.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
@@ -220,10 +209,6 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                 icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueCyan),
               );
-
-              ref
-                  .read(startTimeSafePlaceHistory.notifier)
-                  .update((state) => DateTime.now());
             },
           );
         });
@@ -236,10 +221,9 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
 
     // Define location settings with a 5-meter change filter
     var locationOptions = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter:
-          5, // Set the minimum distance change (in meters) for updates
-    );
+        accuracy: LocationAccuracy.high,
+        distanceFilter:
+            5); // Set the minimum distance change (in meters) for updates
 
     // Initialize the position stream with the desired accuracy and distance filter
     positionStream =
@@ -258,17 +242,26 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
           ),
           actions: [
             GestureDetector(
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const MoreScreen())),
+              onTap: () async {
+                bool result = await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => MoreScreen()));
+                if (result) setState(() {});
+              },
               child: SizedBox(
                 height: 50,
                 width: 50,
                 child: Padding(
                     padding:
                         const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage:
-                            FileImage(File(widget.userAccount.imageURL)))),
+                    child: FirebaseAuth.instance.currentUser!.photoURL != null
+                        ? CircleAvatar(
+                            backgroundImage: FileImage(File(
+                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                        : CircleAvatar(
+                            backgroundImage:
+                                AssetImage(AppPaths.defaultProfilePicture),
+                            backgroundColor: AppColors.white,
+                          )),
               ),
             )
           ],
@@ -313,27 +306,33 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                             onPressed: () async {
                               // Create history element
                               HistoryEvent historyEvent = HistoryEvent(
-                                startDate: ref.read(startTimeSafePlaceHistory),
-                                endDate: DateTime.now(),
-                                duration: DateTime.now()
-                                    .difference(
-                                        ref.read(startTimeSafePlaceHistory))
-                                    .inMinutes,
-                                isTrackingEvent: false,
-                              );
+                                  startDate: DateTime.now(),
+                                  isTrackingEvent: false,
+                                  city: (await placemarkFromCoordinates(
+                                              currentPosition.latitude,
+                                              currentPosition.longitude))[0]
+                                          .locality ??
+                                      "",
+                                  country: (await placemarkFromCoordinates(
+                                              currentPosition.latitude,
+                                              currentPosition.longitude))[0]
+                                          .country ??
+                                      "");
 
                               setState(() {
                                 isSelectedDestination = false;
                                 polylines = {};
                               });
 
-                              FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                                  .update({
-                                "history": FieldValue.arrayUnion(
-                                    [historyEvent.toMap()]),
-                              }).then((value) {
+                              UserStaticData _userStaticData =
+                                  ref.watch(userStaticDataProvider);
+                              _userStaticData.history.add(historyEvent);
+                              ref
+                                  .read(userStaticDataProvider.notifier)
+                                  .updateUserInfo(_userStaticData);
+
+                              FirebaseManager.addNewHistoryElement(historyEvent)
+                                  .then((value) {
                                 // Check if there are routes available to pop
                                 if (Navigator.canPop(context)) {
                                   Navigator.pop(context);
@@ -362,7 +361,7 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                             ),
                             onPressed: () async {
                               await launchUrl(Uri.parse(
-                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=AIzaSyDYhjj1K3NjiWRWhUVakjVQ0cLIV2YEyU4'));
+                                  'google.navigation:q=${destinationSafePlace!.position.latitude}, ${destinationSafePlace!.position.longitude}&key=${AppKeys.googleMapsKey}&mode=w'));
                             },
                           ),
                         ),

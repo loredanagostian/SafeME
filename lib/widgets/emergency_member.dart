@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
@@ -25,7 +26,6 @@ class EmergencyMember extends StatelessWidget {
 
           if (snapshot.hasData) {
             return Container(
-              height: 115,
               width: 75,
               decoration: BoxDecoration(
                   color: AppColors.lightGray,
@@ -39,9 +39,15 @@ class EmergencyMember extends StatelessWidget {
                     child: SizedBox(
                       height: 50,
                       width: 50,
-                      child: CircleAvatar(
-                          backgroundImage:
-                              FileImage(File(snapshot.data!.imageURL))),
+                      child: snapshot.data!.imageURL != null
+                          ? CircleAvatar(
+                              backgroundImage:
+                                  FileImage(File(snapshot.data!.imageURL!)))
+                          : CircleAvatar(
+                              backgroundImage:
+                                  AssetImage(AppPaths.defaultProfilePicture),
+                              backgroundColor: AppColors.white,
+                            ),
                     ),
                   ),
                   Flexible(

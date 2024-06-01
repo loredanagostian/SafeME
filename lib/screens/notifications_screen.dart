@@ -1,44 +1,47 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/models/account.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/notification_model.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_notification_tile.dart';
 
-class NotificationsScreen extends StatefulWidget {
-  final Account userAccount;
-
-  const NotificationsScreen({Key? key, required this.userAccount})
-      : super(key: key);
+class NotificationsScreen extends ConsumerStatefulWidget {
+  const NotificationsScreen({Key? key}) : super(key: key);
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  late Future _userDataFuture;
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  late UserStaticData _userStaticData;
 
   @override
   void initState() {
     super.initState();
-    _userDataFuture = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .get();
+    _userStaticData = ref.read(userStaticDataProvider);
   }
 
-  void markNotificationAsRead(NotificationModel notification) {
-    List<NotificationModel> userNotifications =
-        widget.userAccount.notifications;
+  void markNotificationAsRead(NotificationModel notification,
+      List<NotificationModel> userNotifications) {
+    // Remove the notification from the list
+    var item = userNotifications.firstWhere(
+      (x) =>
+          x.id == notification.id &&
+          x.body == notification.body &&
+          x.opened == notification.opened &&
+          x.senderEmail == notification.senderEmail,
+    );
 
-    userNotifications.removeWhere((element) => element.id == notification.id);
+    userNotifications.remove(item);
 
+    // Prepare updated notifications list
     List<Map<String, dynamic>> arrayData = [];
-
     for (int i = 0; i < userNotifications.length; i++) {
       arrayData.add({
         'id': userNotifications[i].id,
@@ -48,107 +51,108 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     }
 
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userAccount.userId)
-        .update({'notifications': arrayData});
+    // Add the tapped notification with opened state changed
+    arrayData.add({
+      'id': notification.id,
+      'body': notification.body,
+      'opened': true,
+      'senderEmail': notification.senderEmail,
+    });
 
-    setState(() {});
+    // Update local data
+    _userStaticData.notifications.remove(item);
+    _userStaticData.notifications.add(NotificationModel(
+        id: notification.id,
+        body: notification.body,
+        opened: true,
+        senderEmail: notification.senderEmail));
+    ref.read(userStaticDataProvider.notifier).updateUserInfo(_userStaticData);
+
+    // Update Firestore with the entire notifications list
+    FirebaseManager.updateNotificationsList(arrayData);
   }
 
-  void markAllNotificationsAsRead() {
-    List<NotificationModel> userNotifications =
-        widget.userAccount.notifications;
+  void markAllNotificationsAsRead(List<NotificationModel> userNotifications) {
     for (NotificationModel notification in userNotifications) {
       if (!notification.opened) {
-        markNotificationAsRead(notification);
+        markNotificationAsRead(notification, userNotifications);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    _userStaticData = ref.watch(userStaticDataProvider);
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        title: const Text(
-          AppStrings.notificationsTitle,
-          style: AppStyles.titleStyle,
-        ),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.mainDarkGray,
+        appBar: AppBar(
+          backgroundColor: AppColors.white,
+          elevation: 0,
+          title: const Text(
+            AppStrings.notificationsTitle,
+            style: AppStyles.titleStyle,
+          ),
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: AppColors.mainDarkGray,
+            ),
           ),
         ),
-      ),
-      body: FutureBuilder(
-        future: _userDataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final data = snapshot.data!.data()!;
-          Account userAccount = Account.fromJson(data);
-
-          return Padding(
-            padding: const EdgeInsets.all(AppSizes.smallDistance),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${userAccount.notifications.length} notifications",
-                      style: AppStyles.textComponentStyle,
+        body: Padding(
+          padding: const EdgeInsets.all(AppSizes.smallDistance),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${_userStaticData.notifications.length} notifications",
+                    style: AppStyles.textComponentStyle,
+                  ),
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: IconButton(
+                      onPressed: () => markAllNotificationsAsRead(
+                          _userStaticData.notifications),
+                      icon: const Icon(
+                        Icons.done_all,
+                        color: AppColors.mainDarkGray,
+                      ),
                     ),
-                    SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: IconButton(
-                        onPressed: () => markAllNotificationsAsRead(),
-                        icon: const Icon(
-                          Icons.done_all,
-                          color: AppColors.mainDarkGray,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                const Divider(
-                  color: AppColors.mainDarkGray,
-                  thickness: 1,
-                ),
-                ListView.builder(
-                  itemCount: userAccount.notifications.length,
-                  itemBuilder: (context, index) {
-                    final item = userAccount.notifications[index];
+                  )
+                ],
+              ),
+              const Divider(
+                color: AppColors.mainDarkGray,
+                thickness: 1,
+              ),
+              ListView.builder(
+                itemCount: _userStaticData.notifications.length,
+                itemBuilder: (context, index) {
+                  final item = _userStaticData.notifications[index];
 
-                    return GestureDetector(
-                      onTap: () {
-                        if (item.opened == false) markNotificationAsRead(item);
-                      },
-                      child: CustomNotificationTile(
-                        notificationTitle: item.body,
-                        notificationBody: item.senderEmail,
-                        opened: item.opened,
-                      ),
-                    );
-                  },
-                  shrinkWrap: true,
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+                  return GestureDetector(
+                    onTap: () {
+                      if (item.opened == false)
+                        markNotificationAsRead(
+                            item, _userStaticData.notifications);
+                    },
+                    child: CustomNotificationTile(
+                      notificationTitle: item.body,
+                      notificationBody: item.senderEmail,
+                      opened: item.opened,
+                    ),
+                  );
+                },
+                shrinkWrap: true,
+              ),
+            ],
+          ),
+        ));
   }
 }

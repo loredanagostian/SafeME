@@ -2,33 +2,37 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/chat_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TrackLocationScreen extends StatefulWidget {
-  final Account account;
-  final Account currentUser;
-  const TrackLocationScreen(
-      {super.key, required this.account, required this.currentUser});
+class TrackLocationScreen extends ConsumerStatefulWidget {
+  final Account friendAccount;
+  const TrackLocationScreen({super.key, required this.friendAccount});
 
   @override
-  State<TrackLocationScreen> createState() => _TrackLocationScreenState();
+  ConsumerState<TrackLocationScreen> createState() =>
+      _TrackLocationScreenState();
 }
 
-class _TrackLocationScreenState extends State<TrackLocationScreen> {
+class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
   late GoogleMapController _mapController;
-  late Account _userInfos;
   late LatLng _friendCurrentPosition;
-  bool _added = false;
+  late Account _userInfos;
+  late UserStaticData _userStaticData;
   final TextEditingController _messageController = TextEditingController();
+  bool _added = false;
 
   Account getUserInfos(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     Map<String, dynamic>? data;
@@ -73,13 +77,15 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       await ChatManager.sendMessage(
-          widget.account.userId, _messageController.text);
+          widget.friendAccount.userId, _messageController.text);
       _messageController.clear();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    _userStaticData = ref.watch(userStaticDataProvider);
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.white,
@@ -93,22 +99,28 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                 child: Padding(
                     padding:
                         const EdgeInsets.only(right: AppSizes.smallDistance),
-                    child: CircleAvatar(
-                        backgroundImage:
-                            FileImage(File(widget.account.imageURL)))),
+                    child: widget.friendAccount.imageURL != null
+                        ? CircleAvatar(
+                            backgroundImage:
+                                FileImage(File(widget.friendAccount.imageURL!)))
+                        : CircleAvatar(
+                            backgroundImage:
+                                AssetImage(AppPaths.defaultProfilePicture),
+                            backgroundColor: AppColors.white,
+                          )),
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "${widget.account.firstName} ${widget.account.lastName}",
+                    "${widget.friendAccount.firstName} ${widget.friendAccount.lastName}",
                     style: AppStyles.notificationTitleStyle
                         .copyWith(color: AppColors.mainDarkGray),
                   ),
                   Text(AppStrings.activeNow,
                       style: AppStyles.notificationBodyStyle
-                          .copyWith(color: AppColors.lightGreen)),
+                          .copyWith(color: AppColors.mediumBlue)),
                 ],
               )
             ],
@@ -124,7 +136,7 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
         body: StreamBuilder(
           stream: FirebaseFirestore.instance
               .collection('users')
-              .doc(widget.account.userId)
+              .doc(widget.friendAccount.userId)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -132,8 +144,7 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
             } else if (snapshot.connectionState == ConnectionState.active &&
                 snapshot.hasData) {
               return StreamBuilder(
-                  stream: ChatManager.getMessages(
-                      widget.account.userId, widget.currentUser.userId),
+                  stream: ChatManager.getMessages(widget.friendAccount.userId),
                   builder: (context, snapshot2) {
                     if (snapshot2.hasError) {
                       return Text('Error${snapshot2.error}');
@@ -149,7 +160,8 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                         snapshot2.data!.docs.where((document) {
                       Map<String, dynamic> docData =
                           document.data() as Map<String, dynamic>;
-                      return docData["senderId"] == widget.account.userId &&
+                      return docData["senderId"] ==
+                              widget.friendAccount.userId &&
                           (docData["timestamp"] as Timestamp).toDate().isAfter(
                               (DateTime.now())
                                   .subtract(Duration(minutes: 5))) &&
@@ -205,7 +217,7 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                             () async {
                               NotificationManager.sendNotification(
                                   token: _userInfos.deviceToken,
-                                  body: widget.currentUser.trackingSMS,
+                                  body: _userStaticData.trackingSMS,
                                   friendId: _userInfos.userId);
                             },
                           )),
@@ -216,10 +228,10 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                             AppColors.mainBlue,
                             Icons.sms_outlined,
                             () async {
-                              String message = widget.currentUser.trackingSMS;
+                              String message = _userStaticData.trackingSMS;
                               String encodedMessage = Uri.encodeFull(message);
                               final call = Uri.parse(
-                                  'sms:${widget.account.phoneNumber}?body=$encodedMessage');
+                                  'sms:${widget.friendAccount.phoneNumber}?body=$encodedMessage');
                               if (await canLaunchUrl(call)) {
                                 launchUrl(call);
                               } else {
@@ -238,10 +250,8 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => ChatScreen(
-                                            friendAccount: widget.account,
-                                            currentUserImageUrl:
-                                                widget.currentUser.imageURL,
-                                          )));
+                                          friendAccount:
+                                              widget.friendAccount)));
                             },
                           )),
                       Positioned(
@@ -258,7 +268,7 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                                 AppSizes.mediumDistance,
                                 AppSizes.smallDistance,
                               ),
-                              hintText: "Type a message",
+                              hintText: AppStrings.typeAMessageHint,
                               hintStyle: AppStyles.bodyStyle
                                   .copyWith(color: AppColors.mediumGray),
                               fillColor: AppColors.componentGray,
@@ -298,9 +308,21 @@ class _TrackLocationScreenState extends State<TrackLocationScreen> {
                                       child: SizedBox(
                                           height: 50,
                                           width: 50,
-                                          child: CircleAvatar(
-                                              backgroundImage: FileImage(File(
-                                                  widget.account.imageURL))))),
+                                          child:
+                                              widget.friendAccount.imageURL !=
+                                                      null
+                                                  ? CircleAvatar(
+                                                      backgroundImage:
+                                                          FileImage(File(widget
+                                                              .friendAccount
+                                                              .imageURL!)))
+                                                  : CircleAvatar(
+                                                      backgroundImage:
+                                                          AssetImage(AppPaths
+                                                              .defaultProfilePicture),
+                                                      backgroundColor:
+                                                          AppColors.white,
+                                                    ))),
                                 ),
                                 Visibility(
                                   visible: !isMessageSentByCurrentUser,

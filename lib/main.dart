@@ -30,7 +30,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: false,
         canvasColor: AppColors.white,
       ),
-      home: FirebaseAuth.instance.currentUser != null
+      home: FirebaseAuth.instance.currentUser != null &&
+              FirebaseAuth.instance.currentUser!.phoneNumber != null
           ? const MainScreen()
           : const LoginScreen(),
     );

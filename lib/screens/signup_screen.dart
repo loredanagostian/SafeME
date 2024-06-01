@@ -41,17 +41,25 @@ class _SignupScreenState extends State<SignupScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: CustomSnackbarContent(snackBarMessage: message.keys.first),
+            content:
+                CustomSnackbarContent(snackBarMessage: message.values.first),
             backgroundColor: AppColors.mainRed,
           ));
         }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: CustomSnackbarContent(
-            snackBarMessage: AppStrings.invalidCredentials),
-        backgroundColor: AppColors.mainRed,
-      ));
+      if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty)
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: CustomSnackbarContent(
+              snackBarMessage: AppStrings.allFieldsMustBeCompleted),
+          backgroundColor: AppColors.mainRed,
+        ));
+      else
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: CustomSnackbarContent(
+              snackBarMessage: AppStrings.invalidCredentials),
+          backgroundColor: AppColors.mainRed,
+        ));
     }
     return '';
   }

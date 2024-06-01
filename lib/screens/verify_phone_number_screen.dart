@@ -1,35 +1,36 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/main_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class VerifyPhoneNumber extends StatefulWidget {
+class VerifyPhoneNumber extends ConsumerStatefulWidget {
   final String firstName;
   final String lastName;
   final String phoneNumber;
-  final String imagePath;
   const VerifyPhoneNumber({
     super.key,
     required this.firstName,
     required this.lastName,
     required this.phoneNumber,
-    required this.imagePath,
   });
 
   @override
-  State<VerifyPhoneNumber> createState() => _VerifyPhoneNumberState();
+  ConsumerState<VerifyPhoneNumber> createState() => _VerifyPhoneNumberState();
 }
 
-class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
+class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
   final TextEditingController codeController = TextEditingController();
 
   @override
@@ -81,13 +82,29 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                             FirebaseAuth.instance.currentUser?.email ?? "";
 
                         if (result.isEmpty) {
+                          ref
+                              .read(userStaticDataProvider.notifier)
+                              .updateUserInfo(UserStaticData(
+                                  email: userEmail,
+                                  firstName: widget.firstName,
+                                  lastName: widget.lastName,
+                                  phoneNumber: widget.phoneNumber,
+                                  emergencySMS: "",
+                                  trackingSMS: "",
+                                  friends: [],
+                                  friendsRequest: [],
+                                  userId: userId,
+                                  emergencyContacts: [],
+                                  deviceToken: NotificationManager.token,
+                                  history: [],
+                                  notifications: []));
+
                           final userDatas = <String, dynamic>{
                             "userId": userId,
                             "email": userEmail,
                             "firstName": widget.firstName,
                             "lastName": widget.lastName,
                             "phoneNumber": widget.phoneNumber,
-                            "imageURL": widget.imagePath,
                             "emergencySMS": AppStrings.defaultEmergencySMS,
                             "trackingSMS": AppStrings.defaultTrackingSMS,
                             "trackMeNow": false,
@@ -98,15 +115,14 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                             "friends": [],
                             "friendRequests": [],
                             "notifications": [],
-                            "emergencyContact": "",
+                            "emergencyContacts": [],
                             "history": [],
+                            "imageURL":
+                                FirebaseAuth.instance.currentUser!.photoURL
                           };
 
-                          FirebaseFirestore.instance
-                              .collection("users")
-                              .doc(userId)
-                              .set(userDatas)
-                              .then((value) => Navigator.pushAndRemoveUntil(
+                          FirebaseManager.uploadNewUserData(userDatas).then(
+                              (value) => Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => const MainScreen()),
@@ -122,7 +138,6 @@ class _VerifyPhoneNumberState extends State<VerifyPhoneNumber> {
                         style: AppStyles.buttonTextStyle
                             .copyWith(color: AppColors.darkGray),
                       ),
-                      // TODO resend
                       GestureDetector(
                         onTap: () {
                           AuthenticationManager.sendOtp(

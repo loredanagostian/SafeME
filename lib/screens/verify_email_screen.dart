@@ -92,8 +92,10 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.resend,
-                      // TODO resend
-                      onTap: () async {}),
+                      onTap: () {
+                        FirebaseAuth.instance.currentUser
+                            ?.sendEmailVerification();
+                      }),
                 ]),
           ),
         ),

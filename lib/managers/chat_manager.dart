@@ -36,8 +36,8 @@ class ChatManager extends ChangeNotifier {
         .add(newMessage.toMap());
   }
 
-  static Stream<QuerySnapshot> getMessages(String userId, String otherUserId) {
-    List<String> ids = [userId, otherUserId];
+  static Stream<QuerySnapshot> getMessages(String friendID) {
+    List<String> ids = [friendID, FirebaseAuth.instance.currentUser!.uid];
     ids.sort();
     String chatRoomId = ids.join("_");
 
@@ -71,21 +71,7 @@ class ChatManager extends ChangeNotifier {
     ids.sort();
     String chatRoomId = ids.join("_");
 
-    var messagesCollection = _firestore
-        .collection('chat_rooms')
-        .doc(chatRoomId)
-        .collection('messages');
-
-    // Retrieve all message documents
-    var snapshot = await messagesCollection.get();
-    var batch = _firestore.batch();
-
-    // Iterate over the documents and mark them for deletion
-    for (var doc in snapshot.docs) {
-      batch.delete(doc.reference);
-    }
-
-    // Execute the batch delete
-    await batch.commit();
+    // Delete the entire document along with its subcollection
+    await _firestore.collection('chat_rooms').doc(chatRoomId).delete();
   }
 }

@@ -26,9 +26,6 @@ class AppStrings {
   static const String alreadyHaveAccount = "Already have an account?";
   static const String signin = "signin";
   static const String sharingLiveLocationNow = "Sharing live location now";
-  static const String emergencyGroupIsContacted =
-      "Your emergency group has been contacted.";
-  static const String emergencyGroup = "Emergency Group";
   static const String yourFriendsTitle = "Your friends";
   static const String trackNow = "Track now";
   static const String groups = "Groups";
@@ -36,15 +33,16 @@ class AppStrings {
   static const String requests = "Requests";
   static const String notificationsTitle = "Notifications";
   static const String moreTitle = "More";
-  static const String changeEmergencyGroup = "Change default emergency group";
   static const String changeEmergencySMS = "Change default emergency SMS";
   static const String changeTrackingSMS = "Change default tracking SMS";
+  static const String changeDefaultEmergencyContacts =
+      "Change default emergency contacts";
   static const String call112 = "Call 112";
   static const String editProfile = "Edit profile";
   static const String changePicture = "Change picture";
   static const String changeFirstName = "Change first name";
   static const String changeLastName = "Change last name";
-  static const String changePhoneNumber = "Change phone number";
+  static const String changePassword = "Change password";
   static const String selectPicture = "Select picture";
   static const String saveChanges = "Save changes";
   static const String emergencySMS = "Emergency SMS";
@@ -58,7 +56,6 @@ class AppStrings {
   static const String trackButton = "TRACK";
   static const String sosButton = "SOS";
   static const String addButton = "ADD";
-  static const String addedButton = "ADDED";
   static const String allUsers = "All users";
   static const String userAddedSuccessfully =
       "User has been added successfully!";
@@ -73,7 +70,9 @@ class AppStrings {
   static const String categories = "Categories: ";
   static const String notifyTracking = "Notify you’re tracking";
   static const String openSMSApp = "Open SMS app";
-  static const String emergencyContact = "Emergency contact";
+  static const String emergencyContacts = "Emergency contacts";
+  static const String emergencyContactsAreContacted =
+      "Your emergency contacts are being contacted.";
   static const String switchContact = "SWITCH";
   static const String newFriendRequest = "You have a new friend request!";
   static const String verifyPhoneNumber = "Verify phone number";
@@ -96,4 +95,29 @@ class AppStrings {
   static const String chatRooms = "Chat rooms";
   static const String history = "History";
   static const String noHistoryToDisplay = "There's no history to display.";
+  static const String deleteUser = "DELETE USER";
+  static const String deleteUserMessage1 = "Are you sure you want to delete";
+  static const String deleteUserMessage2_friendList = "from your friends list?";
+  static const String deleteUserMessage2_emergencyContactsList =
+      "from your emergency contacts list?";
+  static const String delete = "DELETE";
+  static const String cancel = "CANCEL";
+  static const String information = "Information";
+  static const String notAvailable = "Not available";
+  static const String latestLocation = "Latest location";
+  static const String setAsEmergencyContact = "Set as emergency contact";
+  static const String removeFriend = "Remove friend";
+  static const String removeEmergencyContact = "Remove emergency contact";
+  static const String deleteEmergencyContact = "DELETE EMERGENCY CONTACT";
+  static const String deleteChatTitle = "DELETE CHAT";
+  static const String deleteChatMessage = "from your chats list?";
+  static const String providerAlreadyLinked =
+      "The provider has already been linked to the user.";
+  static const String invalidProviderCredentials =
+      "The provider's credential is not valid.";
+  static const String accountExistsOrLinked =
+      "The account corresponding to the credential already exists, or is already linked to a Firebase User.";
+  static const String unknownError = "Unknown error.";
+  static const String invalidCode = "Invalid code";
+  static const String typeAMessageHint = "Type a message";
 }

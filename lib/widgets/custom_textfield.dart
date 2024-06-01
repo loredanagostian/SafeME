@@ -30,12 +30,19 @@ class CustomTextField extends StatefulWidget {
 class _CustomTextFieldState extends State<CustomTextField> {
   bool _isObscureText = true;
 
+  TextInputType _getKeyboardType() {
+    return widget.isEmail
+        ? TextInputType.emailAddress
+        : widget.isPhoneNumber
+            ? TextInputType.number
+            : TextInputType.text;
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
-      keyboardType:
-          widget.isPhoneNumber ? TextInputType.phone : TextInputType.text,
+      keyboardType: _getKeyboardType(),
       textInputAction:
           widget.isDone ? TextInputAction.done : TextInputAction.next,
       maxLines: widget.isEditMessage ? 10 : 1,

@@ -1,40 +1,51 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/models/account.dart';
+import 'package:safe_me/managers/authentication_manager.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class EditProfileScreen extends StatefulWidget {
-  final Account user;
-
-  const EditProfileScreen({super.key, required this.user});
+class EditProfileScreen extends ConsumerStatefulWidget {
+  const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
+  late TextEditingController passwordController;
+  late TextEditingController confirmPasswordController;
   File? imageFile;
+  bool _hasPressedChangePassword = false;
 
   @override
   void initState() {
     super.initState();
-    firstNameController = TextEditingController(text: widget.user.firstName);
-    lastNameController = TextEditingController(text: widget.user.lastName);
+    firstNameController =
+        TextEditingController(text: ref.read(userStaticDataProvider).firstName);
+    lastNameController =
+        TextEditingController(text: ref.read(userStaticDataProvider).lastName);
+    passwordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
+    UserStaticData userInfo = ref.watch(userStaticDataProvider);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.white,
@@ -65,10 +76,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Padding(
                         padding: const EdgeInsets.only(
                             right: AppSizes.smallDistance),
-                        child: CircleAvatar(
-                            backgroundImage: FileImage(imageFile != null
-                                ? imageFile!
-                                : File(widget.user.imageURL)))),
+                        child: imageFile != null
+                            ? CircleAvatar(
+                                backgroundImage: FileImage(imageFile!))
+                            : FirebaseAuth.instance.currentUser!.photoURL !=
+                                    null
+                                ? CircleAvatar(
+                                    backgroundImage: FileImage(File(FirebaseAuth
+                                        .instance.currentUser!.photoURL!)))
+                                : CircleAvatar(
+                                    backgroundImage: AssetImage(
+                                        AppPaths.defaultProfilePicture),
+                                    backgroundColor: AppColors.white,
+                                  )),
                   ),
                 ),
                 const SizedBox(height: AppSizes.smallDistance),
@@ -78,9 +98,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       var image = await ImagePicker.platform
                           .getImageFromSource(source: ImageSource.gallery);
 
-                      setState(() {
-                        imageFile = File(image!.path);
-                      });
+                      if (image != null) {
+                        setState(() {
+                          imageFile = File(image.path);
+                        });
+                      }
                     },
                     child: Container(
                         height: 25,
@@ -116,20 +138,96 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: lastNameController,
                   isDone: true,
                 ),
-                SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
+                const SizedBox(height: AppSizes.borders),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _hasPressedChangePassword = !_hasPressedChangePassword;
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        AppStrings.changePassword,
+                        style: AppStyles.buttonTextStyle
+                            .copyWith(color: AppColors.mainBlue),
+                      ),
+                      Icon(
+                        _hasPressedChangePassword
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        color: AppColors.mainBlue,
+                        size: AppSizes.borders,
+                      )
+                    ],
+                  ),
+                ),
+                Visibility(
+                    visible: _hasPressedChangePassword,
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSizes.mediumDistance),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppStrings.password,
+                            style: AppStyles.buttonTextStyle
+                                .copyWith(color: AppColors.mainDarkGray),
+                          ),
+                          CustomTextField(
+                            controller: passwordController,
+                            hintText: AppStrings.password,
+                            isPassword: true,
+                          ),
+                          const SizedBox(height: AppSizes.bigDistance),
+                          Text(
+                            AppStrings.confirmPassword,
+                            style: AppStyles.buttonTextStyle
+                                .copyWith(color: AppColors.mainDarkGray),
+                          ),
+                          CustomTextField(
+                            controller: confirmPasswordController,
+                            hintText: AppStrings.confirmPassword,
+                            isPassword: true,
+                            isDone: true,
+                          ),
+                        ],
+                      ),
+                    )),
+                SizedBox(
+                    height: _hasPressedChangePassword
+                        ? AppSizes.mediumDistance
+                        : MediaQuery.sizeOf(context).height * 0.2),
                 CustomButton(
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.saveChanges,
-                    onTap: () {
-                      FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .update({
-                        "firstName": firstNameController.text,
-                        "lastName": lastNameController.text,
-                        "imageURL": imageFile?.path ?? widget.user.imageURL
-                      }).then((value) {
-                        Navigator.pop(context);
+                    onTap: () async {
+                      userInfo.firstName = firstNameController.text;
+                      userInfo.lastName = lastNameController.text;
+                      ref
+                          .read(userStaticDataProvider.notifier)
+                          .updateUserInfo(userInfo);
+
+                      if (imageFile != null && imageFile!.path.isNotEmpty) {
+                        if (await imageFile!.exists()) {
+                          await AuthenticationManager.updateProfilePicture(
+                              imageFile?.path);
+                        }
+                      }
+
+                      if (_hasPressedChangePassword ||
+                          (passwordController.text ==
+                                  confirmPasswordController.text &&
+                              passwordController.text.isNotEmpty)) {
+                        FirebaseAuth.instance.currentUser!
+                            .updatePassword(passwordController.text);
+                      }
+
+                      FirebaseManager.changeUserInformation(
+                              firstNameController.text, lastNameController.text)
+                          .then((value) {
+                        Navigator.pop(context, true);
                       });
                     })
               ]),

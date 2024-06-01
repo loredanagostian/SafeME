@@ -1,29 +1,32 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class DefaultEmergencySmsScreen extends StatefulWidget {
-  final String emergencySMS;
-  const DefaultEmergencySmsScreen({super.key, required this.emergencySMS});
+class DefaultEmergencySmsScreen extends ConsumerStatefulWidget {
+  const DefaultEmergencySmsScreen({super.key});
 
   @override
-  State<DefaultEmergencySmsScreen> createState() =>
+  ConsumerState<DefaultEmergencySmsScreen> createState() =>
       _DefaultEmergencySmsScreenState();
 }
 
-class _DefaultEmergencySmsScreenState extends State<DefaultEmergencySmsScreen> {
+class _DefaultEmergencySmsScreenState
+    extends ConsumerState<DefaultEmergencySmsScreen> {
   late TextEditingController emergencySMSController;
 
   @override
   void initState() {
     super.initState();
-    emergencySMSController = TextEditingController(text: widget.emergencySMS);
+    emergencySMSController = TextEditingController(
+        text: ref.read(userStaticDataProvider).emergencySMS);
 
     emergencySMSController.addListener(() {
       setState(() {});
@@ -101,12 +104,15 @@ class _DefaultEmergencySmsScreenState extends State<DefaultEmergencySmsScreen> {
                   buttonColor: AppColors.mainBlue,
                   buttonText: AppStrings.saveChanges,
                   onTap: () {
-                    FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({
-                      "emergencySMS": emergencySMSController.text
-                    }).then((value) {
+                    UserStaticData _userStaticData =
+                        ref.watch(userStaticDataProvider);
+                    _userStaticData.emergencySMS = emergencySMSController.text;
+                    ref
+                        .read(userStaticDataProvider.notifier)
+                        .updateUserInfo(_userStaticData);
+                    FirebaseManager.changeEmergencySMS(
+                            emergencySMSController.text)
+                        .then((value) {
                       Navigator.pop(context);
                     });
                   })

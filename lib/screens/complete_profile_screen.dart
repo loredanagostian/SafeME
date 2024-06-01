@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
@@ -63,7 +64,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                               ? CircleAvatar(
                                   backgroundImage: FileImage(imageFile!))
                               : CircleAvatar(
-                                  backgroundImage: AssetImage(defaultURL),
+                                  backgroundImage: AssetImage(
+                                      AppPaths.defaultProfilePicture),
                                   backgroundColor: AppColors.white,
                                 )),
                     ),
@@ -74,9 +76,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         var image = await ImagePicker.platform
                             .getImageFromSource(source: ImageSource.gallery);
 
-                        setState(() {
-                          imageFile = File(image!.path);
-                        });
+                        if (image != null) {
+                          setState(() {
+                            imageFile = File(image.path);
+                          });
+                        }
                       },
                       child: Container(
                           height: 25,
@@ -133,6 +137,43 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         if (firstNameController.text.isNotEmpty &&
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {
+                          // final userDatas = <String, dynamic>{
+                          //   "userId":
+                          //       FirebaseAuth.instance.currentUser?.uid ?? "",
+                          //   "email":
+                          //       FirebaseAuth.instance.currentUser?.email ?? "",
+                          //   "firstName": firstNameController.text,
+                          //   "lastName": lastNameController.text,
+                          //   "phoneNumber": phoneNumberController.text,
+                          //   "imageURL": imageFile?.path ?? defaultURL,
+                          //   "emergencySMS": AppStrings.defaultEmergencySMS,
+                          //   "trackingSMS": AppStrings.defaultTrackingSMS,
+                          //   "trackMeNow": false,
+                          //   "userLastLatitude": 0.0,
+                          //   "userLastLongitude": 0.0,
+                          //   "deviceToken": NotificationManager.token,
+                          //   "friends": [],
+                          //   "friendRequests": [],
+                          //   "notifications": [],
+                          //   "emergencyContacts": [],
+                          //   "history": [],
+                          // };
+
+                          // FirebaseFirestore.instance
+                          //     .collection("users")
+                          //     .doc(FirebaseAuth.instance.currentUser?.uid ?? "")
+                          //     .set(userDatas)
+                          //     .then((value) => Navigator.pushAndRemoveUntil(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //             builder: (context) => const MainScreen()),
+                          //         (route) => false));
+                          if (imageFile != null && imageFile!.path.isNotEmpty) {
+                            if (await imageFile!.exists()) {
+                              await AuthenticationManager.updateProfilePicture(
+                                  imageFile?.path);
+                            }
+                          }
                           AuthenticationManager.sendOtp(
                               phoneNumber: phoneNumberController.text,
                               errorStep: () {
@@ -153,8 +194,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                               lastName: lastNameController.text,
                                               phoneNumber:
                                                   phoneNumberController.text,
-                                              imagePath:
-                                                  imageFile?.path ?? defaultURL,
                                             )),
                                     (route) => false);
                               });

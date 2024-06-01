@@ -11,6 +11,4 @@ class AppColors {
   static const Color mediumBlue = Color.fromARGB(255, 94, 125, 226);
   static const Color lightBlue = Color.fromARGB(255, 135, 167, 248);
   static const Color white = Colors.white;
-  static const Color mainGreen = Color.fromARGB(255, 76, 175, 79);
-  static const Color lightGreen = Color.fromARGB(255, 96, 211, 102);
 }
