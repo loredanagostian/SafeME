@@ -242,9 +242,9 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
           actions: [
             GestureDetector(
               onTap: () async {
-                bool result = await Navigator.push(context,
+                bool shouldRefresh = await Navigator.push(context,
                     MaterialPageRoute(builder: (context) => MoreScreen()));
-                if (result) setState(() {});
+                if (shouldRefresh) setState(() {});
               },
               child: SizedBox(
                 height: 50,

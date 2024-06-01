@@ -31,8 +31,8 @@ class _DefaultEmergencyContactsScreenState
     _userData = ref.read(userStaticDataProvider);
   }
 
-  void _showAllFriendsList(BuildContext context) {
-    showModalBottomSheet<void>(
+  Future<void> _showAllFriendsList(BuildContext context) async {
+    bool? shouldRefresh = await showModalBottomSheet<bool>(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(AppSizes.borders),
@@ -41,6 +41,10 @@ class _DefaultEmergencyContactsScreenState
         builder: (BuildContext context) {
           return CustomFriendsBottomModal();
         });
+
+    if (shouldRefresh != null && shouldRefresh) {
+      setState(() {});
+    }
   }
 
   void _showDeleteDialog(Account friend) {

@@ -46,6 +46,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
   List<Account> accountsData = [];
   String totalFoundsAccounts = "";
   late UserStaticData _userStaticData;
+  bool shouldRefresh = false;
 
   @override
   void initState() {
@@ -143,10 +144,23 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
     }
 
     if (widget.isRequests) {
-      FirebaseManager.acceptFriendRequest(account.userId);
+      await FirebaseManager.acceptFriendRequest(account.userId)
+          .then((value) => setState(() {
+                shouldRefresh = true;
+              }));
 
-      if (_userStaticData.emergencyContacts.isEmpty)
-        FirebaseManager.addEmergencyContact(account.userId);
+      _userStaticData.friendsRequest.remove(account.userId);
+      _userStaticData.friends.add(account.userId);
+      ref.read(userStaticDataProvider.notifier).updateUserInfo(_userStaticData);
+
+      if (_userStaticData.emergencyContacts.isEmpty) {
+        await FirebaseManager.addEmergencyContact(account.userId);
+
+        _userStaticData.emergencyContacts.add(account.userId);
+        ref
+            .read(userStaticDataProvider.notifier)
+            .updateUserInfo(_userStaticData);
+      }
 
       if (account.emergencyContacts.isEmpty)
         FirebaseManager.addEmergencyContactForFriend(account.userId);
@@ -169,11 +183,21 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
             message:
                 "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteUserMessage2_friendList}",
             onConfirm: () async {
+              _userStaticData.friends.remove(account.userId);
+              ref
+                  .read(userStaticDataProvider.notifier)
+                  .updateUserInfo(_userStaticData);
+
               await FirebaseManager.removeFriend(account.userId);
-              Navigator.pop(context);
+
+              setState(() {
+                shouldRefresh = true;
+              });
+
+              Navigator.pop(context, shouldRefresh);
             },
             onCancel: () {
-              Navigator.pop(context);
+              Navigator.pop(context, shouldRefresh);
               setState(() {});
             },
           );
@@ -261,8 +285,15 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
                                 await _getButton1Action(item, ref);
                               },
                               button2Action: () async {
+                                _userStaticData.friendsRequest
+                                    .remove(item.userId);
+
                                 await FirebaseManager.declineFriendRequest(
                                     item.userId);
+
+                                setState(() {
+                                  shouldRefresh = true;
+                                });
                               },
                               onDismiss: (DismissDirection direction) =>
                                   _showDeleteDialog(item),

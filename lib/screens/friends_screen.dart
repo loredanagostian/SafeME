@@ -55,9 +55,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                 )),
             GestureDetector(
               onTap: () async {
-                bool result = await Navigator.push(context,
+                bool shouldRefresh = await Navigator.push(context,
                     MaterialPageRoute(builder: (context) => MoreScreen()));
-                if (result) setState(() {});
+                if (shouldRefresh) setState(() {});
               },
               child: SizedBox(
                 height: 50,

@@ -14,7 +14,6 @@ import 'package:safe_me/screens/default_tracking_sms_screen.dart';
 import 'package:safe_me/screens/edit_profile_screen.dart';
 import 'package:safe_me/screens/history_screen.dart';
 import 'package:safe_me/screens/login_screen.dart';
-import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -28,7 +27,7 @@ class MoreScreen extends ConsumerStatefulWidget {
 class _MoreScreenState extends ConsumerState<MoreScreen> {
   User? currentUser;
   late UserStaticData account;
-  bool result = false;
+  bool shouldRefresh = false;
 
   @override
   void initState() {
@@ -49,7 +48,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             style: AppStyles.titleStyle,
           ),
           leading: IconButton(
-            onPressed: () => Navigator.pop(context, result),
+            onPressed: () => Navigator.pop(context, shouldRefresh),
             icon: const Icon(
               Icons.arrow_back_ios,
               color: AppColors.mainDarkGray,
@@ -113,11 +112,11 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   alignment: Alignment.topRight,
                   child: IconButton(
                       onPressed: () async {
-                        result = await Navigator.push(
+                        shouldRefresh = await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => EditProfileScreen()));
-                        if (result) setState(() {});
+                        if (shouldRefresh) setState(() {});
                       },
                       icon: const Icon(
                         Icons.edit_outlined,
@@ -230,7 +229,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 buttonText: AppStrings.logout,
                 // SIGN OUT
                 onTap: () async {
-                  ref.read(bottomNavigatorIndex.notifier).update((state) => 1);
                   await FirebaseAuth.instance.signOut().then((value) =>
                       Navigator.pushAndRemoveUntil(
                           context,

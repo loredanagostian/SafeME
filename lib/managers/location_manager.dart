@@ -65,7 +65,7 @@ class LocationManager {
                   );
 
                   // If the distance is more than 5 meters, update the location in Firestore
-                  if (distance > 5) {
+                  if (distance > 200) {
                     await FirebaseManager.updateUserLocation(
                         currentLocation.latitude, currentLocation.longitude);
                   }
