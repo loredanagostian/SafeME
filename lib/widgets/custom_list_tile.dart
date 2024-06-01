@@ -2,11 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
 
 class CustomListTile extends StatefulWidget {
-  final String photoUrl;
+  final String? photoUrl;
   final String title;
   final String subtitle;
   final String buttonText;
@@ -52,8 +53,13 @@ class _CustomListTileState extends State<CustomListTile> {
         width: 60,
         child: Padding(
             padding: const EdgeInsets.only(right: AppSizes.smallDistance),
-            child: CircleAvatar(
-                backgroundImage: FileImage(File(widget.photoUrl)))),
+            child: widget.photoUrl != null
+                ? CircleAvatar(
+                    backgroundImage: FileImage(File(widget.photoUrl!)))
+                : CircleAvatar(
+                    backgroundImage: AssetImage(AppPaths.defaultProfilePicture),
+                    backgroundColor: AppColors.white,
+                  )),
       ),
       trailing: widget.isRequest
           ? Row(mainAxisSize: MainAxisSize.min, children: [

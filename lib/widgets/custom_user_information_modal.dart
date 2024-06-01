@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
@@ -123,9 +124,15 @@ class _CustomUserInformationModalState
                   child: Padding(
                       padding:
                           const EdgeInsets.only(right: AppSizes.smallDistance),
-                      child: CircleAvatar(
-                          backgroundImage:
-                              FileImage(File(widget.friend.imageURL)))),
+                      child: widget.friend.imageURL != null
+                          ? CircleAvatar(
+                              backgroundImage:
+                                  FileImage(File(widget.friend.imageURL!)))
+                          : CircleAvatar(
+                              backgroundImage:
+                                  AssetImage(AppPaths.defaultProfilePicture),
+                              backgroundColor: AppColors.white,
+                            )),
                 ),
               ),
               const SizedBox(height: AppSizes.smallDistance),

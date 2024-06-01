@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
+import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/models/account.dart';
 
@@ -25,10 +26,17 @@ class PersonChatRoom extends StatelessWidget {
                   color: AppColors.lightGray,
                   borderRadius: BorderRadius.circular(AppSizes.borders)),
               child: Padding(
-                  padding: const EdgeInsets.all(AppSizes.smallDistance),
-                  child: CircleAvatar(
-                      backgroundImage:
-                          FileImage(File(snapshot.data!.imageURL)))),
+                padding: const EdgeInsets.all(AppSizes.smallDistance),
+                child: snapshot.data!.imageURL != null
+                    ? CircleAvatar(
+                        backgroundImage:
+                            FileImage(File(snapshot.data!.imageURL!)))
+                    : CircleAvatar(
+                        backgroundImage:
+                            AssetImage(AppPaths.defaultProfilePicture),
+                        backgroundColor: AppColors.white,
+                      ),
+              ),
             );
           }
           return Container();
