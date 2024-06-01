@@ -9,7 +9,6 @@ import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
-import 'package:safe_me/models/user_dynamic_data.dart';
 import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/main_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
@@ -102,14 +101,6 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                                   deviceToken: NotificationManager.token,
                                   history: [],
                                   notifications: []));
-
-                          ref
-                              .read(userDynamicDataProvider.notifier)
-                              .updateUserInfo(UserDynamicData(
-                                trackMeNow: false,
-                                lastLatitude: 0,
-                                lastLongitude: 0,
-                              ));
 
                           final userDatas = <String, dynamic>{
                             "userId": userId,

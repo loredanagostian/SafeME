@@ -17,7 +17,6 @@ import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/history_event.dart';
-import 'package:safe_me/models/user_dynamic_data.dart';
 import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/chat_screen.dart';
@@ -123,12 +122,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             deviceToken: userData.deviceToken,
             history: userData.history,
             notifications: userData.notifications));
-
-        ref.read(userDynamicDataProvider.notifier).updateUserInfo(
-            UserDynamicData(
-                trackMeNow: userData.trackMeNow,
-                lastLatitude: userData.lastLatitude,
-                lastLongitude: userData.lastLongitude));
       }
     }
   }
