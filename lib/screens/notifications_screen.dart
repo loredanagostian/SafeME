@@ -20,6 +20,7 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   late UserStaticData _userStaticData;
+  bool shouldRefresh = false;
 
   @override
   void initState() {
@@ -27,8 +28,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     _userStaticData = ref.read(userStaticDataProvider);
   }
 
-  void markNotificationAsRead(NotificationModel notification,
-      List<NotificationModel> userNotifications) {
+  Future<void> markNotificationAsRead(NotificationModel notification,
+      List<NotificationModel> userNotifications) async {
     // Remove the notification from the list
     var item = userNotifications.firstWhere(
       (x) =>
@@ -69,7 +70,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     ref.read(userStaticDataProvider.notifier).updateUserInfo(_userStaticData);
 
     // Update Firestore with the entire notifications list
-    FirebaseManager.updateNotificationsList(arrayData);
+    await FirebaseManager.updateNotificationsList(arrayData)
+        .then((value) => setState(() {
+              shouldRefresh = true;
+            }));
   }
 
   void markAllNotificationsAsRead(List<NotificationModel> userNotifications) {
@@ -93,7 +97,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             style: AppStyles.titleStyle,
           ),
           leading: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, shouldRefresh),
             icon: const Icon(
               Icons.arrow_back_ios,
               color: AppColors.mainDarkGray,

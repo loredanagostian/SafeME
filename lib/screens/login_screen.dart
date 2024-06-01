@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
@@ -7,18 +8,19 @@ import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/screens/forgot_password_screen.dart';
 import 'package:safe_me/screens/main_screen.dart';
 import 'package:safe_me/screens/signup_screen.dart';
+import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -124,6 +126,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             emailController.text, passwordController.text);
 
                         if (shouldLogin && mounted) {
+                          ref
+                              .read(bottomNavigatorIndex.notifier)
+                              .update((state) => 1);
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(

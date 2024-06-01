@@ -19,6 +19,7 @@ class CustomFriendsBottomModal extends ConsumerStatefulWidget {
 class _CustomFriendsBottomModalState
     extends ConsumerState<CustomFriendsBottomModal> {
   late UserStaticData _userStaticData;
+  bool shouldRefresh = false;
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +52,12 @@ class _CustomFriendsBottomModalState
                             ref
                                 .read(userStaticDataProvider.notifier)
                                 .updateUserInfo(_userStaticData),
-                            FirebaseManager.addEmergencyContact(friendId)
-                                .then((value) => Navigator.pop(context))
+                            setState(() {
+                              shouldRefresh = true;
+                            }),
+                            FirebaseManager.addEmergencyContact(friendId).then(
+                                (value) =>
+                                    Navigator.pop(context, shouldRefresh))
                           };
                   },
                   isAlreadyFriend: _userStaticData.emergencyContacts

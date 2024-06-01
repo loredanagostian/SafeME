@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -146,10 +145,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           actions: [
             IconButton(
-                onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => NotificationsScreen())),
+                onPressed: () async {
+                  bool shouldRefresh = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NotificationsScreen()));
+
+                  if (shouldRefresh) setState(() {});
+                },
                 icon: Icon(
                   _userStaticData.notifications
                           .where((element) => element.opened == false)
@@ -167,9 +170,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 )),
             GestureDetector(
               onTap: () async {
-                bool result = await Navigator.push(context,
+                bool shouldRefresh = await Navigator.push(context,
                     MaterialPageRoute(builder: (context) => MoreScreen()));
-                if (result) setState(() {});
+                if (shouldRefresh) setState(() {});
               },
               child: SizedBox(
                 height: 50,
@@ -179,8 +182,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const EdgeInsets.only(right: AppSizes.smallDistance),
                     child: FirebaseAuth.instance.currentUser!.photoURL != null
                         ? CircleAvatar(
-                            backgroundImage: FileImage(File(
-                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                            backgroundImage: NetworkImage(
+                                FirebaseAuth.instance.currentUser!.photoURL!))
                         : CircleAvatar(
                             backgroundImage:
                                 AssetImage(AppPaths.defaultProfilePicture),
@@ -207,8 +210,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     List<Account> emergencyAccounts = [];
                     if (userData.emergencyContacts.isNotEmpty) {
                       List<Future<Account>> futures = userData.emergencyContacts
-                          .map((e) =>
-                              FirebaseManager.fetchUserInfoAndReturnAccount(e))
+                          .map((e) async => await FirebaseManager
+                              .fetchUserInfoAndReturnAccount(e))
                           .toList();
 
                       Future.wait(futures).then((List<Account> accounts) {

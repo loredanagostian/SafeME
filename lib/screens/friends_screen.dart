@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,9 +55,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                 )),
             GestureDetector(
               onTap: () async {
-                bool result = await Navigator.push(context,
+                bool shouldRefresh = await Navigator.push(context,
                     MaterialPageRoute(builder: (context) => MoreScreen()));
-                if (result) setState(() {});
+                if (shouldRefresh) setState(() {});
               },
               child: SizedBox(
                 height: 50,
@@ -68,8 +67,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                         const EdgeInsets.only(right: AppSizes.smallDistance),
                     child: FirebaseAuth.instance.currentUser!.photoURL != null
                         ? CircleAvatar(
-                            backgroundImage: FileImage(File(
-                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                            backgroundImage: NetworkImage(
+                                FirebaseAuth.instance.currentUser!.photoURL!))
                         : CircleAvatar(
                             backgroundImage:
                                 AssetImage(AppPaths.defaultProfilePicture),

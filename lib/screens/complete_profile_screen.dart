@@ -25,7 +25,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
-  String defaultURL = "lib/assets/images/default_account.png";
   File? imageFile;
   String? email;
   String? value;
@@ -137,43 +136,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         if (firstNameController.text.isNotEmpty &&
                             lastNameController.text.isNotEmpty &&
                             phoneNumberController.text.isNotEmpty) {
-                          // final userDatas = <String, dynamic>{
-                          //   "userId":
-                          //       FirebaseAuth.instance.currentUser?.uid ?? "",
-                          //   "email":
-                          //       FirebaseAuth.instance.currentUser?.email ?? "",
-                          //   "firstName": firstNameController.text,
-                          //   "lastName": lastNameController.text,
-                          //   "phoneNumber": phoneNumberController.text,
-                          //   "imageURL": imageFile?.path ?? defaultURL,
-                          //   "emergencySMS": AppStrings.defaultEmergencySMS,
-                          //   "trackingSMS": AppStrings.defaultTrackingSMS,
-                          //   "trackMeNow": false,
-                          //   "userLastLatitude": 0.0,
-                          //   "userLastLongitude": 0.0,
-                          //   "deviceToken": NotificationManager.token,
-                          //   "friends": [],
-                          //   "friendRequests": [],
-                          //   "notifications": [],
-                          //   "emergencyContacts": [],
-                          //   "history": [],
-                          // };
-
-                          // FirebaseFirestore.instance
-                          //     .collection("users")
-                          //     .doc(FirebaseAuth.instance.currentUser?.uid ?? "")
-                          //     .set(userDatas)
-                          //     .then((value) => Navigator.pushAndRemoveUntil(
-                          //         context,
-                          //         MaterialPageRoute(
-                          //             builder: (context) => const MainScreen()),
-                          //         (route) => false));
-                          if (imageFile != null && imageFile!.path.isNotEmpty) {
-                            if (await imageFile!.exists()) {
-                              await AuthenticationManager.updateProfilePicture(
-                                  imageFile?.path);
-                            }
-                          }
                           AuthenticationManager.sendOtp(
                               phoneNumber: phoneNumberController.text,
                               errorStep: () {
@@ -194,6 +156,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                               lastName: lastNameController.text,
                                               phoneNumber:
                                                   phoneNumberController.text,
+                                              file: imageFile,
                                             )),
                                     (route) => false);
                               });

@@ -82,7 +82,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               });
             },
             child: Icon(
-              _isObscureText ? Icons.visibility : Icons.visibility_off,
+              _isObscureText ? Icons.visibility_off : Icons.visibility,
               color: AppColors.darkGray,
               size: 22,
             ),

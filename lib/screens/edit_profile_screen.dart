@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -82,8 +83,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             : FirebaseAuth.instance.currentUser!.photoURL !=
                                     null
                                 ? CircleAvatar(
-                                    backgroundImage: FileImage(File(FirebaseAuth
-                                        .instance.currentUser!.photoURL!)))
+                                    backgroundImage: NetworkImage(FirebaseAuth
+                                        .instance.currentUser!.photoURL!))
                                 : CircleAvatar(
                                     backgroundImage: AssetImage(
                                         AppPaths.defaultProfilePicture),
@@ -209,11 +210,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           .read(userStaticDataProvider.notifier)
                           .updateUserInfo(userInfo);
 
-                      if (imageFile != null && imageFile!.path.isNotEmpty) {
-                        if (await imageFile!.exists()) {
-                          await AuthenticationManager.updateProfilePicture(
-                              imageFile?.path);
-                        }
+                      String? imageUrl;
+                      if (imageFile != null) {
+                        FirebaseStorage storage = FirebaseStorage.instance;
+                        Reference ref = storage
+                            .ref()
+                            .child(FirebaseAuth.instance.currentUser!.uid);
+
+                        UploadTask uploadTask = ref.putFile(imageFile!);
+                        await uploadTask.whenComplete(() async {
+                          var url = await ref.getDownloadURL();
+                          imageUrl = url.toString();
+                        }).catchError((onError) {
+                          print(onError);
+                        });
+
+                        await AuthenticationManager.updateProfilePicture(
+                            imageUrl);
                       }
 
                       if (_hasPressedChangePassword ||

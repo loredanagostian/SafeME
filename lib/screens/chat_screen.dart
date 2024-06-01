@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +71,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: widget.friendAccount.imageURL != null
                       ? CircleAvatar(
                           backgroundImage:
-                              FileImage(File(widget.friendAccount.imageURL!)))
+                              NetworkImage(widget.friendAccount.imageURL!))
                       : CircleAvatar(
                           backgroundImage:
                               AssetImage(AppPaths.defaultProfilePicture),
@@ -124,8 +122,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 width: 50,
                 child: _firebaseAuth.currentUser!.photoURL != null
                     ? CircleAvatar(
-                        backgroundImage: FileImage(
-                            File(_firebaseAuth.currentUser!.photoURL!)))
+                        backgroundImage:
+                            NetworkImage(_firebaseAuth.currentUser!.photoURL!))
                     : CircleAvatar(
                         backgroundImage:
                             AssetImage(AppPaths.defaultProfilePicture),
@@ -191,7 +189,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     child: widget.friendAccount.imageURL != null
                         ? CircleAvatar(
                             backgroundImage:
-                                FileImage(File(widget.friendAccount.imageURL!)))
+                                NetworkImage(widget.friendAccount.imageURL!))
                         : CircleAvatar(
                             backgroundImage:
                                 AssetImage(AppPaths.defaultProfilePicture),

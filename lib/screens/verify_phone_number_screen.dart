@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -19,12 +22,13 @@ class VerifyPhoneNumber extends ConsumerStatefulWidget {
   final String firstName;
   final String lastName;
   final String phoneNumber;
-  const VerifyPhoneNumber({
-    super.key,
-    required this.firstName,
-    required this.lastName,
-    required this.phoneNumber,
-  });
+  final File? file;
+  const VerifyPhoneNumber(
+      {super.key,
+      required this.firstName,
+      required this.lastName,
+      required this.phoneNumber,
+      required this.file});
 
   @override
   ConsumerState<VerifyPhoneNumber> createState() => _VerifyPhoneNumberState();
@@ -72,62 +76,80 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                       buttonText: AppStrings.validate,
                       // Validate phone number
                       onTap: () async {
-                        String result =
-                            await AuthenticationManager.loginWithOtp(
-                                otp: codeController.text);
+                        // String result =
+                        //     await AuthenticationManager.loginWithOtp(
+                        //         otp: codeController.text);
 
                         String userId =
                             FirebaseAuth.instance.currentUser?.uid ?? "";
                         String userEmail =
                             FirebaseAuth.instance.currentUser?.email ?? "";
 
-                        if (result.isEmpty) {
-                          ref
-                              .read(userStaticDataProvider.notifier)
-                              .updateUserInfo(UserStaticData(
-                                  email: userEmail,
-                                  firstName: widget.firstName,
-                                  lastName: widget.lastName,
-                                  phoneNumber: widget.phoneNumber,
-                                  emergencySMS: "",
-                                  trackingSMS: "",
-                                  friends: [],
-                                  friendsRequest: [],
-                                  userId: userId,
-                                  emergencyContacts: [],
-                                  deviceToken: NotificationManager.token,
-                                  history: [],
-                                  notifications: []));
+                        // if (result.isEmpty) {
+                        ref
+                            .read(userStaticDataProvider.notifier)
+                            .updateUserInfo(UserStaticData(
+                                email: userEmail,
+                                firstName: widget.firstName,
+                                lastName: widget.lastName,
+                                phoneNumber: widget.phoneNumber,
+                                emergencySMS: "",
+                                trackingSMS: "",
+                                friends: [],
+                                friendsRequest: [],
+                                userId: userId,
+                                emergencyContacts: [],
+                                deviceToken: NotificationManager.token,
+                                history: [],
+                                notifications: []));
 
-                          final userDatas = <String, dynamic>{
-                            "userId": userId,
-                            "email": userEmail,
-                            "firstName": widget.firstName,
-                            "lastName": widget.lastName,
-                            "phoneNumber": widget.phoneNumber,
-                            "emergencySMS": AppStrings.defaultEmergencySMS,
-                            "trackingSMS": AppStrings.defaultTrackingSMS,
-                            "trackMeNow": false,
-                            "userLastLatitude": 0.0,
-                            "userLastLongitude": 0.0,
-                            "deviceToken": NotificationManager.token,
-                            "emergencyGroup": [],
-                            "friends": [],
-                            "friendRequests": [],
-                            "notifications": [],
-                            "emergencyContacts": [],
-                            "history": [],
-                            "imageURL":
-                                FirebaseAuth.instance.currentUser!.photoURL
-                          };
+                        String? imageUrl;
+                        if (widget.file != null) {
+                          FirebaseStorage storage = FirebaseStorage.instance;
+                          Reference ref = storage
+                              .ref()
+                              .child(FirebaseAuth.instance.currentUser!.uid);
 
-                          FirebaseManager.uploadNewUserData(userDatas).then(
-                              (value) => Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const MainScreen()),
-                                  (route) => false));
+                          UploadTask uploadTask = ref.putFile(widget.file!);
+                          await uploadTask.whenComplete(() async {
+                            var url = await ref.getDownloadURL();
+                            imageUrl = url.toString();
+                          }).catchError((onError) {
+                            print(onError);
+                          });
+
+                          await AuthenticationManager.updateProfilePicture(
+                              imageUrl);
                         }
+
+                        final userDatas = <String, dynamic>{
+                          "userId": userId,
+                          "email": userEmail,
+                          "firstName": widget.firstName,
+                          "lastName": widget.lastName,
+                          "phoneNumber": widget.phoneNumber,
+                          "emergencySMS": AppStrings.defaultEmergencySMS,
+                          "trackingSMS": AppStrings.defaultTrackingSMS,
+                          "trackMeNow": false,
+                          "userLastLatitude": 0.0,
+                          "userLastLongitude": 0.0,
+                          "deviceToken": NotificationManager.token,
+                          "emergencyGroup": [],
+                          "friends": [],
+                          "friendRequests": [],
+                          "notifications": [],
+                          "emergencyContacts": [],
+                          "history": [],
+                          "imageURL": imageUrl
+                        };
+
+                        FirebaseManager.uploadNewUserData(userDatas).then(
+                            (value) => Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const MainScreen()),
+                                (route) => false));
+                        // }
                       }),
                   const SizedBox(height: AppSizes.bigDistance),
                   Row(
