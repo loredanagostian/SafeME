@@ -25,7 +25,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
-  String defaultURL = "lib/assets/images/default_account.png";
   File? imageFile;
   String? email;
   String? value;
@@ -168,12 +167,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           //         MaterialPageRoute(
                           //             builder: (context) => const MainScreen()),
                           //         (route) => false));
-                          if (imageFile != null && imageFile!.path.isNotEmpty) {
-                            if (await imageFile!.exists()) {
-                              await AuthenticationManager.updateProfilePicture(
-                                  imageFile?.path);
-                            }
-                          }
+
                           AuthenticationManager.sendOtp(
                               phoneNumber: phoneNumberController.text,
                               errorStep: () {
@@ -194,6 +188,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                               lastName: lastNameController.text,
                                               phoneNumber:
                                                   phoneNumberController.text,
+                                              file: imageFile,
                                             )),
                                     (route) => false);
                               });

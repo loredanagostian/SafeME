@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -255,8 +254,8 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
                         const EdgeInsets.only(right: AppSizes.smallDistance),
                     child: FirebaseAuth.instance.currentUser!.photoURL != null
                         ? CircleAvatar(
-                            backgroundImage: FileImage(File(
-                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                            backgroundImage: NetworkImage(
+                                FirebaseAuth.instance.currentUser!.photoURL!))
                         : CircleAvatar(
                             backgroundImage:
                                 AssetImage(AppPaths.defaultProfilePicture),

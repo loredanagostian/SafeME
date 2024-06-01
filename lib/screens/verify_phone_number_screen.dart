@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -19,12 +22,13 @@ class VerifyPhoneNumber extends ConsumerStatefulWidget {
   final String firstName;
   final String lastName;
   final String phoneNumber;
-  const VerifyPhoneNumber({
-    super.key,
-    required this.firstName,
-    required this.lastName,
-    required this.phoneNumber,
-  });
+  final File? file;
+  const VerifyPhoneNumber(
+      {super.key,
+      required this.firstName,
+      required this.lastName,
+      required this.phoneNumber,
+      required this.file});
 
   @override
   ConsumerState<VerifyPhoneNumber> createState() => _VerifyPhoneNumberState();
@@ -99,6 +103,25 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                                   history: [],
                                   notifications: []));
 
+                          String? imageUrl;
+                          if (widget.file != null) {
+                            FirebaseStorage storage = FirebaseStorage.instance;
+                            Reference ref = storage
+                                .ref()
+                                .child(FirebaseAuth.instance.currentUser!.uid);
+
+                            UploadTask uploadTask = ref.putFile(widget.file!);
+                            await uploadTask.whenComplete(() async {
+                              var url = await ref.getDownloadURL();
+                              imageUrl = url.toString();
+                            }).catchError((onError) {
+                              print(onError);
+                            });
+
+                            await AuthenticationManager.updateProfilePicture(
+                                imageUrl);
+                          }
+
                           final userDatas = <String, dynamic>{
                             "userId": userId,
                             "email": userEmail,
@@ -117,8 +140,7 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                             "notifications": [],
                             "emergencyContacts": [],
                             "history": [],
-                            "imageURL":
-                                FirebaseAuth.instance.currentUser!.photoURL
+                            "imageURL": imageUrl
                           };
 
                           FirebaseManager.uploadNewUserData(userDatas).then(

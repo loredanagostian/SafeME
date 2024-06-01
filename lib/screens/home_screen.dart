@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -179,8 +178,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const EdgeInsets.only(right: AppSizes.smallDistance),
                     child: FirebaseAuth.instance.currentUser!.photoURL != null
                         ? CircleAvatar(
-                            backgroundImage: FileImage(File(
-                                FirebaseAuth.instance.currentUser!.photoURL!)))
+                            backgroundImage: NetworkImage(
+                                FirebaseAuth.instance.currentUser!.photoURL!))
                         : CircleAvatar(
                             backgroundImage:
                                 AssetImage(AppPaths.defaultProfilePicture),

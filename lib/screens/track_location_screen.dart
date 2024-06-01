@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,7 +100,7 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                     child: widget.friendAccount.imageURL != null
                         ? CircleAvatar(
                             backgroundImage:
-                                FileImage(File(widget.friendAccount.imageURL!)))
+                                NetworkImage(widget.friendAccount.imageURL!))
                         : CircleAvatar(
                             backgroundImage:
                                 AssetImage(AppPaths.defaultProfilePicture),
@@ -313,9 +311,9 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                                                       null
                                                   ? CircleAvatar(
                                                       backgroundImage:
-                                                          FileImage(File(widget
+                                                          NetworkImage(widget
                                                               .friendAccount
-                                                              .imageURL!)))
+                                                              .imageURL!))
                                                   : CircleAvatar(
                                                       backgroundImage:
                                                           AssetImage(AppPaths

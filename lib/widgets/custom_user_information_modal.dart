@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -127,7 +125,7 @@ class _CustomUserInformationModalState
                       child: widget.friend.imageURL != null
                           ? CircleAvatar(
                               backgroundImage:
-                                  FileImage(File(widget.friend.imageURL!)))
+                                  NetworkImage(widget.friend.imageURL!))
                           : CircleAvatar(
                               backgroundImage:
                                   AssetImage(AppPaths.defaultProfilePicture),

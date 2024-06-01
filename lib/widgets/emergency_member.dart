@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/paths.dart';
@@ -42,7 +40,7 @@ class EmergencyMember extends StatelessWidget {
                       child: snapshot.data!.imageURL != null
                           ? CircleAvatar(
                               backgroundImage:
-                                  FileImage(File(snapshot.data!.imageURL!)))
+                                  NetworkImage(snapshot.data!.imageURL!))
                           : CircleAvatar(
                               backgroundImage:
                                   AssetImage(AppPaths.defaultProfilePicture),
