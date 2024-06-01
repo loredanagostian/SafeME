@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +12,9 @@ import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/location_manager.dart';
 import 'package:safe_me/managers/notification_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/track_location_screen.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
@@ -26,14 +26,12 @@ class FriendsScreenFragment extends ConsumerStatefulWidget {
   final bool isGroups;
   final bool isAllFriends;
   final bool isRequests;
-  final Account userAccount;
   const FriendsScreenFragment({
     super.key,
     this.isTrackNow = false,
     this.isGroups = false,
     this.isAllFriends = false,
     this.isRequests = false,
-    required this.userAccount,
   });
 
   @override
@@ -47,7 +45,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
   String _searchQuery = '';
   List<Account> accountsData = [];
   String totalFoundsAccounts = "";
-  late Account currentUser;
+  late UserStaticData _userStaticData;
 
   @override
   void initState() {
@@ -57,7 +55,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
       _onSearchTextChanged(_searchController.text);
     });
 
-    currentUser = widget.userAccount;
+    _userStaticData = ref.read(userStaticDataProvider);
   }
 
   @override
@@ -93,53 +91,6 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
                 : (widget.isRequests ? "requests" : "")));
   }
 
-  Future<List<Account>> fetchFriends(List<String> friendsIds) async {
-    var friendsFutures = friendsIds.map((friendId) {
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(friendId)
-          .get()
-          .then((snapshot) => snapshot.data());
-    }).toList();
-
-    var friendsData = await Future.wait(friendsFutures);
-    List<Account> friendsList = [];
-
-    for (var data in friendsData) {
-      if (data != null) {
-        final friend = Account.fromJson(data);
-
-        if (widget.isAllFriends || (widget.isTrackNow && friend.trackMeNow)) {
-          friendsList.add(friend);
-        }
-      }
-    }
-
-    return friendsList;
-  }
-
-  Future<List<Account>> fetchFriendRequests(
-      List<String> friendRequestsIds) async {
-    var friendRequestsFutures = friendRequestsIds.map((requestId) {
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(requestId)
-          .get()
-          .then((snapshot) => snapshot.data());
-    }).toList();
-
-    var friendRequestsData = await Future.wait(friendRequestsFutures);
-    List<Account> friendRequests = [];
-
-    for (var data in friendRequestsData) {
-      if (data != null) {
-        friendRequests.add(Account.fromJson(data));
-      }
-    }
-
-    return friendRequests;
-  }
-
   String _getButtonText() {
     return widget.isTrackNow ? AppStrings.trackButton : AppStrings.sosButton;
   }
@@ -149,10 +100,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => TrackLocationScreen(
-                    account: account,
-                    currentUser: currentUser,
-                  )));
+              builder: (context) => TrackLocationScreen(account: account)));
     }
 
     if (widget.isAllFriends) {
@@ -167,7 +115,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
           isLocationEnabled) {
         await LocationManager.enableLocationSharing(ref);
 
-        String message = currentUser.emergencySMS;
+        String message = _userStaticData.emergencySMS;
         String encodedMessage = Uri.encodeFull(message);
         final call =
             Uri.parse('sms:${account.phoneNumber}?body=$encodedMessage');
@@ -179,7 +127,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
 
         NotificationManager.sendNotification(
           token: account.deviceToken,
-          body: currentUser.emergencySMS,
+          body: _userStaticData.emergencySMS,
           friendId: account.userId,
         );
 
@@ -196,7 +144,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
     if (widget.isRequests) {
       FirebaseManager.acceptFriendRequest(account.userId);
 
-      if (currentUser.emergencyContacts.isEmpty)
+      if (_userStaticData.emergencyContacts.isEmpty)
         FirebaseManager.addEmergencyContact(account.userId);
 
       if (account.emergencyContacts.isEmpty)
@@ -231,8 +179,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
         });
   }
 
-  void _showUserInformationModal(
-      BuildContext context, Account friendUser, Account user) {
+  void _showUserInformationModal(BuildContext context, Account friendUser) {
     showModalBottomSheet<void>(
         isScrollControlled: true,
         shape: const RoundedRectangleBorder(
@@ -252,104 +199,80 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
 
   @override
   Widget build(BuildContext context) {
-    Stream<DocumentSnapshot<Map<String, dynamic>>> stream = FirebaseFirestore
-        .instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .snapshots();
+    _userStaticData = ref.watch(userStaticDataProvider);
 
     return SingleChildScrollView(
-        child: StreamBuilder(
-            stream: stream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+        child: FutureBuilder<List<Account>>(
+            future: widget.isRequests
+                ? FirebaseManager.fetchFriendRequestsAndReturnAccounts(
+                    _userStaticData.friendsRequest)
+                : FirebaseManager.fetchFriendsAndReturnAccounts(
+                    widget.isAllFriends,
+                    widget.isTrackNow,
+                    _userStaticData.friends),
+            builder: (context, AsyncSnapshot<List<Account>> accountsSnapshot) {
+              if (accountsSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (snapshot.hasData && snapshot.data!.data() != null) {
-                var userData = snapshot.data!.data()!;
-                currentUser = Account.fromJson(userData);
+              } else if (accountsSnapshot.hasData) {
+                accountsData = accountsSnapshot.data!;
+                totalFoundsAccounts = _searchQuery.isNotEmpty
+                    ? filteredData.length.toString()
+                    : accountsData.length.toString();
 
-                return FutureBuilder<List<Account>>(
-                    future: widget.isRequests
-                        ? fetchFriendRequests(currentUser.friendsRequest)
-                        : fetchFriends(currentUser.friends),
-                    builder: (context,
-                        AsyncSnapshot<List<Account>> accountsSnapshot) {
-                      if (accountsSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (accountsSnapshot.hasData) {
-                        accountsData = accountsSnapshot.data!;
-                        totalFoundsAccounts = _searchQuery.isNotEmpty
-                            ? filteredData.length.toString()
-                            : accountsData.length.toString();
+                return Container(
+                  padding: const EdgeInsets.all(AppSizes.smallDistance),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // CustomSearchBar(
+                      //     onChanged: _onSearchTextChanged,
+                      //     searchController: _searchController),
+                      // const SizedBox(height: AppSizes.marginSize),
+                      Text(
+                        "$totalFoundsAccounts ${returnCountType()}",
+                        style: AppStyles.textComponentStyle
+                            .copyWith(color: AppColors.mainBlue),
+                      ),
+                      const Divider(
+                        color: AppColors.mainDarkGray,
+                        thickness: 1,
+                      ),
+                      ListView.builder(
+                        itemCount: _searchQuery.isNotEmpty
+                            ? filteredData.length
+                            : accountsData.length,
+                        itemBuilder: (context, index) {
+                          final item = _searchQuery.isNotEmpty
+                              ? filteredData[index]
+                              : accountsData[index];
 
-                        return Container(
-                          padding: const EdgeInsets.all(AppSizes.smallDistance),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // CustomSearchBar(
-                              //     onChanged: _onSearchTextChanged,
-                              //     searchController: _searchController),
-                              // const SizedBox(height: AppSizes.marginSize),
-                              Text(
-                                "$totalFoundsAccounts ${returnCountType()}",
-                                style: AppStyles.textComponentStyle
-                                    .copyWith(color: AppColors.mainBlue),
-                              ),
-                              const Divider(
-                                color: AppColors.mainDarkGray,
-                                thickness: 1,
-                              ),
-                              ListView.builder(
-                                itemCount: _searchQuery.isNotEmpty
-                                    ? filteredData.length
-                                    : accountsData.length,
-                                itemBuilder: (context, index) {
-                                  final item = _searchQuery.isNotEmpty
-                                      ? filteredData[index]
-                                      : accountsData[index];
-
-                                  return GestureDetector(
-                                    onTap: () => _showUserInformationModal(
-                                        context, item, currentUser),
-                                    child: CustomListTile(
-                                      photoUrl: item.imageURL,
-                                      title:
-                                          "${item.firstName} ${item.lastName}",
-                                      subtitle: item.phoneNumber,
-                                      isRequest: widget.isRequests,
-                                      buttonText: _getButtonText(),
-                                      button1Action: () async {
-                                        await _getButton1Action(item, ref);
-                                      },
-                                      button2Action: () async {
-                                        FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(FirebaseAuth
-                                                .instance.currentUser!.uid)
-                                            .update({
-                                          "friendRequests":
-                                              FieldValue.arrayRemove(
-                                                  [item.userId])
-                                        });
-                                      },
-                                      onDismiss: (DismissDirection direction) =>
-                                          _showDeleteDialog(item),
-                                    ),
-                                  );
-                                },
-                                shrinkWrap: true,
-                              )
-                            ],
-                          ),
-                        );
-                      }
-                      return Container();
-                    });
+                          return GestureDetector(
+                            onTap: () =>
+                                _showUserInformationModal(context, item),
+                            child: CustomListTile(
+                              photoUrl: item.imageURL,
+                              title: "${item.firstName} ${item.lastName}",
+                              subtitle: item.phoneNumber,
+                              isRequest: widget.isRequests,
+                              buttonText: _getButtonText(),
+                              button1Action: () async {
+                                await _getButton1Action(item, ref);
+                              },
+                              button2Action: () async {
+                                await FirebaseManager.declineFriendRequests(
+                                    item.userId);
+                              },
+                              onDismiss: (DismissDirection direction) =>
+                                  _showDeleteDialog(item),
+                            ),
+                          );
+                        },
+                        shrinkWrap: true,
+                      )
+                    ],
+                  ),
+                );
               }
               return Container();
             }));

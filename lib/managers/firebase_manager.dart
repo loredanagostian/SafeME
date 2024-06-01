@@ -119,6 +119,15 @@ class FirebaseManager {
     });
   }
 
+  static Future<void> declineFriendRequests(String friendID) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "friendRequests": FieldValue.arrayRemove([friendID])
+    });
+  }
+
   static Future<void> removeFriend(String friendID) async {
     await FirebaseFirestore.instance
         .collection('users')
@@ -134,5 +143,53 @@ class FirebaseManager {
       "emergencyContacts":
           FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid]),
     });
+  }
+
+  static Future<List<Account>> fetchFriendRequestsAndReturnAccounts(
+      List<String> friendRequestsIds) async {
+    var friendRequestsFutures = friendRequestsIds.map((requestId) {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(requestId)
+          .get()
+          .then((snapshot) => snapshot.data());
+    }).toList();
+
+    var friendRequestsData = await Future.wait(friendRequestsFutures);
+    List<Account> friendRequests = [];
+
+    for (var data in friendRequestsData) {
+      if (data != null) {
+        friendRequests.add(Account.fromJson(data));
+      }
+    }
+
+    return friendRequests;
+  }
+
+  static Future<List<Account>> fetchFriendsAndReturnAccounts(
+      bool isAllFriends, bool isTrackNow, List<String> friendsIds) async {
+    var friendsFutures = friendsIds.map((friendId) {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .get()
+          .then((snapshot) => snapshot.data());
+    }).toList();
+
+    var friendsData = await Future.wait(friendsFutures);
+    List<Account> friendsList = [];
+
+    for (var data in friendsData) {
+      if (data != null) {
+        final friend = Account.fromJson(data);
+
+        if (isAllFriends || (isTrackNow && friend.trackMeNow)) {
+          friendsList.add(friend);
+        }
+      }
+    }
+
+    return friendsList;
   }
 }

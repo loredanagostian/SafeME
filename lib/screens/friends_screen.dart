@@ -1,25 +1,36 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/models/account.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/add_friend_screen.dart';
 import 'package:safe_me/screens/friends_screen_fragment.dart';
 import 'package:safe_me/screens/more_screen.dart';
 
-class FriendsScreen extends StatefulWidget {
-  final Account userAccount;
-  const FriendsScreen({super.key, required this.userAccount});
+class FriendsScreen extends ConsumerStatefulWidget {
+  const FriendsScreen({super.key});
 
   @override
-  State<FriendsScreen> createState() => _FriendsScreenState();
+  ConsumerState<FriendsScreen> createState() => _FriendsScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> {
+class _FriendsScreenState extends ConsumerState<FriendsScreen> {
+  late UserStaticData _userStaticData;
+
+  @override
+  void initState() {
+    super.initState();
+    _userStaticData = ref.read(userStaticDataProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
+    _userStaticData = ref.watch(userStaticDataProvider);
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -52,7 +63,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         const EdgeInsets.only(right: AppSizes.smallDistance),
                     child: CircleAvatar(
                         backgroundImage:
-                            FileImage(File(widget.userAccount.imageURL)))),
+                            FileImage(File(_userStaticData.imageURL)))),
               ),
             )
           ],
@@ -72,7 +83,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 child: Text(
                   AppStrings.requests,
                   style: TextStyle(
-                      color: widget.userAccount.friendsRequest.isNotEmpty
+                      color: _userStaticData.friendsRequest.isNotEmpty
                           ? AppColors.lightBlue
                           : AppColors.mediumGray),
                 ),
@@ -82,18 +93,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ),
         body: TabBarView(
           children: [
-            FriendsScreenFragment(
-              isTrackNow: true,
-              userAccount: widget.userAccount,
-            ),
-            FriendsScreenFragment(
-              isAllFriends: true,
-              userAccount: widget.userAccount,
-            ),
-            FriendsScreenFragment(
-              isRequests: true,
-              userAccount: widget.userAccount,
-            ),
+            FriendsScreenFragment(isTrackNow: true),
+            FriendsScreenFragment(isAllFriends: true),
+            FriendsScreenFragment(isRequests: true),
           ],
         ),
       ),
