@@ -121,17 +121,20 @@ class _DefaultEmergencyContactsScreenState
                       style: AppStyles.textComponentStyle
                           .copyWith(color: AppColors.mainBlue),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 5),
-                      child: SizedBox(
-                        height: 35,
-                        width: 35,
-                        child: IconButton(
-                          onPressed: () => _showAllFriendsList(context),
-                          icon: const Icon(
-                            Icons.person_add_outlined,
-                            color: AppColors.mainDarkGray,
-                            size: 30,
+                    Visibility(
+                      visible: _userData.friends.isNotEmpty,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        child: SizedBox(
+                          height: 35,
+                          width: 35,
+                          child: IconButton(
+                            onPressed: () => _showAllFriendsList(context),
+                            icon: const Icon(
+                              Icons.person_add_outlined,
+                              color: AppColors.mainDarkGray,
+                              size: 30,
+                            ),
                           ),
                         ),
                       ),

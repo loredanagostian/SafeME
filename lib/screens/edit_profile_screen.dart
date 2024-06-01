@@ -36,7 +36,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    UserStaticData userInfo = ref.read(userStaticDataProvider);
+    UserStaticData userInfo = ref.watch(userStaticDataProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -126,7 +126,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     onTap: () {
                       userInfo.firstName = firstNameController.text;
                       userInfo.lastName = lastNameController.text;
-                      userInfo.imageURL = imageFile!.path;
+                      userInfo.imageURL = imageFile?.path ?? userInfo.imageURL;
                       ref
                           .read(userStaticDataProvider.notifier)
                           .updateUserInfo(userInfo);
@@ -136,7 +136,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               lastNameController.text,
                               userInfo.imageURL)
                           .then((value) {
-                        Navigator.pop(context);
+                        Navigator.pop(context, true);
                       });
                     })
               ]),

@@ -26,7 +26,7 @@ class _DefaultEmergencySmsScreenState
   void initState() {
     super.initState();
     emergencySMSController = TextEditingController(
-        text: ref.watch(userStaticDataProvider).emergencySMS);
+        text: ref.read(userStaticDataProvider).emergencySMS);
 
     emergencySMSController.addListener(() {
       setState(() {});

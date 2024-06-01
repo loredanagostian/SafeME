@@ -7,7 +7,6 @@ import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
@@ -115,10 +114,7 @@ class _DefaultTrackingSmsScreenState
                     FirebaseManager.changeTrackingSMS(
                             trackingSMSController.text)
                         .then((value) {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MoreScreen()));
+                      Navigator.pop(context);
                     });
                   })
             ],

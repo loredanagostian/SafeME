@@ -95,6 +95,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _userStaticData = ref.read(userStaticDataProvider);
+    _initializeUserData();
+  }
+
+  void _initializeUserData() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      var userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('userId', isEqualTo: currentUser.uid)
+          .get();
+
+      if (userSnapshot.docs.isNotEmpty) {
+        var userData = Account.fromJson(userSnapshot.docs.first.data());
+        ref.read(userStaticDataProvider.notifier).updateUserInfo(UserStaticData(
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            phoneNumber: userData.phoneNumber,
+            imageURL: userData.imageURL,
+            emergencySMS: userData.emergencySMS,
+            trackingSMS: userData.trackingSMS,
+            friends: userData.friends,
+            friendsRequest: userData.friendsRequest,
+            userId: userData.userId,
+            emergencyContacts: userData.emergencyContacts,
+            deviceToken: userData.deviceToken,
+            history: userData.history,
+            notifications: userData.notifications));
+
+        ref.read(userDynamicDataProvider.notifier).updateUserInfo(
+            UserDynamicData(
+                trackMeNow: userData.trackMeNow,
+                lastLatitude: userData.lastLatitude,
+                lastLongitude: userData.lastLongitude));
+      }
+    }
   }
 
   @override
@@ -166,33 +202,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     var user = snapshot.data!.docs.firstWhere(
                         (value) => value["userId"] == currentUser!.uid);
                     Account userData = Account.fromJson(user.data());
-                    Future.microtask(() {
-                      // Schedule the update to occur after the build phase
-                      ref.read(userStaticDataProvider.notifier).updateUserInfo(
-                          UserStaticData(
-                              email: userData.email,
-                              firstName: userData.firstName,
-                              lastName: userData.lastName,
-                              phoneNumber: userData.phoneNumber,
-                              imageURL: userData.imageURL,
-                              emergencySMS: userData.emergencySMS,
-                              trackingSMS: userData.trackingSMS,
-                              friends: userData.friends,
-                              friendsRequest: userData.friendsRequest,
-                              userId: userData.userId,
-                              emergencyContacts: userData.emergencyContacts,
-                              deviceToken: userData.deviceToken,
-                              history: userData.history,
-                              notifications: userData.notifications));
-
-                      ref.read(userDynamicDataProvider.notifier).updateUserInfo(
-                          UserDynamicData(
-                              trackMeNow: userData.trackMeNow,
-                              lastLatitude: userData.lastLatitude,
-                              lastLongitude: userData.lastLongitude));
-                    });
-                    ;
-
                     List<Account> emergencyAccounts = [];
                     if (userData.emergencyContacts.isNotEmpty) {
                       List<Future<Account>> futures = userData.emergencyContacts

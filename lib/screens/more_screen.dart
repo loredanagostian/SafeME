@@ -105,10 +105,13 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   height: 100,
                   alignment: Alignment.topRight,
                   child: IconButton(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => EditProfileScreen())),
+                      onPressed: () async {
+                        bool result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => EditProfileScreen()));
+                        if (result) setState(() {});
+                      },
                       icon: const Icon(
                         Icons.edit_outlined,
                         color: AppColors.mainDarkGray,
