@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -50,12 +48,10 @@ class _CustomUserInformationModalState
   }
 
   void _setEmergencyContact(BuildContext context) {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({
-      "emergencyContacts": FieldValue.arrayUnion([widget.friend.userId]),
-    }).then((value) => Navigator.pop(context));
+    _userStaticData.emergencyContacts.add(widget.friend.userId);
+    ref.read(userStaticDataProvider.notifier).updateUserInfo(_userStaticData);
+    FirebaseManager.addEmergencyContact(widget.friend.userId)
+        .then((value) => Navigator.pop(context));
   }
 
   void _showDeleteDialog(Account account, BuildContext context) {
@@ -71,12 +67,20 @@ class _CustomUserInformationModalState
                 "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${widget.isEmergencyScreen ? AppStrings.deleteUserMessage2_emergencyContactsList : AppStrings.deleteUserMessage2_friendList}",
             onConfirm: () async {
               if (widget.isEmergencyScreen) {
+                _userStaticData.emergencyContacts.remove(account.userId);
+                ref
+                    .read(userStaticDataProvider.notifier)
+                    .updateUserInfo(_userStaticData);
                 await FirebaseManager.removeEmergencyContact(account.userId);
 
                 Navigator.of(context)
                   ..pop()
                   ..pop();
               } else {
+                _userStaticData.friends.remove(account.userId);
+                ref
+                    .read(userStaticDataProvider.notifier)
+                    .updateUserInfo(_userStaticData);
                 await FirebaseManager.removeFriend(account.userId);
 
                 Navigator.of(context)

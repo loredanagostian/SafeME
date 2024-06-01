@@ -8,7 +8,6 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
-import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/default_emergency_contacts_screen.dart';
 import 'package:safe_me/screens/default_emergency_sms_screen.dart';
@@ -180,9 +179,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => DefaultTrackingSmsScreen(
-                            trackingSMS: account.trackingSMS,
-                          ))),
+                      builder: (context) => DefaultTrackingSmsScreen())),
               title: Text(
                 AppStrings.changeTrackingSMS,
                 style: AppStyles.textComponentStyle.copyWith(fontSize: 15),

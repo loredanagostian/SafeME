@@ -1,12 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
@@ -104,12 +104,15 @@ class _DefaultEmergencySmsScreenState
                   buttonColor: AppColors.mainBlue,
                   buttonText: AppStrings.saveChanges,
                   onTap: () {
-                    FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({
-                      "emergencySMS": emergencySMSController.text
-                    }).then((value) {
+                    UserStaticData _userStaticData =
+                        ref.watch(userStaticDataProvider);
+                    _userStaticData.emergencySMS = emergencySMSController.text;
+                    ref
+                        .read(userStaticDataProvider.notifier)
+                        .updateUserInfo(_userStaticData);
+                    FirebaseManager.changeEmergencySMS(
+                            emergencySMSController.text)
+                        .then((value) {
                       Navigator.pop(context);
                     });
                   })

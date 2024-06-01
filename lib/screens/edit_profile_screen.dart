@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +7,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/widgets/custom_button.dart';
@@ -125,31 +124,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.saveChanges,
                     onTap: () {
-                      ref.read(userStaticDataProvider.notifier).updateUserInfo(
-                          UserStaticData(
-                              email: userInfo.email,
-                              firstName: firstNameController.text,
-                              lastName: lastNameController.text,
-                              phoneNumber: userInfo.phoneNumber,
-                              imageURL: userInfo.imageURL,
-                              emergencySMS: userInfo.emergencySMS,
-                              trackingSMS: userInfo.trackingSMS,
-                              friends: userInfo.friends,
-                              friendsRequest: userInfo.friendsRequest,
-                              userId: userInfo.userId,
-                              emergencyContacts: userInfo.emergencyContacts,
-                              deviceToken: userInfo.deviceToken,
-                              history: userInfo.history));
+                      userInfo.firstName = firstNameController.text;
+                      userInfo.lastName = lastNameController.text;
+                      userInfo.imageURL = imageFile!.path;
+                      ref
+                          .read(userStaticDataProvider.notifier)
+                          .updateUserInfo(userInfo);
 
-                      FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .update({
-                        "firstName": firstNameController.text,
-                        "lastName": lastNameController.text,
-                        "imageURL": imageFile?.path ??
-                            ref.watch(userStaticDataProvider).imageURL
-                      }).then((value) {
+                      FirebaseManager.changeUserInformation(
+                              firstNameController.text,
+                              lastNameController.text,
+                              userInfo.imageURL)
+                          .then((value) {
                         Navigator.pop(context);
                       });
                     })

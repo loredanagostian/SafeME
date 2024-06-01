@@ -1,30 +1,33 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
+import 'package:safe_me/managers/firebase_manager.dart';
+import 'package:safe_me/managers/user_info_provider.dart';
+import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/more_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
-class DefaultTrackingSmsScreen extends StatefulWidget {
-  final String trackingSMS;
-  const DefaultTrackingSmsScreen({super.key, required this.trackingSMS});
+class DefaultTrackingSmsScreen extends ConsumerStatefulWidget {
+  const DefaultTrackingSmsScreen({super.key});
 
   @override
-  State<DefaultTrackingSmsScreen> createState() =>
+  ConsumerState<DefaultTrackingSmsScreen> createState() =>
       _DefaultTrackingSmsScreenState();
 }
 
-class _DefaultTrackingSmsScreenState extends State<DefaultTrackingSmsScreen> {
+class _DefaultTrackingSmsScreenState
+    extends ConsumerState<DefaultTrackingSmsScreen> {
   late TextEditingController trackingSMSController;
 
   @override
   void initState() {
     super.initState();
-    trackingSMSController = TextEditingController(text: widget.trackingSMS);
+    trackingSMSController = TextEditingController(
+        text: ref.read(userStaticDataProvider).trackingSMS);
 
     trackingSMSController.addListener(() {
       setState(() {});
@@ -102,12 +105,16 @@ class _DefaultTrackingSmsScreenState extends State<DefaultTrackingSmsScreen> {
                   buttonColor: AppColors.mainBlue,
                   buttonText: AppStrings.saveChanges,
                   onTap: () {
-                    FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({
-                      "trackingSMS": trackingSMSController.text
-                    }).then((value) {
+                    UserStaticData _userStaticProvider =
+                        ref.watch(userStaticDataProvider);
+                    _userStaticProvider.trackingSMS =
+                        trackingSMSController.text;
+                    ref
+                        .read(userStaticDataProvider.notifier)
+                        .updateUserInfo(_userStaticProvider);
+                    FirebaseManager.changeTrackingSMS(
+                            trackingSMSController.text)
+                        .then((value) {
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

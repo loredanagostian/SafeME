@@ -21,12 +21,6 @@ class _CustomFriendsBottomModalState
   late UserStaticData _userStaticData;
 
   @override
-  void initState() {
-    super.initState();
-    _userStaticData = ref.read(userStaticDataProvider);
-  }
-
-  @override
   Widget build(BuildContext context) {
     _userStaticData = ref.watch(userStaticDataProvider);
 
@@ -52,8 +46,14 @@ class _CustomFriendsBottomModalState
                     _userStaticData.emergencyContacts
                             .contains(friendItem.userId)
                         ? null
-                        : FirebaseManager.addEmergencyContact(friendItem.userId)
-                            .then((value) => Navigator.pop(context));
+                        : {
+                            _userStaticData.emergencyContacts.add(friendId),
+                            ref
+                                .read(userStaticDataProvider.notifier)
+                                .updateUserInfo(_userStaticData),
+                            FirebaseManager.addEmergencyContact(friendId)
+                                .then((value) => Navigator.pop(context))
+                          };
                   },
                   isAlreadyFriend: _userStaticData.emergencyContacts
                       .contains(friendItem.userId),

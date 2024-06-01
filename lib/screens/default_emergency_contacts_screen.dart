@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
@@ -55,13 +53,11 @@ class _DefaultEmergencyContactsScreenState
             message:
                 "${AppStrings.deleteUserMessage1} ${friend.firstName} ${friend.lastName} ${AppStrings.deleteUserMessage2_emergencyContactsList}",
             onConfirm: () async {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .update({
-                "emergencyContacts": FieldValue.arrayRemove([friend.userId])
-              });
-
+              _userData.emergencyContacts.remove(friend.userId);
+              ref
+                  .read(userStaticDataProvider.notifier)
+                  .updateUserInfo(_userData);
+              await FirebaseManager.removeEmergencyContact(friend.userId);
               Navigator.pop(context);
             },
             onCancel: () {

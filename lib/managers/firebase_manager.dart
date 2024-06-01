@@ -16,15 +16,6 @@ class FirebaseManager {
     return friendAccount;
   }
 
-  static Future<void> removeEmergencyContact(String friendID) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({
-      "emergencyContacts": FieldValue.arrayRemove([friendID])
-    });
-  }
-
   static Future<void> removeFriend(String friendID) async {
     await FirebaseFirestore.instance
         .collection('users')
@@ -49,5 +40,40 @@ class FirebaseManager {
         .update({
       "emergencyContacts": FieldValue.arrayUnion([friendID]),
     });
+  }
+
+  static Future<void> removeEmergencyContact(String friendID) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "emergencyContacts": FieldValue.arrayRemove([friendID])
+    });
+  }
+
+  static Future<void> changeUserInformation(
+      String firstName, String lastName, String profileURL) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({
+      "firstName": firstName,
+      "lastName": lastName,
+      "imageURL": profileURL
+    });
+  }
+
+  static Future<void> changeTrackingSMS(String message) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({"trackingSMS": message});
+  }
+
+  static Future<void> changeEmergencySMS(String message) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({"emergencySMS": message});
   }
 }
