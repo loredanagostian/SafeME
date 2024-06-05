@@ -2,6 +2,7 @@ class AppStrings {
   static const String appTitle = "Safe ME";
   static const String email = "E-mail";
   static const String password = "Password";
+  static const String oldPassword = "Old password";
   static const String confirmPassword = "Confirm password";
   static const String invalidEmail = "Invalid email";
   static const String emailAlreadyExists =
@@ -9,6 +10,7 @@ class AppStrings {
   static const String passwordTooWeak = "The password provided is too weak.";
   static const String noUserFound = "No user found for that email.";
   static const String invalidCredentials = "Invalid credentials.";
+  static const String oldPasswordNotCorrect = "Old password is incorrect.";
   static const String login = "Login";
   static const String logout = "Logout";
   static const String loginWithGoogle = "Login with Google";
@@ -43,6 +45,8 @@ class AppStrings {
   static const String changeFirstName = "Change first name";
   static const String changeLastName = "Change last name";
   static const String changePassword = "Change password";
+  static const String changePasswordLogoutMessage =
+      "You will be logged out now, please sign in again with your new password!";
   static const String selectPicture = "Select picture";
   static const String saveChanges = "Save changes";
   static const String emergencySMS = "Emergency SMS";
@@ -120,4 +124,5 @@ class AppStrings {
   static const String unknownError = "Unknown error.";
   static const String invalidCode = "Invalid code";
   static const String typeAMessageHint = "Type a message";
+  static const String ok = "Ok";
 }

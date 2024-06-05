@@ -54,8 +54,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   const SizedBox(height: AppSizes.bigDistance),
                   Center(
                     child: SizedBox(
-                      height: 100,
-                      width: 100,
+                      height: 150,
+                      width: 150,
                       child: Padding(
                           padding: const EdgeInsets.only(
                               right: AppSizes.smallDistance),
@@ -82,8 +82,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         }
                       },
                       child: Container(
-                          height: 25,
-                          width: 120,
+                          height: 35,
+                          width: 130,
                           decoration: BoxDecoration(
                               color: AppColors.mainBlue,
                               borderRadius:

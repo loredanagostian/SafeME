@@ -114,7 +114,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     isPassword: true,
                     isDone: true,
                   ),
-                  const SizedBox(height: AppSizes.buttonHeight),
+                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.3),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.signupTitle,
@@ -130,13 +130,6 @@ class _SignupScreenState extends State<SignupScreen> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => VerifyEmail()));
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => CompleteProfileScreen(
-                          //               email: emailController.text,
-                          //               value: success,
-                          //             )));
                         }
                       }),
                   const SizedBox(height: AppSizes.bigDistance),

@@ -56,7 +56,7 @@ class _DefaultEmergencyContactsScreenState
             title: AppStrings.deleteUser,
             message:
                 "${AppStrings.deleteUserMessage1} ${friend.firstName} ${friend.lastName} ${AppStrings.deleteUserMessage2_emergencyContactsList}",
-            onConfirm: () async {
+            firstButtonAction: () async {
               _userData.emergencyContacts.remove(friend.userId);
               ref
                   .read(userStaticDataProvider.notifier)
@@ -64,7 +64,7 @@ class _DefaultEmergencyContactsScreenState
               await FirebaseManager.removeEmergencyContact(friend.userId);
               Navigator.pop(context);
             },
-            onCancel: () {
+            secondButtonAction: () {
               Navigator.pop(context);
               setState(() {});
             },
@@ -167,7 +167,8 @@ class _DefaultEmergencyContactsScreenState
                                   context, friendItem),
                               child: CustomListTile(
                                 photoUrl: friendItem.imageURL,
-                                title: friendItem.firstName,
+                                title:
+                                    "${friendItem.firstName} ${friendItem.lastName}",
                                 subtitle: friendItem.phoneNumber,
                                 onDismiss: (DismissDirection direction) =>
                                     _showDeleteDialog(friendItem),

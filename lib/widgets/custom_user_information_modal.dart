@@ -64,7 +64,7 @@ class _CustomUserInformationModalState
                 : AppStrings.deleteUser,
             message:
                 "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${widget.isEmergencyScreen ? AppStrings.deleteUserMessage2_emergencyContactsList : AppStrings.deleteUserMessage2_friendList}",
-            onConfirm: () async {
+            firstButtonAction: () async {
               if (widget.isEmergencyScreen) {
                 _userStaticData.emergencyContacts.remove(account.userId);
                 ref
@@ -87,7 +87,7 @@ class _CustomUserInformationModalState
                   ..pop();
               }
             },
-            onCancel: () {
+            secondButtonAction: () {
               Navigator.pop(context);
             },
           );

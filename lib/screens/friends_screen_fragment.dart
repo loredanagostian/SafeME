@@ -182,7 +182,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
             title: AppStrings.deleteUser,
             message:
                 "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteUserMessage2_friendList}",
-            onConfirm: () async {
+            firstButtonAction: () async {
               _userStaticData.friends.remove(account.userId);
               ref
                   .read(userStaticDataProvider.notifier)
@@ -196,7 +196,7 @@ class _FriendsScreenFragmentState extends ConsumerState<FriendsScreenFragment> {
 
               Navigator.pop(context, shouldRefresh);
             },
-            onCancel: () {
+            secondButtonAction: () {
               Navigator.pop(context, shouldRefresh);
               setState(() {});
             },

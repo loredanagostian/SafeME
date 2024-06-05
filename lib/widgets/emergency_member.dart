@@ -4,6 +4,7 @@ import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
+import 'package:safe_me/screens/chat_screen.dart';
 
 class EmergencyMember extends StatelessWidget {
   final Future<Account> emergencyUser;
@@ -23,39 +24,46 @@ class EmergencyMember extends StatelessWidget {
           }
 
           if (snapshot.hasData) {
-            return Container(
-              width: 75,
-              decoration: BoxDecoration(
-                  color: AppColors.lightGray,
-                  borderRadius: BorderRadius.circular(AppSizes.borders)),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(AppSizes.smallDistance),
-                    child: SizedBox(
-                      height: 50,
-                      width: 50,
-                      child: snapshot.data!.imageURL != null
-                          ? CircleAvatar(
-                              backgroundImage:
-                                  NetworkImage(snapshot.data!.imageURL!))
-                          : CircleAvatar(
-                              backgroundImage:
-                                  AssetImage(AppPaths.defaultProfilePicture),
-                              backgroundColor: AppColors.white,
-                            ),
+            return GestureDetector(
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ChatScreen(friendAccount: snapshot.data!))),
+              child: Container(
+                width: 75,
+                decoration: BoxDecoration(
+                    color: AppColors.lightGray,
+                    borderRadius: BorderRadius.circular(AppSizes.borders)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(AppSizes.smallDistance),
+                      child: SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: snapshot.data!.imageURL != null
+                            ? CircleAvatar(
+                                backgroundImage:
+                                    NetworkImage(snapshot.data!.imageURL!))
+                            : CircleAvatar(
+                                backgroundImage:
+                                    AssetImage(AppPaths.defaultProfilePicture),
+                                backgroundColor: AppColors.white,
+                              ),
+                      ),
                     ),
-                  ),
-                  Flexible(
-                    child: Text(
-                      "${snapshot.data!.firstName}\n${snapshot.data!.lastName}",
-                      style: AppStyles.textComponentStyle,
-                      textAlign: TextAlign.center,
+                    Flexible(
+                      child: Text(
+                        "${snapshot.data!.firstName}\n${snapshot.data!.lastName}",
+                        style: AppStyles.textComponentStyle,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           }

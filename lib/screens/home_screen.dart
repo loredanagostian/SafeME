@@ -60,13 +60,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             title: AppStrings.deleteChatTitle,
             message:
                 "${AppStrings.deleteUserMessage1} ${account.firstName} ${account.lastName} ${AppStrings.deleteChatMessage}",
-            onConfirm: () async {
+            firstButtonAction: () async {
               await ChatManager.deleteAllMessages(
                   FirebaseAuth.instance.currentUser!.uid, account.userId);
 
               Navigator.pop(context);
             },
-            onCancel: () {
+            secondButtonAction: () {
               Navigator.pop(context);
               setState(() {});
             },

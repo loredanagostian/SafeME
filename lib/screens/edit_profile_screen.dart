@@ -14,7 +14,10 @@ import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
+import 'package:safe_me/screens/login_screen.dart';
+import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_button.dart';
+import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -27,10 +30,32 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
+  late TextEditingController oldPasswordController;
   late TextEditingController passwordController;
   late TextEditingController confirmPasswordController;
   File? imageFile;
   bool _hasPressedChangePassword = false;
+
+  void _showChangePasswordDialog() {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return CustomAlertDialog(
+            title: AppStrings.changePassword,
+            message: AppStrings.changePasswordLogoutMessage,
+            firstButtonLabel: AppStrings.ok.toUpperCase(),
+            firstButtonAction: () async {
+              await FirebaseAuth.instance.signOut().then((value) =>
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()),
+                      (route) => false));
+            },
+          );
+        });
+  }
 
   @override
   void initState() {
@@ -39,6 +64,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         TextEditingController(text: ref.read(userStaticDataProvider).firstName);
     lastNameController =
         TextEditingController(text: ref.read(userStaticDataProvider).lastName);
+    oldPasswordController = TextEditingController();
     passwordController = TextEditingController();
     confirmPasswordController = TextEditingController();
   }
@@ -72,8 +98,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               children: [
                 Center(
                   child: SizedBox(
-                    height: 100,
-                    width: 100,
+                    height: 150,
+                    width: 150,
                     child: Padding(
                         padding: const EdgeInsets.only(
                             right: AppSizes.smallDistance),
@@ -106,8 +132,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       }
                     },
                     child: Container(
-                        height: 25,
-                        width: 120,
+                        height: 35,
+                        width: 130,
                         decoration: BoxDecoration(
                             color: AppColors.mainBlue,
                             borderRadius:
@@ -172,6 +198,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
+                            AppStrings.oldPassword,
+                            style: AppStyles.buttonTextStyle
+                                .copyWith(color: AppColors.mainDarkGray),
+                          ),
+                          CustomTextField(
+                            controller: oldPasswordController,
+                            hintText: AppStrings.password,
+                            isPassword: true,
+                          ),
+                          const SizedBox(height: AppSizes.mediumDistance),
+                          Text(
                             AppStrings.password,
                             style: AppStyles.buttonTextStyle
                                 .copyWith(color: AppColors.mainDarkGray),
@@ -181,7 +218,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             hintText: AppStrings.password,
                             isPassword: true,
                           ),
-                          const SizedBox(height: AppSizes.bigDistance),
+                          const SizedBox(height: AppSizes.mediumDistance),
                           Text(
                             AppStrings.confirmPassword,
                             style: AppStyles.buttonTextStyle
@@ -198,8 +235,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     )),
                 SizedBox(
                     height: _hasPressedChangePassword
-                        ? AppSizes.mediumDistance
-                        : MediaQuery.sizeOf(context).height * 0.2),
+                        ? AppSizes.bigDistance
+                        : MediaQuery.sizeOf(context).height * 0.15),
                 CustomButton(
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.saveChanges,
@@ -229,20 +266,51 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             imageUrl);
                       }
 
-                      if (_hasPressedChangePassword ||
-                          (passwordController.text ==
-                                  confirmPasswordController.text &&
-                              passwordController.text.isNotEmpty)) {
-                        FirebaseAuth.instance.currentUser!
-                            .updatePassword(passwordController.text);
+                      if (_hasPressedChangePassword &&
+                          passwordController.text ==
+                              confirmPasswordController.text &&
+                          passwordController.text.isNotEmpty &&
+                          oldPasswordController.text.isNotEmpty) {
+                        AuthCredential credential =
+                            EmailAuthProvider.credential(
+                                email:
+                                    FirebaseAuth.instance.currentUser!.email!,
+                                password: oldPasswordController.text);
+                        try {
+                          await FirebaseAuth.instance.currentUser!
+                              .reauthenticateWithCredential(credential);
+                          FirebaseAuth.instance.currentUser!
+                              .updatePassword(passwordController.text);
+                          await FirebaseManager.changeUserInformation(
+                                  firstNameController.text,
+                                  lastNameController.text)
+                              .then((value) => _showChangePasswordDialog());
+                        } on FirebaseAuthException catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: CustomSnackbarContent(
+                                snackBarMessage:
+                                    AppStrings.oldPasswordNotCorrect),
+                            backgroundColor: AppColors.mainRed,
+                          ));
+                          return;
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: CustomSnackbarContent(
+                              snackBarMessage:
+                                  passwordController.text.isNotEmpty
+                                      ? AppStrings.invalidCredentials
+                                      : AppStrings.allFieldsMustBeCompleted),
+                          backgroundColor: AppColors.mainRed,
+                        ));
+                        return;
                       }
-
-                      FirebaseManager.changeUserInformation(
-                              firstNameController.text, lastNameController.text)
-                          .then((value) {
-                        Navigator.pop(context, true);
-                      });
-                    })
+                    }),
+                Visibility(
+                    visible: _hasPressedChangePassword,
+                    child: SizedBox(
+                      height: AppSizes.mediumDistance,
+                    ))
               ]),
         ),
       ),

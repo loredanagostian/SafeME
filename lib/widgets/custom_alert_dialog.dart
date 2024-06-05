@@ -8,15 +8,18 @@ import 'package:safe_me/widgets/custom_button.dart';
 class CustomAlertDialog extends StatelessWidget {
   final String title;
   final String message;
-  final void Function() onConfirm;
-  final void Function() onCancel;
-  const CustomAlertDialog({
-    super.key,
-    required this.title,
-    required this.message,
-    required this.onConfirm,
-    required this.onCancel,
-  });
+  final String firstButtonLabel;
+  final String? secondButtonLabel;
+  final void Function() firstButtonAction;
+  final void Function()? secondButtonAction;
+  const CustomAlertDialog(
+      {super.key,
+      required this.title,
+      required this.message,
+      required this.firstButtonAction,
+      this.firstButtonLabel = AppStrings.delete,
+      this.secondButtonAction,
+      this.secondButtonLabel = AppStrings.cancel});
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +50,22 @@ class CustomAlertDialog extends StatelessWidget {
           height: 40,
           child: CustomButton(
               buttonColor: AppColors.mainRed,
-              buttonText: AppStrings.delete,
-              onTap: onConfirm),
+              buttonText: firstButtonLabel,
+              onTap: firstButtonAction),
         ),
         SizedBox(height: AppSizes.smallDistance),
-        SizedBox(
-          height: 40,
-          child: CustomButton(
-              buttonColor: AppColors.componentGray,
-              buttonText: AppStrings.cancel,
-              buttonTextColor: AppColors.mainDarkGray,
-              onTap: onCancel),
-        ),
+        ...[
+          secondButtonAction != null && secondButtonLabel != null
+              ? SizedBox(
+                  height: 40,
+                  child: CustomButton(
+                      buttonColor: AppColors.componentGray,
+                      buttonText: secondButtonLabel!,
+                      buttonTextColor: AppColors.mainDarkGray,
+                      onTap: secondButtonAction!),
+                )
+              : Container()
+        ],
       ],
     );
   }
