@@ -114,7 +114,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     isPassword: true,
                     isDone: true,
                   ),
-                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.3),
+                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.signupTitle,

@@ -14,6 +14,7 @@ import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
 import 'package:safe_me/screens/main_screen.dart';
+import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';
@@ -142,6 +143,10 @@ class _VerifyPhoneNumberState extends ConsumerState<VerifyPhoneNumber> {
                             "history": [],
                             "imageURL": imageUrl
                           };
+
+                          ref
+                              .read(bottomNavigatorIndex.notifier)
+                              .update((state) => 1);
 
                           FirebaseManager.uploadNewUserData(userDatas).then(
                               (value) => Navigator.pushAndRemoveUntil(

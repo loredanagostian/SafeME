@@ -116,7 +116,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.35),
+                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.3),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.login,

@@ -128,7 +128,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     isPhoneNumber: true,
                     isDone: true,
                   ),
-                  const SizedBox(height: AppSizes.titleFieldDistance),
+                  const SizedBox(height: AppSizes.buttonHeight),
                   CustomButton(
                       buttonColor: AppColors.mainBlue,
                       buttonText: AppStrings.saveChanges,
