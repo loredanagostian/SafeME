@@ -35,6 +35,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController confirmPasswordController;
   File? imageFile;
   bool _hasPressedChangePassword = false;
+  bool shouldRefresh = false;
 
   void _showChangePasswordDialog() {
     showDialog(
@@ -82,7 +83,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           style: AppStyles.titleStyle,
         ),
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, shouldRefresh),
           icon: const Icon(
             Icons.arrow_back_ios,
             color: AppColors.mainDarkGray,
@@ -236,16 +237,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 SizedBox(
                     height: _hasPressedChangePassword
                         ? AppSizes.bigDistance
-                        : MediaQuery.sizeOf(context).height * 0.15),
+                        : MediaQuery.sizeOf(context).height * 0.10),
                 CustomButton(
                     buttonColor: AppColors.mainBlue,
                     buttonText: AppStrings.saveChanges,
                     onTap: () async {
-                      userInfo.firstName = firstNameController.text;
-                      userInfo.lastName = lastNameController.text;
-                      ref
-                          .read(userStaticDataProvider.notifier)
-                          .updateUserInfo(userInfo);
+                      if (userInfo.firstName != firstNameController.text) {
+                        userInfo.firstName = firstNameController.text;
+                        shouldRefresh = true;
+                      }
+
+                      if (userInfo.lastName != lastNameController.text) {
+                        userInfo.lastName = lastNameController.text;
+                        shouldRefresh = true;
+                      }
+
+                      if (shouldRefresh) {
+                        ref
+                            .read(userStaticDataProvider.notifier)
+                            .updateUserInfo(userInfo);
+                        await FirebaseManager.changeUserInformation(
+                            firstNameController.text, lastNameController.text);
+                      }
 
                       String? imageUrl;
                       if (imageFile != null) {
@@ -264,47 +277,48 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
                         await AuthenticationManager.updateProfilePicture(
                             imageUrl);
+
+                        shouldRefresh = true;
                       }
 
-                      if (_hasPressedChangePassword &&
-                          passwordController.text ==
-                              confirmPasswordController.text &&
-                          passwordController.text.isNotEmpty &&
-                          oldPasswordController.text.isNotEmpty) {
-                        AuthCredential credential =
-                            EmailAuthProvider.credential(
-                                email:
-                                    FirebaseAuth.instance.currentUser!.email!,
-                                password: oldPasswordController.text);
-                        try {
-                          await FirebaseAuth.instance.currentUser!
-                              .reauthenticateWithCredential(credential);
-                          FirebaseAuth.instance.currentUser!
-                              .updatePassword(passwordController.text);
-                          await FirebaseManager.changeUserInformation(
-                                  firstNameController.text,
-                                  lastNameController.text)
-                              .then((value) => _showChangePasswordDialog());
-                        } on FirebaseAuthException catch (e) {
+                      if (_hasPressedChangePassword) {
+                        if (passwordController.text ==
+                                confirmPasswordController.text &&
+                            passwordController.text.isNotEmpty &&
+                            oldPasswordController.text.isNotEmpty) {
+                          AuthCredential credential =
+                              EmailAuthProvider.credential(
+                                  email:
+                                      FirebaseAuth.instance.currentUser!.email!,
+                                  password: oldPasswordController.text);
+                          try {
+                            await FirebaseAuth.instance.currentUser!
+                                .reauthenticateWithCredential(credential);
+                            FirebaseAuth.instance.currentUser!
+                                .updatePassword(passwordController.text)
+                                .then((value) => _showChangePasswordDialog());
+                          } on FirebaseAuthException catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: CustomSnackbarContent(
+                                  snackBarMessage:
+                                      AppStrings.oldPasswordNotCorrect),
+                              backgroundColor: AppColors.mainRed,
+                            ));
+                            return;
+                          }
+                        } else {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: CustomSnackbarContent(
                                 snackBarMessage:
-                                    AppStrings.oldPasswordNotCorrect),
+                                    passwordController.text.isNotEmpty
+                                        ? AppStrings.invalidCredentials
+                                        : AppStrings.allFieldsMustBeCompleted),
                             backgroundColor: AppColors.mainRed,
                           ));
                           return;
                         }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: CustomSnackbarContent(
-                              snackBarMessage:
-                                  passwordController.text.isNotEmpty
-                                      ? AppStrings.invalidCredentials
-                                      : AppStrings.allFieldsMustBeCompleted),
-                          backgroundColor: AppColors.mainRed,
-                        ));
-                        return;
-                      }
+                      } else
+                        Navigator.pop(context, shouldRefresh);
                     }),
                 Visibility(
                     visible: _hasPressedChangePassword,
