@@ -76,12 +76,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             }));
   }
 
-  void markAllNotificationsAsRead(List<NotificationModel> userNotifications) {
+  Future<void> markAllNotificationsAsRead(
+      List<NotificationModel> userNotifications) async {
+    List<Map<String, dynamic>> readNotifications = [];
+    List<NotificationModel> localNotifications = [];
+
     for (NotificationModel notification in userNotifications) {
-      if (!notification.opened) {
-        markNotificationAsRead(notification, userNotifications);
-      }
+      readNotifications.add({
+        'id': notification.id,
+        'body': notification.body,
+        'opened': true,
+        'senderEmail': notification.senderEmail,
+      });
+
+      localNotifications.add(NotificationModel(
+          id: notification.id,
+          body: notification.body,
+          senderEmail: notification.senderEmail,
+          opened: true));
     }
+
+    _userStaticData.notifications = localNotifications;
+    ref.read(userStaticDataProvider.notifier).updateUserInfo(_userStaticData);
+
+    // Update Firestore with the entire notifications list
+    await FirebaseManager.updateNotificationsList(readNotifications)
+        .then((value) => setState(() {
+              shouldRefresh = true;
+            }));
   }
 
   @override
