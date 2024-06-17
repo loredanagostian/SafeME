@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -142,7 +145,8 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
             } else if (snapshot.connectionState == ConnectionState.active &&
                 snapshot.hasData) {
               return StreamBuilder(
-                  stream: ChatManager.getMessages(widget.friendAccount.userId),
+                  stream:
+                      ChatManager.getLatestMessage(widget.friendAccount.userId),
                   builder: (context, snapshot2) {
                     if (snapshot2.hasError) {
                       return Text('Error${snapshot2.error}');
@@ -152,33 +156,30 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                       return Center(child: CircularProgressIndicator());
                     }
 
-                    QueryDocumentSnapshot<Object?>? latestMessage;
+                    String latestMessage = "";
+                    bool _isMessageSentByCurrentUser = false;
+                    final latestMessageTimestamp = snapshot2.hasData &&
+                            snapshot2.data?["latestMessage"] != null
+                        ? (snapshot2.data!["latestMessage"]["timestamp"]
+                                as Timestamp)
+                            .toDate()
+                        : null;
+                    if (latestMessageTimestamp != null) {
+                      final now = DateTime.now();
+                      final difference =
+                          now.difference(latestMessageTimestamp).inSeconds;
 
-                    var matchingDocuments =
-                        snapshot2.data!.docs.where((document) {
-                      Map<String, dynamic> docData =
-                          document.data() as Map<String, dynamic>;
-                      return docData["senderId"] ==
-                              widget.friendAccount.userId &&
-                          (docData["timestamp"] as Timestamp).toDate().isAfter(
-                              (DateTime.now())
-                                  .subtract(Duration(minutes: 5))) &&
-                          (docData["timestamp"] as Timestamp)
-                              .toDate()
-                              .isBefore(DateTime.now());
-                    }).toList();
-
-                    if (matchingDocuments.isNotEmpty) {
-                      latestMessage = matchingDocuments.first;
-                    } else {
-                      latestMessage = null;
+                      if (difference <= 20 &&
+                          difference >= 0 &&
+                          snapshot2.data!["latestMessage"]["senderId"] !=
+                              FirebaseAuth.instance.currentUser!.uid) {
+                        latestMessage =
+                            snapshot2.data!["latestMessage"]["message"];
+                      } else {
+                        _isMessageSentByCurrentUser = true;
+                      }
                     }
 
-                    Map<String, dynamic> message = latestMessage != null
-                        ? latestMessage.data() as Map<String, dynamic>
-                        : {};
-
-                    bool isMessageSentByCurrentUser = false;
                     _userInfos = getUserInfos(snapshot.requireData);
 
                     if (_added) {
@@ -295,11 +296,11 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                             textCapitalization: TextCapitalization.sentences,
                             keyboardType: TextInputType.text,
                           )),
-                      message.isNotEmpty
+                      latestMessage.isNotEmpty
                           ? Stack(
                               children: [
                                 Visibility(
-                                  visible: !isMessageSentByCurrentUser,
+                                  visible: !_isMessageSentByCurrentUser,
                                   child: Positioned(
                                       bottom: 85,
                                       left: 15,
@@ -323,7 +324,7 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                                                     ))),
                                 ),
                                 Visibility(
-                                  visible: !isMessageSentByCurrentUser,
+                                  visible: !_isMessageSentByCurrentUser,
                                   child: Positioned(
                                     bottom: 85,
                                     left: 75,
@@ -344,7 +345,7 @@ class _TrackLocationScreenState extends ConsumerState<TrackLocationScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          message["message"],
+                                          latestMessage,
                                           style: AppStyles.hintComponentStyle
                                               .copyWith(
                                             color: AppColors.white,
