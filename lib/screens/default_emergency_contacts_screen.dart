@@ -63,6 +63,7 @@ class _DefaultEmergencyContactsScreenState
                   .updateUserInfo(_userData);
               await FirebaseManager.removeEmergencyContact(friend.userId);
               Navigator.pop(context);
+              setState(() {});
             },
             secondButtonAction: () {
               Navigator.pop(context);

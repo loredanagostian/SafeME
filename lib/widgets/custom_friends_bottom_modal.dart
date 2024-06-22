@@ -40,7 +40,7 @@ class _CustomFriendsBottomModalState
 
                 return CustomListTile(
                   photoUrl: friendItem.imageURL,
-                  title: friendItem.firstName,
+                  title: "${friendItem.firstName} ${friendItem.lastName}",
                   subtitle: friendItem.phoneNumber,
                   buttonText: AppStrings.addButton,
                   button1Action: () {
