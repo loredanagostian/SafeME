@@ -33,7 +33,13 @@ Safe ME este o aplicație mobilă care vine în ajutorul persoanelor care se con
 
 ### Clonarea repository-ului
 
-Se rulează comanda `git clone https://github.com/loredanagostian/SafeME.git` în terminal.
+Se rulează în terminal comanda:
+
+`git clone https://github.com/loredanagostian/SafeME.git`
+
+sau 
+
+`git clone https://gitlab.upt.ro/loredana.gostian/SafeME.git`
 
 ### Configurare
 
@@ -101,6 +107,10 @@ Follow these steps to install and run SafeME on your system.
 2. Use the following command to clone the ProjectName repository:
 
 `git clone https://github.com/loredanagostian/SafeME.git`
+
+or
+
+`git clone https://gitlab.upt.ro/loredana.gostian/SafeME.git`
 
 ### Configuration
 
