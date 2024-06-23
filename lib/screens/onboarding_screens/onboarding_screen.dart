@@ -80,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           CarouselSlider(
             carouselController: carouselController,
