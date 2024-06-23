@@ -125,4 +125,13 @@ class AppStrings {
   static const String invalidCode = "Invalid code";
   static const String typeAMessageHint = "Type a message";
   static const String ok = "Ok";
+  static const String skip = "Skip";
+  static const String onboardingSOS = "Stay safe, no matter the place";
+  static const String onboardingTrack = "Make sure your friends are safe too";
+  static const String onboardingNavigate = "Go to the safest place around you";
+  static const String onboardingChat =
+      "Let your friends know you are there for them";
+  static const String begin = "Begin";
+  static const String finish = "Finish";
+  static const String hasOpenedAppForFirstTime = "hasOpenedAppForFirstTime";
 }
