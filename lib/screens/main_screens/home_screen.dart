@@ -23,6 +23,7 @@ import 'package:safe_me/screens/friends_screens/chat_screen.dart';
 import 'package:safe_me/screens/more_screens/default_emergency_contacts_screen.dart';
 import 'package:safe_me/screens/more_screens/more_screen.dart';
 import 'package:safe_me/screens/main_screens/notifications_screen.dart';
+import 'package:safe_me/screens/onboarding_screens/onboarding_screen.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 import 'package:safe_me/widgets/emergency_member.dart';
@@ -139,9 +140,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.white,
           elevation: 0,
-          title: const Text(
-            AppStrings.appTitle,
-            style: AppStyles.titleStyle,
+          title: Row(
+            children: [
+              const Text(
+                AppStrings.appTitle,
+                style: AppStyles.titleStyle,
+              ),
+              IconButton(
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              OnboardingScreen(isOnboarding: false))),
+                  icon: Icon(
+                    Icons.help_outline,
+                    color: AppColors.lightBlue,
+                    size: 30,
+                  )),
+            ],
           ),
           actions: [
             IconButton(
