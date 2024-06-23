@@ -65,6 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           AppStrings.appTitle,
           style: AppStyles.titleStyle,
         ),
+        titleSpacing: widget.isOnboarding ? AppSizes.smallDistance : -40,
         actions: [
           Visibility(
             visible: currentIndex != 3,
@@ -139,12 +140,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ? AppStrings.begin
                             : AppStrings.finish,
                         onTap: () async {
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          await prefs.setBool(
-                              AppStrings.hasOpenedAppForFirstTime, false);
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => LoginScreen()));
+                          if (widget.isOnboarding) {
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            await prefs.setBool(
+                                AppStrings.hasOpenedAppForFirstTime, false);
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => LoginScreen()));
+                          } else {
+                            Navigator.pop(context);
+                          }
                         }),
                   )
                 ],
