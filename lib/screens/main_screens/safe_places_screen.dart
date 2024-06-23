@@ -213,6 +213,16 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
         });
   }
 
+  void _onLocationUpdate(Position newPosition) {
+    setState(() {
+      currentPosition = LatLng(newPosition.latitude, newPosition.longitude);
+    });
+
+    if (isSelectedDestination && destinationSafePlace != null) {
+      getDirections(destinationSafePlace!.position);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -227,6 +237,11 @@ class _SafePlacesScreenState extends ConsumerState<SafePlacesScreen> {
     // Initialize the position stream with the desired accuracy and distance filter
     positionStream =
         Geolocator.getPositionStream(locationSettings: locationOptions);
+
+    // Listen to the position stream
+    positionStream.listen((Position newPosition) {
+      _onLocationUpdate(newPosition);
+    });
   }
 
   @override
