@@ -6,7 +6,7 @@ import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
-import 'package:safe_me/screens/complete_profile_screen.dart';
+import 'package:safe_me/screens/onboarding_screens/complete_profile_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 
 class VerifyEmail extends StatefulWidget {

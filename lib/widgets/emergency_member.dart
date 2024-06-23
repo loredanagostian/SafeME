@@ -4,7 +4,7 @@ import 'package:safe_me/constants/paths.dart';
 import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/models/account.dart';
-import 'package:safe_me/screens/chat_screen.dart';
+import 'package:safe_me/screens/friends_screens/chat_screen.dart';
 
 class EmergencyMember extends StatelessWidget {
   final Future<Account> emergencyUser;

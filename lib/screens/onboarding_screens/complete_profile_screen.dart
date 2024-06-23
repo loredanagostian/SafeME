@@ -9,7 +9,7 @@ import 'package:safe_me/constants/sizes.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/authentication_manager.dart';
-import 'package:safe_me/screens/verify_phone_number_screen.dart';
+import 'package:safe_me/screens/onboarding_screens/verify_phone_number_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';
 import 'package:safe_me/widgets/custom_textfield.dart';

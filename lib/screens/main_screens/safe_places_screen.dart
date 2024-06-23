@@ -22,7 +22,7 @@ import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/history_event.dart';
 import 'package:safe_me/models/safe_place.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/more_screen.dart';
+import 'package:safe_me/screens/more_screens/more_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_me/widgets/custom_place_bottom_modal.dart';
 import 'package:safe_me/widgets/custom_marker_icon.dart';

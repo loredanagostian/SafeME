@@ -15,7 +15,7 @@ import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/track_location_screen.dart';
+import 'package:safe_me/screens/friends_screens/track_location_screen.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_list_tile.dart';
 import 'package:safe_me/widgets/custom_user_information_modal.dart';

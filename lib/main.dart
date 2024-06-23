@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:safe_me/constants/colors.dart';
 import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/managers/notification_manager.dart';
-import 'package:safe_me/screens/login_screen.dart';
-import 'package:safe_me/screens/main_screen.dart';
+import 'package:safe_me/screens/onboarding_screens/login_screen.dart';
+import 'package:safe_me/screens/main_screens/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -15,7 +15,7 @@ import 'package:safe_me/managers/notification_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/account.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/chat_screen.dart';
+import 'package:safe_me/screens/friends_screens/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TrackLocationScreen extends ConsumerStatefulWidget {

@@ -14,7 +14,7 @@ import 'package:safe_me/managers/authentication_manager.dart';
 import 'package:safe_me/managers/firebase_manager.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/login_screen.dart';
+import 'package:safe_me/screens/onboarding_screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_alert_dialog.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:safe_me/widgets/custom_snackbar.dart';

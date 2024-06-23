@@ -8,9 +8,9 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/add_friend_screen.dart';
-import 'package:safe_me/screens/friends_screen_fragment.dart';
-import 'package:safe_me/screens/more_screen.dart';
+import 'package:safe_me/screens/friends_screens/add_friend_screen.dart';
+import 'package:safe_me/screens/friends_screens/friends_screen_fragment.dart';
+import 'package:safe_me/screens/more_screens/more_screen.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});

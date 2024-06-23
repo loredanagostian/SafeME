@@ -8,12 +8,12 @@ import 'package:safe_me/constants/strings.dart';
 import 'package:safe_me/constants/styles.dart';
 import 'package:safe_me/managers/user_info_provider.dart';
 import 'package:safe_me/models/user_static_data.dart';
-import 'package:safe_me/screens/default_emergency_contacts_screen.dart';
-import 'package:safe_me/screens/default_emergency_sms_screen.dart';
-import 'package:safe_me/screens/default_tracking_sms_screen.dart';
-import 'package:safe_me/screens/edit_profile_screen.dart';
-import 'package:safe_me/screens/history_screen.dart';
-import 'package:safe_me/screens/login_screen.dart';
+import 'package:safe_me/screens/more_screens/default_emergency_contacts_screen.dart';
+import 'package:safe_me/screens/more_screens/default_emergency_sms_screen.dart';
+import 'package:safe_me/screens/more_screens/default_tracking_sms_screen.dart';
+import 'package:safe_me/screens/more_screens/edit_profile_screen.dart';
+import 'package:safe_me/screens/more_screens/history_screen.dart';
+import 'package:safe_me/screens/onboarding_screens/login_screen.dart';
 import 'package:safe_me/widgets/custom_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 

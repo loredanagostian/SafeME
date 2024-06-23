@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:safe_me/screens/friends_screen.dart';
-import 'package:safe_me/screens/home_screen.dart';
-import 'package:safe_me/screens/safe_places_screen.dart';
+import 'package:safe_me/screens/friends_screens/friends_screen.dart';
+import 'package:safe_me/screens/main_screens/home_screen.dart';
+import 'package:safe_me/screens/main_screens/safe_places_screen.dart';
 import 'package:safe_me/widgets/custom_bottom_tab_navigator.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
